@@ -10,7 +10,8 @@ export default {content: [
       },
       fontSize:{
         biggest: '4.5rem',
-        ssm: '0.5rem'
+        ssm: '0.5rem',
+        smm: '0.775rem'
       },
       colors: {
         light_gradient_top: '#c2ffbc',
