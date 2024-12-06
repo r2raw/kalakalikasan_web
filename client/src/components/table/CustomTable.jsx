@@ -11,8 +11,9 @@ import ArrowDropDownSharpIcon from "@mui/icons-material/ArrowDropDownSharp";
 
 import CustomFilter from './filters/CustomFilter';
 import CustomPagination from './pagination/CustomPagination';
+import CustomTableActionItem from './columns/CustomTableActionItem';
 
-function CustomTable({ tableData, column }) {
+function CustomTable({ tableData, column, collapsible_col, actionType }) {
     const columns = useMemo(() => column, []);
     const data = useMemo(() => tableData, []);
 
@@ -48,9 +49,7 @@ function CustomTable({ tableData, column }) {
                                 let classes = 'text-smm lg:text-lg';
                                 if (col.id == 'id') { classes += ' w-6' };
 
-                                if(col.id == 'start_time' || col.id == 'end_time'){
-                                    classes += ' hidden md:table-cell'
-                                }
+                                if (collapsible_col.includes(col.id)) classes += ' hidden md:table-cell';
 
                                 return (
                                     <th key={col.id} {...col.getHeaderProps(col.getSortByToggleProps())} className={classes}>
@@ -85,52 +84,22 @@ function CustomTable({ tableData, column }) {
 
                                     let classes = 'text-smm lg:text-lg';
 
-                                    if(col == 'start_time' || col == 'end_time'){
-                                    classes += ' hidden md:table-cell'
-                                }
+                                    if (collapsible_col.includes(col)) classes += ' hidden md:table-cell';
+                                    {/* if (col == 'start_time' || col == 'end_time') {
+                                        classes += ' hidden md:table-cell'
+                                    } */}
                                     return (
                                         <td key={cell.row.id} {...cell.getCellProps()} className={classes}>
                                             <p>{cell.render("Cell")}</p>
                                         </td>
                                     );
                                 })}
-                                {/* {row.original.id !== 1 && row.original.id !== 2 ? ( */}
+
                                 <td className="text-smm  lg:text-lg ">
                                     <div className='flex flex-col items-end'>
-                                        <button
-                                            className="solid submit fade"
-                                        // onClick={() => {
-                                        //     props.handleOpenEditDepartment(row.original.id);
-                                        // }}
-                                        >
-                                            Edit
-                                        </button>
-                                        {row.original.availability === "Available" ? (
-                                            <button
-                                                className="solid danger fade"
-                                            // onClick={() => {
-                                            //     props.handleOpenDeleteDepartment(row.original.id);
-                                            // }}
-                                            >
-                                                Deactivate
-                                            </button>
-                                        ) : (
-                                            <button
-                                                className="solid primary fade"
-                                            // onClick={() => {
-                                            //     props.handleOpenActivateDepartment(
-                                            //         row.original.id
-                                            //     );
-                                            // }}
-                                            >
-                                                Activate
-                                            </button>
-                                        )}
+                                        {actionType}
                                     </div>
                                 </td>
-                                {/* ) : (
-                                    <td></td>
-                                )} */}
                             </tr>
                         );
                     })}

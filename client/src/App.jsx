@@ -21,6 +21,8 @@ import ManageMaterials from "./components/admin/materials/ManageMaterials";
 import ArchivedMaterials from "./components/admin/materials/ArchivedMaterials";
 import Analytics from "./components/admin/analytics/Analytics";
 import MyProfile from "./components/admin/profile/MyProfile";
+import CrreateOfficer from "./components/admin/accounts/CrreateOfficer";
+import ManageAccountLayout from "./components/admin/accounts/ManageAccountLayout";
 
 const router = createBrowserRouter([
   {
@@ -46,7 +48,12 @@ const router = createBrowserRouter([
       { path: 'application-request', element: <StoreApplication /> },
       { path: 'registered-stores', element: <RegisteredStore /> },
       { path: 'archived-stores', element: <ArchivedStores /> },
-      { path: 'manage-accounts', element: <ManageAccounts /> },
+      {
+        path: 'manage-accounts', element: <ManageAccountLayout />, children: [
+          { index: true, element: <ManageAccounts /> },
+          { path: 'add', element: <CrreateOfficer /> },
+        ]
+      },
       { path: 'archived-accounts', element: <ArchivedAccounts /> },
       { path: 'manage-contents', element: <ManageContents /> },
       { path: 'archived-contents', element: <ArchivedContents /> },

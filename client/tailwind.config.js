@@ -21,6 +21,7 @@ export default {content: [
         dark_gradient_top: '#345e3e',
         light_gradient_bot: '#f0ffee',
         white_fb: '#f2f4f7',
+        blue_btn: '#6788ff',
       },
       boxShadow: {
         top4xl: '0px -10px 100px 90px rgba(240, 255, 238,0.90)'

@@ -63,3 +63,11 @@ h6{
 input{
   @apply bg-transparent outline-none text-2xl w-full px-2 h-12
 }
+
+@layer base {
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+}

@@ -3,7 +3,8 @@ import ScheduleToday from "./ScheduleToday";
 import UpcomingSchedule from "./UpcomingSchedule";
 import MasonryContainer from "./MasonryContainer";
 import TotalUsers from "./TotalUsers";
-
+import DashboardMap from "./DashboardMap";
+import BarangayCollectionSummary from "./BarangayCollectionSummary";
 function Dashboard() {
   return (
     <>
@@ -17,7 +18,10 @@ function Dashboard() {
           <UpcomingSchedule />
           <UpcomingSchedule />
         </MasonryContainer>
-        <div className="flex flex-col"></div>
+        <MasonryContainer>
+          <DashboardMap />
+          <BarangayCollectionSummary />
+        </MasonryContainer>
       </div>
     </>
   );
