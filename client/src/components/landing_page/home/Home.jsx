@@ -7,7 +7,7 @@ function Home() {
     <>
       <div className="grid grid-cols-2 z-10  min-h-full px-10 ">
         <div className="relative">
-          <img className="absolute left-0 -bottom-[16.5rem] w-[90%]" src={phone_hold} />
+          <img className="absolute left-0 -bottom-[2rem] w-[90%]" src={phone_hold} />
         </div>
         <div className=" px-24">
           <h1 className=" text-neutral-50 text-biggest  leading-extra-loose">
