@@ -1,6 +1,7 @@
-import React from "react";
-import { NavLink, Outlet } from "react-router-dom";
+import React, { useEffect } from "react";
+import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import brand_logo from "../assets/images/brand_logo.png";
+import _ from 'lodash';
 import AdminNav from "../components/navigations/AdminNav";
 
 // MATERIAL ICONS
@@ -17,6 +18,7 @@ import AnalyticsSharpIcon from "@mui/icons-material/AnalyticsSharp";
 import CalendarMonthSharpIcon from "@mui/icons-material/CalendarMonthSharp";
 
 import AccountCircleSharpIcon from "@mui/icons-material/AccountCircleSharp";
+import { useSelector } from "react-redux";
 const list_nav = [
   {
     title: "Dashboard",
@@ -105,12 +107,25 @@ const list_nav = [
 ];
 
 function AdminLayout() {
+  const location = useLocation();
+  let currRoute = location.pathname.replace("/admin/", "");
+
+  const navigate = useNavigate();
+
+  const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
+
+  useEffect(() => {
+    if (!isAuthenticated) navigate('/login');
+  }, [isAuthenticated])
+
+  if (!currRoute) currRoute = 'Dashboard';
+  if (currRoute && currRoute.includes('-')) currRoute = currRoute.replace('-', ' ');
   return (
     <div className="flex bg-gradient-to-b from-light_gradient_top to-white min-h-dvh">
       <AdminNav list_nav={list_nav} />
       <main className="h-full w-full ml-[20%] px-4">
         <div className="px-4 py-16 flex justify-between items-center text-dark_font">
-          <h1 className="text-lg md:text-2xl lg:text-4xl">Dashboard</h1>
+          <h1 className="text-lg md:text-2xl lg:text-4xl">{_.startCase(currRoute)}</h1>
           <NavLink to={'my-profile'} className="flex gap-2 items-center">
             <AccountCircleSharpIcon />
             <h4 className="text-sm md:text-lg lg:text-xl">Administrator</h4>

@@ -4,7 +4,14 @@ import AdminNavItem from "./AdminNavItem";
 import LogoutSharpIcon from "@mui/icons-material/LogoutSharp";
 import AdminNavList from "./AdminNavList";
 import { NavLink } from "react-router-dom";
+import { authActions } from "../../store/slices/authSlice";
+import { useDispatch, useSelector } from "react-redux";
 function AdminNav({ list_nav }) {
+  const dispatch = useDispatch();
+  const handleLogout = () => {
+
+    dispatch(authActions.logout());
+  }
   return (
     <aside className="w-1/5 flex flex-col gap-8 py-8 px-4 fixed h-dvh">
       <NavLink to={'./'} className="flex flex-col justify-center items-center gap-2">
@@ -23,7 +30,9 @@ function AdminNav({ list_nav }) {
           <div className="nav-icon">
             <LogoutSharpIcon />
           </div>
-          <h5 className="text-dark_font hidden lg:inline-block">Logout</h5>
+          <button onClick={handleLogout}>
+            <h5 className="text-dark_font hidden lg:inline-block">Logout</h5>
+          </button>
         </button>
       </nav>
     </aside>

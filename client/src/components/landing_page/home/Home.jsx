@@ -6,8 +6,8 @@ function Home() {
   return (
     <>
       <div className="grid grid-cols-2 z-10  min-h-full px-10 ">
-        <div className="relative">
-          <img className="absolute left-0 -bottom-[2rem] w-[90%]" src={phone_hold} />
+        <div className=" h-full">
+          <img className="absolute left-32 bottom-0 w-[40%]" src={phone_hold} />
         </div>
         <div className=" px-24">
           <h1 className=" text-neutral-50 text-biggest  leading-extra-loose">

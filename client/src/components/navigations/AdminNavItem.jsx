@@ -3,17 +3,21 @@ import React, { useState } from "react";
 import ArrowForwardIosSharpIcon from "@mui/icons-material/ArrowForwardIosSharp";
 import { NavLink } from "react-router-dom";
 
-function AdminNavItem({ item }) {
+function AdminNavItem({ item, onItemClick, selectedNav }) {
   const hasChild = !item.url;
 
   const [childItemOpen, setChildItemOpen] = useState(false);
 
   const handleClick = () => {
-    setChildItemOpen(!childItemOpen);
+    // setChildItemOpen(!childItemOpen);
+    if(hasChild) return onItemClick(item);
+
+    onItemClick({title: null})
   };
   let content = (
     <NavLink
       to={item.url}
+      onClick={handleClick}
       className="flex justify-between items-center py-2 w-full"
     >
       <div className="flex gap-2 items-center">
@@ -36,7 +40,7 @@ function AdminNavItem({ item }) {
           </div>
           <div className="nav-icon-arrow relative">
             <ArrowForwardIosSharpIcon />
-            {childItemOpen && (
+            {selectedNav && selectedNav == item.title && (
               <ul className="px-4 flex flex-col gap-2 top-0 bg-light_gradient_top shadow-lg rounded-md ml-6 absolute left-full">
                 {item.children.map((child) => {
                   return (
