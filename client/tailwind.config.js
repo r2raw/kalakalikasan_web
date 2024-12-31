@@ -1,14 +1,15 @@
 /** @type {import('tailwindcss').Config} */
-export default {content: [
+export default {
+  content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
-    extend: { 
+    extend: {
       lineHeight: {
         'extra-loose': '1',
       },
-      fontSize:{
+      fontSize: {
         biggest: '4.5rem',
         ssm: '0.5rem',
         smm: '0.775rem'
@@ -25,12 +26,22 @@ export default {content: [
       },
       boxShadow: {
         top4xl: '0px -10px 100px 90px rgba(240, 255, 238,0.90)'
-      },fontFamily:{
+      }, fontFamily: {
         mono: ["Sometype Mono", 'monospace'],
         primary: ["Inter", 'sans-serif'],
       }
     },
   },
-  plugins: [],
+  plugins: [function ({ addUtilities }) {
+    addUtilities({
+      '.scrollbar-hide': {
+        '-ms-overflow-style': 'none', // IE and Edge
+        'scrollbar-width': 'none',   // Firefox
+      },
+      '.scrollbar-hide::-webkit-scrollbar': {
+        display: 'none',             // Chrome, Safari, and Opera
+      },
+    });
+  },],
 }
 

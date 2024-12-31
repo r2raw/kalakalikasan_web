@@ -18,11 +18,11 @@ function Login() {
 
   }
   return (
-    <div className="min-h-dvh bg-light_gradient_bot grid grid-cols-2 items-center px-60 py-80">
+    <div className="min-h-dvh bg-light_gradient_bot grid lg:grid-cols-2 items-center py-20 lg:px-60 lg:py-80">
       <div className="flex justify-center items-center h-full border-r-2 border-dark_font">
-        <img className="h-60" src={brand_logo} alt="brand logo" />
+        <img className="h-40 lg:h-60" src={brand_logo} alt="brand logo" />
       </div>
-      <div className=" flex flex-col justify-between h-full items-center gap-4 px-40">
+      <div className=" flex flex-col justify-between h-full items-center gap-4 px-10 lg:px-40">
         <h1 className="text-dark_font">Sign In</h1>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full">
           <input className="border border-dark_font rounded-2xl px-4" placeholder="Username" type="text" />

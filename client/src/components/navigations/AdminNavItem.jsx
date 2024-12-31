@@ -2,18 +2,34 @@ import React, { useState } from "react";
 // MATERIAL ICON
 import ArrowForwardIosSharpIcon from "@mui/icons-material/ArrowForwardIosSharp";
 import { NavLink } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { currentRouteActions } from "../../store/slices/currentRouteSlice";
 
-function AdminNavItem({ item, onItemClick, selectedNav }) {
+function AdminNavItem({ item, selectedNav, setSelectedNav }) {
   const hasChild = !item.url;
 
-  const [childItemOpen, setChildItemOpen] = useState(false);
+  const dispatch = useDispatch();
 
   const handleClick = () => {
     // setChildItemOpen(!childItemOpen);
-    if(hasChild) return onItemClick(item);
 
-    onItemClick({title: null})
+    if (!hasChild) {
+      setSelectedNav(null);
+      dispatch(currentRouteActions.selectedRoute(item.title))
+      return;
+    };
+
+    if (item.title != selectedNav) {
+      return setSelectedNav(item.title);
+    }
+
+    setSelectedNav(null);
   };
+
+
+  const handleChildNav = () => {
+    dispatch(currentRouteActions.selectedRoute(item.title))
+  }
   let content = (
     <NavLink
       to={item.url}
@@ -44,7 +60,7 @@ function AdminNavItem({ item, onItemClick, selectedNav }) {
               <ul className="px-4 flex flex-col gap-2 top-0 bg-light_gradient_top shadow-lg rounded-md ml-6 absolute left-full">
                 {item.children.map((child) => {
                   return (
-                    <NavLink to={child.url}>
+                    <NavLink key={child.title} to={child.url} onClick={handleChildNav} >
                       <div className="flex gap-2 items-center">
                         <div className="nav-icon">{child.icon}</div>
                         <h3 className=" text-sm">{child.title}</h3>

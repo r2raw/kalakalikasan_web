@@ -56,6 +56,10 @@ h6{
   @apply shadow-md rounded-md hover:shadow-none bg-white flex items-center justify-center px-2 py-4;
 }
 
+.my-card{
+  @apply shadow-md rounded-md hover:shadow-none
+}
+
 .card table{
   @apply w-full text-left text-light_font;
 }
@@ -70,4 +74,11 @@ input{
     -webkit-appearance: none;
     margin: 0;
   }
+}
+
+.textured-bg{
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-image: linear-gradient(150deg, #c2ffbc, #c2ffbc95, #c2ffbc90, #ffffff97),
+    url(./assets/images/OIP.jpg);
 }

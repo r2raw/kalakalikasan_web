@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import brand_logo from "../assets/images/brand_logo.png";
+import { useDispatch, useSelector } from "react-redux";
 import _ from 'lodash';
 import AdminNav from "../components/navigations/AdminNav";
 
@@ -18,7 +19,8 @@ import AnalyticsSharpIcon from "@mui/icons-material/AnalyticsSharp";
 import CalendarMonthSharpIcon from "@mui/icons-material/CalendarMonthSharp";
 
 import AccountCircleSharpIcon from "@mui/icons-material/AccountCircleSharp";
-import { useSelector } from "react-redux";
+import { currentRouteActions } from "../store/slices/currentRouteSlice";
+import { getURLString } from "../myFunctions/myFunctions";
 const list_nav = [
   {
     title: "Dashboard",
@@ -53,12 +55,12 @@ const list_nav = [
       {
         title: "Manage Accounts",
         icon: <ManageAccountsSharpIcon />,
-        url: "manage-accounts",
+        url: "accounts",
       },
       {
         title: "Archived Accounts",
         icon: <ArchiveSharpIcon />,
-        url: "archived-accounts",
+        url: "accounts/archived",
       },
     ],
   },
@@ -67,14 +69,14 @@ const list_nav = [
     icon: <NewspaperSharpIcon />,
     children: [
       {
-        title: "Manage",
+        title: "Manage Content",
         icon: <SettingsSharpIcon />,
-        url: "manage-contents",
+        url: "contents",
       },
       {
         title: "Archived Contents",
         icon: <ArchiveSharpIcon />,
-        url: "archived-contents",
+        url: "contents/archived",
       },
     ],
   },
@@ -107,31 +109,39 @@ const list_nav = [
 ];
 
 function AdminLayout() {
-  const location = useLocation();
-  let currRoute = location.pathname.replace("/admin/", "");
-
+  const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // const currentLocation = getURLString(location, 2);
 
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
 
   useEffect(() => {
     if (!isAuthenticated) navigate('/login');
-  }, [isAuthenticated])
+  }, [isAuthenticated, navigate])
 
-  if (!currRoute) currRoute = 'Dashboard';
-  if (currRoute && currRoute.includes('-')) currRoute = currRoute.replace('-', ' ');
+  // console.log(currentLocation)
+  // 
+  // if (currentLocation) {
+  //   const newRoute = _.startCase(currentLocation.replace('-', " "));
+    
+  //   // dispatch(currentRouteActions.selectedRoute(newRoute))
+  // }
+
+  const currentRoute = useSelector(state => state.currRoute.title);
   return (
     <div className="flex bg-gradient-to-b from-light_gradient_top to-white min-h-dvh">
       <AdminNav list_nav={list_nav} />
       <main className="h-full w-full ml-[20%] px-4">
         <div className="px-4 py-16 flex justify-between items-center text-dark_font">
-          <h1 className="text-lg md:text-2xl lg:text-4xl">{_.startCase(currRoute)}</h1>
-          <NavLink to={'my-profile'} className="flex gap-2 items-center">
+          <h1 className="text-lg md:text-2xl lg:text-4xl">{currentRoute}</h1>
+          <NavLink to={'my-profile'} onClick={() => { dispatch(currentRouteActions.selectedRoute('My Profile')) }} className="flex gap-2 items-center">
             <AccountCircleSharpIcon />
             <h4 className="text-sm md:text-lg lg:text-xl">Administrator</h4>
           </NavLink>
         </div>
-        <div className=" bg-white_fb min-h-[80dvh] w-full rounded-md shadow-2xl px-4 py-4">
+        <div className=" bg-white_fb min-h-[80dvh] w-full rounded-md shadow-2xl px-4 py-4 mb-8">
           <Outlet />
         </div>
       </main>

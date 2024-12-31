@@ -5,7 +5,7 @@ function ContentContainer({ header }) {
     return (
         <div>
             <h2 className='text-dark_font'>{header}</h2>
-            <div className='grid grid-cols-4 gap-4'>
+            <div className='grid md:grid-cols-3 lg:grid-cols-4 gap-4'>
                 <ContentItem />
                 <ContentItem />
                 <ContentItem />

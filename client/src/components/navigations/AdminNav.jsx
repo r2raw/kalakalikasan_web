@@ -1,11 +1,10 @@
 import React from "react";
 import brand_logo from "../../assets/images/brand_logo.png";
-import AdminNavItem from "./AdminNavItem";
 import LogoutSharpIcon from "@mui/icons-material/LogoutSharp";
 import AdminNavList from "./AdminNavList";
 import { NavLink } from "react-router-dom";
 import { authActions } from "../../store/slices/authSlice";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 function AdminNav({ list_nav }) {
   const dispatch = useDispatch();
   const handleLogout = () => {
@@ -13,7 +12,7 @@ function AdminNav({ list_nav }) {
     dispatch(authActions.logout());
   }
   return (
-    <aside className="w-1/5 flex flex-col gap-8 py-8 px-4 fixed h-dvh">
+    <aside className="w-1/5 flex flex-col gap-8 py-8 px-4 fixed h-dvh z-50">
       <NavLink to={'./'} className="flex flex-col justify-center items-center gap-2">
         <img
           className="w-20 h-20 lg:w-32 md:h-32 xl:w-40 lg:h-40"

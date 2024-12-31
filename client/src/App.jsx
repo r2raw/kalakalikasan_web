@@ -21,8 +21,12 @@ import ManageMaterials from "./components/admin/materials/ManageMaterials";
 import ArchivedMaterials from "./components/admin/materials/ArchivedMaterials";
 import Analytics from "./components/admin/analytics/Analytics";
 import MyProfile from "./components/admin/profile/MyProfile";
-import CrreateOfficer from "./components/admin/accounts/CrreateOfficer";
+import CreateOfficer from "./components/admin/accounts/CreateOfficer";
 import ManageAccountLayout from "./components/admin/accounts/ManageAccountLayout";
+import MyProfileLayout from "./layout/sub_layout/MyProfileLayout";
+import UpdateProfile from "./components/admin/profile/UpdateProfile";
+import ManageContentLayout from "./layout/sub_layout/ManageContentLayout";
+import CreatePosts from "./components/admin/contents/CreatePosts";
 
 const router = createBrowserRouter([
   {
@@ -49,19 +53,25 @@ const router = createBrowserRouter([
       { path: 'registered-stores', element: <RegisteredStore /> },
       { path: 'archived-stores', element: <ArchivedStores /> },
       {
-        path: 'manage-accounts', element: <ManageAccountLayout />, children: [
+        path: 'accounts', element: <ManageAccountLayout />, children: [
           { index: true, element: <ManageAccounts /> },
-          { path: 'add', element: <CrreateOfficer /> },
+          { path: 'add', element: <CreateOfficer /> },
+          { path: 'archived', element: <ArchivedAccounts /> },
         ]
       },
       { path: 'archived-accounts', element: <ArchivedAccounts /> },
-      { path: 'manage-contents', element: <ManageContents /> },
-      { path: 'archived-contents', element: <ArchivedContents /> },
+      {
+        path: 'contents', element: <ManageContentLayout />, children: [
+          { index: true, element: <ManageContents /> },
+          { path: 'add', element: <CreatePosts /> },
+          {path: 'archived', element: <ArchivedContents />},
+        ]
+      },
       { path: 'collection-schedules', element: <CollectionSchedules /> },
       { path: 'manage-materials', element: <ManageMaterials /> },
       { path: 'archived-materials', element: <ArchivedMaterials /> },
       { path: 'analytics', element: <Analytics /> },
-      { path: 'my-profile', element: <MyProfile /> },
+      { path: 'my-profile', element: <MyProfileLayout />, children: [{ index: true, element: <MyProfile /> }, { path: 'update-profile', element: <UpdateProfile /> }] },
     ],
   },
 ]);

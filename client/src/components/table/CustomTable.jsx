@@ -44,15 +44,14 @@ function CustomTable({ tableData, column, collapsible_col, actionType }) {
             <table  {...getTableProps()} className='table-fixed'>
                 <thead>
                     {headerGroups.map((header) => (
-                        <tr key={header.id} {...header.getHeaderGroupProps()}>
+                        <tr {...header.getHeaderGroupProps()} key='table-header-row'>
                             {header.headers.map((col) => {
                                 let classes = 'text-smm lg:text-lg';
-                                if (col.id == 'id') { classes += ' w-6' };
+                                if (col.id == 'id') { classes += ' w-16' };
 
                                 if (collapsible_col.includes(col.id)) classes += ' hidden md:table-cell';
-
                                 return (
-                                    <th key={col.id} {...col.getHeaderProps(col.getSortByToggleProps())} className={classes}>
+                                    <th {...col.getHeaderProps(col.getSortByToggleProps())} key={col.id} className={classes}>
                                         <div className="table-header">
                                             {col.render("Header")}
                                             <span className="sort-indicator">
@@ -78,8 +77,8 @@ function CustomTable({ tableData, column, collapsible_col, actionType }) {
                     {page.map((row) => {
                         prepareRow(row);
                         return (
-                            <tr key={row.id} {...row.getRowProps()}>
-                                {row.cells.map((cell) => {
+                            <tr {...row.getRowProps()} key={row.id}>
+                                {row.cells.map((cell, index) => {
                                     const col = cell.column.id;
 
                                     let classes = 'text-smm lg:text-lg';
@@ -89,7 +88,7 @@ function CustomTable({ tableData, column, collapsible_col, actionType }) {
                                         classes += ' hidden md:table-cell'
                                     } */}
                                     return (
-                                        <td key={cell.row.id} {...cell.getCellProps()} className={classes}>
+                                        <td {...cell.getCellProps()} key={cell.column.id} className={classes}>
                                             <p>{cell.render("Cell")}</p>
                                         </td>
                                     );
