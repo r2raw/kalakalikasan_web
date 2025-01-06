@@ -33,7 +33,7 @@ function IndexLayout() {
       }`}
     >
       <LandingNav currRoute={currRoute} />
-      <main className=" pt-44">
+      <main>
         <Outlet />
       </main>
     </div>

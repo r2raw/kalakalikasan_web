@@ -27,6 +27,13 @@ import MyProfileLayout from "./layout/sub_layout/MyProfileLayout";
 import UpdateProfile from "./components/admin/profile/UpdateProfile";
 import ManageContentLayout from "./layout/sub_layout/ManageContentLayout";
 import CreatePosts from "./components/admin/contents/CreatePosts";
+import MaterialLayout from "./layout/sub_layout/MaterialLayout";
+import AddMaterials from "./components/admin/materials/AddMaterials";
+import StoresLayout from "./layout/sub_layout/StoresLayout";
+import StoreApplicationLayout from "./layout/sub_layout/StoreApplicationLayout";
+import ViewStoreApplication from "./components/admin/stores/ViewStoreApplication";
+import ViewStoreApplicationLayout from "./layout/sub_layout/ViewStoreApplicationLayout";
+import ViewDti from "./components/admin/stores/ViewDti";
 
 const router = createBrowserRouter([
   {
@@ -49,9 +56,21 @@ const router = createBrowserRouter([
     element: <AdminLayout />,
     children: [
       { index: true, element: <Dashboard /> },
-      { path: 'application-request', element: <StoreApplication /> },
-      { path: 'registered-stores', element: <RegisteredStore /> },
-      { path: 'archived-stores', element: <ArchivedStores /> },
+      {
+        path: 'stores', element: <StoresLayout />, children: [
+          { index: true, element: <RegisteredStore /> },
+          {
+            path: 'application-request', element: <StoreApplicationLayout />, children: [
+              { index: true, element: <StoreApplication /> },
+              { path: ':id', element: <ViewStoreApplicationLayout />, children:[
+                {index: true, element: <ViewStoreApplication />},
+                {path: 'dti', element: <ViewDti />},
+              ] }
+            ]
+          },
+          { path: 'archived', element: <ArchivedStores /> },
+        ]
+      },
       {
         path: 'accounts', element: <ManageAccountLayout />, children: [
           { index: true, element: <ManageAccounts /> },
@@ -64,12 +83,17 @@ const router = createBrowserRouter([
         path: 'contents', element: <ManageContentLayout />, children: [
           { index: true, element: <ManageContents /> },
           { path: 'add', element: <CreatePosts /> },
-          {path: 'archived', element: <ArchivedContents />},
+          { path: 'archived', element: <ArchivedContents /> },
         ]
       },
       { path: 'collection-schedules', element: <CollectionSchedules /> },
-      { path: 'manage-materials', element: <ManageMaterials /> },
-      { path: 'archived-materials', element: <ArchivedMaterials /> },
+      {
+        path: 'materials', element: <MaterialLayout />, children: [
+          { index: true, element: <ManageMaterials /> },
+          { path: 'archived', element: <ArchivedMaterials /> },
+          { path: 'add', element: <AddMaterials /> }
+        ]
+      },
       { path: 'analytics', element: <Analytics /> },
       { path: 'my-profile', element: <MyProfileLayout />, children: [{ index: true, element: <MyProfile /> }, { path: 'update-profile', element: <UpdateProfile /> }] },
     ],

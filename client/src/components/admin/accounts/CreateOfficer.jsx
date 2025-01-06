@@ -2,15 +2,19 @@
 import ArrowBackSharpIcon from '@mui/icons-material/ArrowBackSharp';
 import { NavLink, useNavigate } from 'react-router-dom';
 import FormInput from '../../models/FormInput';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { imageChangeHandler, imageChangingEffect } from '../../../myFunctions/myFunctions';
+import Modal from '../../models/ui/Modal';
 
 function CrreateOfficer() {
     const navigate = useNavigate();
     const [image, setImage] = useState();
+    const dialog = useRef(null);
     const handleSubmit = (e) => {
         e.preventDefault();
-        navigate('../');
+        dialog.current.open();
+
+        // navigate('../');
 
     }
 
@@ -34,11 +38,12 @@ function CrreateOfficer() {
             {preview.map((pic) => <img key={pic} src={pic} alt='user-img' className='h-full w-full rounded-md' />)}
         </div>;
 
-  
+
     }
 
     return (
         <>
+            <Modal ref={dialog} />
             <div>
                 <NavLink to='../'>
                     <ArrowBackSharpIcon />

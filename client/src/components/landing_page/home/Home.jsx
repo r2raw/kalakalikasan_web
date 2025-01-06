@@ -5,7 +5,7 @@ import phone_hold from "../../../assets/images/phone_hold.png";
 function Home() {
   return (
     <>
-      <div className="grid grid-cols-2 z-10  min-h-full px-10 ">
+      <div className="grid grid-cols-2 z-10  min-h-full px-10 pt-44">
         <div className=" h-full">
           <img className="absolute left-32 bottom-0 w-[40%]" src={phone_hold} />
         </div>

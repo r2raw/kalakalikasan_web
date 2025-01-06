@@ -8,7 +8,6 @@ const currentRouteSlice = createSlice({
     reducers: {
         selectedRoute(state, action){
             state.title = action.payload;
-            console.log(action.payload)
         },
     }
 });

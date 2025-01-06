@@ -32,19 +32,19 @@ const list_nav = [
     icon: <StoreSharpIcon />,
     children: [
       {
-        title: "Apllication Request",
-        icon: <AddBusinessSharpIcon />,
-        url: "application-request",
-      },
-      {
         title: "Registered Stores",
         icon: <StoreSharpIcon />,
-        url: "registered-stores",
+        url: "stores",
+      },
+      {
+        title: "Apllication Request",
+        icon: <AddBusinessSharpIcon />,
+        url: "stores/application-request",
       },
       {
         title: "Archived Stores",
         icon: <ArchiveSharpIcon />,
-        url: "archived-stores",
+        url: "stores/archived",
       },
     ],
   },
@@ -92,12 +92,12 @@ const list_nav = [
       {
         title: "Manage",
         icon: <SettingsSharpIcon />,
-        url: "manage-materials",
+        url: "materials",
       },
       {
         title: "Archive",
         icon: <ArchiveSharpIcon />,
-        url: "archived-materials",
+        url: "materials/archived",
       },
     ],
   },

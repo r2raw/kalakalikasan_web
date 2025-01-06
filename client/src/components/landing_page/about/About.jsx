@@ -5,7 +5,7 @@ import LandingLightContainer from "../../models/LandingLightContainer";
 
 function About() {
   return (
-    <div>
+    <div className="pt-44">
       <PageHeader textHeader={"Welcome to KalaKalikasan"} aboutPage />
       <LandingLightContainer >
         <img className=" mx-auto" src={about_phone} alt="phone hold" />

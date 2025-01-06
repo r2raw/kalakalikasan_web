@@ -1,10 +1,11 @@
 import React from 'react'
 import MaterialsContainer from './MaterialsContainer'
+import { Link } from 'react-router-dom'
 
 function ManageMaterials() {
   return (
     <div className='flex flex-col gap-4'>
-        <button className='bg-blue_btn self-end text-white px-4 py-2 rounded-xl'>Create materials</button>
+        <Link to='add' className='bg-blue_btn self-end text-white px-4 py-2 rounded-xl'>Create materials</Link>
       <div className='card'>
         <div className='px-8 flex-col w-full '>
           <div className='flex gap-4 mb-4'>

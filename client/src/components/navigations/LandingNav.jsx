@@ -6,7 +6,7 @@ function LandingNav({ currRoute }) {
   let headerClass = "";
 
   if (currRoute !== "") {
-    headerClass = "bg-light_gradient_bot drop-shadow-lg";
+    headerClass = "bg-light_gradient_bot";
   }
   return (
     <AnimatePresence>

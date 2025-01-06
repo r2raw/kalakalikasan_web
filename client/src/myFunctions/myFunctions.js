@@ -1,3 +1,4 @@
+import { useDispatch } from "react-redux";
 import { useLocation } from "react-router-dom";
 
 export const getURLString = (location, indexPos) => {
@@ -14,7 +15,7 @@ export const getURLString = (location, indexPos) => {
 }
 
 
-export const imageChangeHandler = (e, setImage)=>{
+export const imageChangeHandler = (e, setImage) => {
     if (e.target.files && e.target.files.length > 0) {
         const file = e.target.files;
         setImage(() => file);
@@ -39,5 +40,33 @@ export const imageChangingEffect = (image, setPreview) => {
         return () => {
             URL.revokeObjectURL(objectUrl[i]);
         };
+    }
+}
+
+
+
+export const multiImageChangingEffect = (image) => {
+
+
+    if (!image || image.length == 0) return;
+
+    let tmp = [];
+    for (let i = 0; i < image.length; i++) {
+        tmp.push(URL.createObjectURL(image[i]));
+    }
+
+
+    const objectUrl = tmp;
+    // setPreviews((prev)=>[...prev,objectUrl]);
+
+    return objectUrl;
+}
+
+export const multiImageChangeHandler = (e, setImages) => {
+    if (e.target.files && e.target.files.length > 0) {
+        const file = e.target.files;
+        setImages((prevImage) => [...prevImage, file]);
+    } else {
+        setImages(null);
     }
 }

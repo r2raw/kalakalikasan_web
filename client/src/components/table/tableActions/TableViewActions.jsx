@@ -1,8 +1,8 @@
 import React from 'react'
 
-function TableViewActions() {
+function TableViewActions({...props}) {
   return (
-    <button>View</button>
+    <button {...props}>View</button>
   )
 }
 

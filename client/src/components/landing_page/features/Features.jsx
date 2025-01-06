@@ -3,7 +3,7 @@ import PageHeader from '../PageHeader'
 
 function Features() {
   return (
-    <div><PageHeader textHeader={'App Features'} /></div>
+    <div className='pt-44'><PageHeader textHeader={'App Features'} /></div>
   )
 }
 
