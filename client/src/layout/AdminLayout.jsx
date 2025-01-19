@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { NavLink, Outlet, redirect, useLocation, useNavigate } from "react-router-dom";
 import brand_logo from "../assets/images/brand_logo.png";
 import { useDispatch, useSelector } from "react-redux";
 import _ from 'lodash';
@@ -21,6 +21,10 @@ import CalendarMonthSharpIcon from "@mui/icons-material/CalendarMonthSharp";
 import AccountCircleSharpIcon from "@mui/icons-material/AccountCircleSharp";
 import { currentRouteActions } from "../store/slices/currentRouteSlice";
 import { getURLString } from "../myFunctions/myFunctions";
+import { authActions } from "../store/slices/authSlice";
+import { useQuery } from "@tanstack/react-query";
+import { fetchUserData } from "../util/http";
+import { dateFormatter, dbDateFormatter } from "../util/formatter";
 const list_nav = [
   {
     title: "Dashboard",
@@ -113,32 +117,58 @@ function AdminLayout() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // const currentLocation = getURLString(location, 2);
-
-  const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
+  const userId = localStorage.getItem('id');
 
   useEffect(() => {
-    if (!isAuthenticated) navigate('/login');
-  }, [isAuthenticated, navigate])
+    const isLoggedIn =userId;
+    if (!isLoggedIn) {
+      return navigate('/login');
+    }
+  }, [navigate, userId])
 
-  // console.log(currentLocation)
-  // 
-  // if (currentLocation) {
-  //   const newRoute = _.startCase(currentLocation.replace('-', " "));
+
+  const {data, isPending, isError, error}  = useQuery({
+    queryKey: ['user', {id: userId}],
+    queryFn: ({signal})=>fetchUserData({signal, id:userId }),
+
+  })
+
+
+  let currentRoute = getURLString(location, 2);
+
+
+  if(!currentRoute){
+    currentRoute = 'Dashboard'
+  }
+
+  if(currentRoute){
+    currentRoute = _.startCase(currentRoute.replace('-', ' '))
+  }
+  let nameHeader = 'Administrator'
+
+  if(isPending){
+    nameHeader = 'Loading...';
+  }
+
+  if(isError){
+    nameHeader =  error.info?.errors[0] || 'Error loading admin name'
+  }
+
+  if(data){
+
+    const {firstname, lastname} = data;
     
-  //   // dispatch(currentRouteActions.selectedRoute(newRoute))
-  // }
-
-  const currentRoute = useSelector(state => state.currRoute.title);
+    nameHeader = _.startCase(`${firstname} ${lastname}`)
+  }
   return (
     <div className="flex bg-gradient-to-b from-light_gradient_top to-white min-h-dvh">
       <AdminNav list_nav={list_nav} />
       <main className="h-full w-full ml-[20%] px-4">
         <div className="px-4 py-16 flex justify-between items-center text-dark_font">
           <h1 className="text-lg md:text-2xl lg:text-4xl">{currentRoute}</h1>
-          <NavLink to={'my-profile'} onClick={() => { dispatch(currentRouteActions.selectedRoute('My Profile')) }} className="flex gap-2 items-center">
+          <NavLink to={'my-profile'}   className="flex gap-2 items-center">
             <AccountCircleSharpIcon />
-            <h4 className="text-sm md:text-lg lg:text-xl">Administrator</h4>
+            <h4 className="text-sm md:text-lg lg:text-xl">{nameHeader}</h4>
           </NavLink>
         </div>
         <div className=" bg-white_fb min-h-[80dvh] w-full rounded-md shadow-2xl px-4 py-4 mb-8">

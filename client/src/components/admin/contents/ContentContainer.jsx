@@ -1,19 +1,12 @@
 import React from 'react'
 import ContentItem from './ContentItem'
 
-function ContentContainer({ header }) {
+function ContentContainer({ header, data }) {
     return (
         <div>
             <h2 className='text-dark_font'>{header}</h2>
             <div className='grid md:grid-cols-3 lg:grid-cols-4 gap-4'>
-                <ContentItem />
-                <ContentItem />
-                <ContentItem />
-                <ContentItem />
-                <ContentItem />
-                <ContentItem />
-                <ContentItem />
-                <ContentItem />
+            {data.map(item => <ContentItem key={item.id} data={item} />)}
             </div>
         </div>
     )

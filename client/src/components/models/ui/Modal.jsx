@@ -1,49 +1,48 @@
-import React, { useImperativeHandle, forwardRef, useRef } from 'react'
+import React, { useImperativeHandle, forwardRef, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import CloseSharpIcon from '@mui/icons-material/CloseSharp';
-import CheckCircleOutlineSharpIcon from '@mui/icons-material/CheckCircleOutlineSharp';
 
 
-const Modal = forwardRef(function Modal({ formAction, ...props }, ref) {
+const Modal = forwardRef(function Modal({ children, onClose, ...props }, ref) {
 
     const dialogRef = useRef(null);
     useImperativeHandle(ref, () => {
         return {
             open() {
                 dialogRef.current.showModal();
-            },
+            },close(){
+                dialogRef.current.close();
+            }
         }
     });
 
-    const closeDialog = () => {
-        if (dialogRef.current) {
-            dialogRef.current.close();
-            console.log('DIALOG CLOSED');
-        }
-    };
+    // const closeDialog = () => {
+    //     if(onClose){
+    //         onClose()
+    //     }
+    //     if (dialogRef.current) {
+    //         dialogRef.current.close();
+    //     }
 
-    let dialogActions = <button className=' bg-dark_font text-white rounded-md px-8 py-2 text-2xl'>OK</button>
+    // };
 
-    if(formAction){
-        dialogActions = formAction
-    }
-
+    // useEffect(() => {
+    //     // Using useEffect to sync the Modal component with the DOM Dialog API
+    //     // This code will open the native <dialog> via it's built-in API whenever the <Modal> component is rendered
+    //     const modal = dialogRef.current;
+    //     modal.showModal();
+    
+    //     return () => {
+    //       modal.close(); // needed to avoid error being thrown
+    //     };
+    //   }, []);
 
     return (
 
         createPortal(
-            <dialog className=' px-4 py-8 rounded-md shadow-xl' ref={dialogRef} onClose={closeDialog}>
-                <button className='absolute text-dark_font top-2 right-2' onClick={closeDialog}><CloseSharpIcon fontSize='large' /></button>
-                <div className='flex mb-8 items-center gap-2'>
-                    <CheckCircleOutlineSharpIcon  fontSize='large' />
-                    <h2>Success</h2>
-                </div>
-                <p className=' max-w-[36rem] text-lg'>
-                    Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolorum, eaque.
-                </p>
-                <form method='dialog' className='mt-8 flex justify-end'>
-                    {dialogActions}
-                </form>
+            <dialog className=' px-4 py-8 rounded-md shadow-xl' ref={dialogRef} onClose={onClose}>
+                <button className='absolute text-dark_font top-2 right-2 rounded-full p-1 hover:bg-slate-200' onClick={onClose}><CloseSharpIcon fontSize='large' /></button>
+                {children}
             </dialog>, document.getElementById('modal')
         )
     )

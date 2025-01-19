@@ -34,7 +34,7 @@ function AdminNavItem({ item, selectedNav, setSelectedNav }) {
     <NavLink
       to={item.url}
       onClick={handleClick}
-      className="flex justify-between items-center py-2 w-full"
+      className="flex justify-between items-center py-2 w-full px-4"
     >
       <div className="flex gap-2 items-center">
         <div className="nav-icon">{item.icon}</div>
@@ -48,7 +48,7 @@ function AdminNavItem({ item, selectedNav, setSelectedNav }) {
       <>
         <button
           onClick={handleClick}
-          className="flex justify-between items-center py-2 w-full"
+          className="flex justify-between items-center py-2 w-full px-4"
         >
           <div className="flex gap-2 items-center">
             <div className="nav-icon">{item.icon}</div>

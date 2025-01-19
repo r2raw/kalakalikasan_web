@@ -1,8 +1,8 @@
 import React from 'react'
 
-function TableRestoreActions() {
+function TableRestoreActions({id, onRestore, props}) {
   return (
-    <button>Restore</button>
+    <button {...props} onClick={()=>{onRestore(id)}}>Restore</button>
   )
 }
 

@@ -8,13 +8,13 @@ function StoreApplication() {
 
   const navigate = useNavigate();
 
-  const handleViewClick = ()=>{
-    navigate('./asd')
+  const handleViewClick = (id)=>{
+    navigate('./' + id)
   }
   return (
     <div className='flex gap-8 flex-col'>
       <h2 className='text-dark_font'>Application Requests</h2>
-      <CustomTable tableData={DUMMY_STORES} column={storeColumns} collapsible_col={[]} actionType={<TableViewActions onClick={handleViewClick} />} />
+      <CustomTable tableData={DUMMY_STORES} column={storeColumns} collapsible_col={[]} actionType='view' onView={handleViewClick} />
     </div>
   )
 }

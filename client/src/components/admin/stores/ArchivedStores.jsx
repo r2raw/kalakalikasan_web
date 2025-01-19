@@ -6,7 +6,7 @@ import TableRestoreActions from '../../table/tableActions/TableRestoreActions'
 function ArchivedStores() {
   return (
       <>
-        <CustomTable tableData={DUMMY_STORES} column={storeColumns} collapsible_col={[]} actionType={<TableRestoreActions />} />
+        <CustomTable tableData={DUMMY_STORES} column={storeColumns} collapsible_col={[]} actionType='restore' onRestore={(id)=>{console.log('restore ' + id)}} />
       </>
   )
 }

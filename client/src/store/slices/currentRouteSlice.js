@@ -15,3 +15,5 @@ const currentRouteSlice = createSlice({
 export const currentRouteActions = currentRouteSlice.actions;
 
 export default currentRouteSlice.reducer;
+
+// not used yet

@@ -1,7 +1,53 @@
-POST http://localhost:8080/users
+POST http://localhost:8080/register
 Content-Type: application/json
 
 {
-    "username": "r2ra1w",
-    "password": "admin12"
+    "username": "admin",
+    "password": "admin",
+    "email": "admin@gmail.com",
+    "role": "admin",
+    "mobile_num": "09264093116",
+    "firstname": "admin", 
+    "lastname": "admin", 
+    "middlename": null,
+    "birthdate": "07/17/2001",
+    "sex":  "male",
+    "zip": "1126", 
+    "street": "Kalayaan A st.", 
+    "barangay": "Batasan Hills",
+    "city": "Quezon City",
+    "created_by": null
 }
+
+# PATCH http://localhost:8080/deactivate-user
+#  Content-Type: application/json
+
+# {
+#     "username": "admin",
+#     "password": "admin",
+#     "email": "admin@gmail.com",
+#     "role": "admin",
+#     "mobile_num": "09264093116",
+#     "firstname": "admin", 
+#     "lastname": "admin", 
+#     "middlename": null,
+#     "birthdate": "07/17/2001",
+#     "sex":  "male",
+#     "zip": "1126", 
+#     "street": "Kalayaan A st.", 
+#     "barangay": "Batasan Hills",
+#     "city": "Quezon City"
+# }
+
+##login
+
+# POST http://localhost:8080/login
+# Content-Type: application/json
+
+# {
+#     "username": "admin",
+#     "password": "admin"
+# }
+
+
+# GET http://localhost:8080/activeUsers

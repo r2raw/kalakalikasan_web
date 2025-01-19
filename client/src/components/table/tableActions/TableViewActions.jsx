@@ -1,8 +1,9 @@
 import React from 'react'
 
-function TableViewActions({...props}) {
+function TableViewActions({ onView, id, ...props}) {
+
   return (
-    <button {...props}>View</button>
+    <button {...props} onClick={()=>{onView(id)}}>View</button>
   )
 }
 

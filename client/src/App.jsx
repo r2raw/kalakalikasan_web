@@ -34,7 +34,10 @@ import StoreApplicationLayout from "./layout/sub_layout/StoreApplicationLayout";
 import ViewStoreApplication from "./components/admin/stores/ViewStoreApplication";
 import ViewStoreApplicationLayout from "./layout/sub_layout/ViewStoreApplicationLayout";
 import ViewDti from "./components/admin/stores/ViewDti";
+import { QueryClientProvider } from "@tanstack/react-query";
 
+import { queryClient } from "./util/http";
+import EditOfficer from "./components/admin/accounts/EditOfficer";
 const router = createBrowserRouter([
   {
     path: "/",
@@ -62,10 +65,12 @@ const router = createBrowserRouter([
           {
             path: 'application-request', element: <StoreApplicationLayout />, children: [
               { index: true, element: <StoreApplication /> },
-              { path: ':id', element: <ViewStoreApplicationLayout />, children:[
-                {index: true, element: <ViewStoreApplication />},
-                {path: 'dti', element: <ViewDti />},
-              ] }
+              {
+                path: ':id', element: <ViewStoreApplicationLayout />, children: [
+                  { index: true, element: <ViewStoreApplication /> },
+                  { path: 'dti', element: <ViewDti /> },
+                ]
+              }
             ]
           },
           { path: 'archived', element: <ArchivedStores /> },
@@ -76,6 +81,7 @@ const router = createBrowserRouter([
           { index: true, element: <ManageAccounts /> },
           { path: 'add', element: <CreateOfficer /> },
           { path: 'archived', element: <ArchivedAccounts /> },
+          { path: 'edit/:id', element: <EditOfficer /> },
         ]
       },
       { path: 'archived-accounts', element: <ArchivedAccounts /> },
@@ -101,7 +107,7 @@ const router = createBrowserRouter([
 ]);
 
 function App() {
-  return <RouterProvider router={router} />;
+  return <QueryClientProvider client={queryClient}><RouterProvider router={router} /></QueryClientProvider>;
 }
 
 export default App;
