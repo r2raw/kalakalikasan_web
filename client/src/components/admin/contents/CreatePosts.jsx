@@ -1,7 +1,7 @@
 
 import FormInput from '../../models/FormInput'
 import CustomTextArea from '../../models/CustomTextArea'
-import {  useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { useRef, useState } from 'react';
 import { uid } from 'uid';
 
@@ -12,6 +12,7 @@ import Modal from '../../models/ui/Modal';
 import DoneSharpIcon from '@mui/icons-material/DoneSharp';
 import { useNavigate } from 'react-router-dom';
 import ErrorBlock from '../../models/ErrorBlock'
+import { contentFormValidation, isObjEmpty } from '../../../util/validations';
 
 function CreatePosts() {
   const [isDragging, setIsDragging] = useState();
@@ -19,7 +20,7 @@ function CreatePosts() {
   const navigate = useNavigate()
   const dialog = useRef(null);
   const [postData, setPostData] = useState({ title: '', description: '', type: '', medias: [] })
-
+  const [formError, setFormError] = useState({});
   const { mutate, isPending, isError, error } = useMutation(
     {
       mutationFn: createPost,
@@ -54,7 +55,7 @@ function CreatePosts() {
 
       if (!postData.medias.some((e) => e.name === files[i].name)) {
         const imgId = uid()
-        
+
         const fileObj = {
           id: imgId,
           name: files[i].name,
@@ -125,7 +126,7 @@ function CreatePosts() {
 
     setPostData(prev => {
       const newMedia = prev.medias.filter(file => file.id !== id)
-      return {...prev, medias: newMedia}
+      return { ...prev, medias: newMedia }
     })
 
   };
@@ -134,6 +135,13 @@ function CreatePosts() {
     e.preventDefault();
     // dialog.current.open();
 
+    const errorFormObj = contentFormValidation(postData);
+
+    const isFormValid = isObjEmpty(errorFormObj);
+
+    if (!isFormValid) {
+      return setFormError(errorFormObj)
+    }
     const formData = new FormData();
 
     formData.append('description', postData.description)
@@ -192,16 +200,19 @@ function CreatePosts() {
       <form className='my-card bg-white grid gap-4 px-8 py-8' onSubmit={handleSubmit}>
         <h2 className='text-dark_font'>Create post</h2>
         <div className='grid gap-8'>
-          <FormInput type='text' placeholderName='Title' onChange={handleChange} name='title' val={postData.title} />
-          <CustomTextArea placeholderName='Description' onChange={handleChange} name='description' val={postData.description} />
-          <div className='relative  shadow-md h-10 text-light_font'>
-            <select name='type' onChange={handleChange} className='  h-full  w-full outline-none'>
-              <option value=''></option>
-              <option value='news & articles'>News & Articles</option>
-              <option value='announcements'>Announcements</option>
-              <option value='guides'>Guides</option>
-            </select>
-            <label className={`pointer-events-none absolute left-2 -top-1/2 duration-300 ${selectionPlaceholder}`}>Select content type...</label>
+          <FormInput type='text' placeholderName='Title' onChange={handleChange} name='title' val={postData.title} error={formError.title} />
+          <CustomTextArea placeholderName='Description' onChange={handleChange} name='description' val={postData.description} error={formError.description} />
+          <div>
+            <div className='relative  shadow-md h-10 text-light_font'>
+              <select name='type' onChange={handleChange} className='  h-full  w-full outline-none'>
+                <option value=''></option>
+                <option value='news & articles'>News & Articles</option>
+                <option value='announcements'>Announcements</option>
+                <option value='guides'>Guides</option>
+              </select>
+              <label className={`pointer-events-none absolute left-2 -top-1/2 duration-300 ${selectionPlaceholder}`}>Select content type...</label>
+            </div>
+            {formError.type && <p className='text-red-500 px-2'>{formError.type}</p>}
           </div>
           <div className='w-full border-dashed border-2 min-h-40 rounded-md border-dark_font select-none flex justify-center items-center cursor-pointer'
             onClick={selectFile}

@@ -34,7 +34,7 @@ function AdminNavItem({ item, selectedNav, setSelectedNav }) {
     <NavLink
       to={item.url}
       onClick={handleClick}
-      className="flex justify-between items-center py-2 w-full px-4"
+      className={({isActive})=>!isActive ? "flex justify-between items-center py-2 w-full px-4" : "flex justify-between items-center py-2 w-full px-4 text-white bg-dark_font"} end
     >
       <div className="flex gap-2 items-center">
         <div className="nav-icon">{item.icon}</div>
@@ -43,6 +43,13 @@ function AdminNavItem({ item, selectedNav, setSelectedNav }) {
     </NavLink>
   );
 
+  const handleChildNavActive = ({isActive})=>{
+    if( isActive){
+      return "flex justify-between items-center py-2 w-full px-4 text-white bg-dark_font"
+    }
+
+    return "flex justify-between items-center py-2 w-full px-4"
+  }
   if (hasChild) {
     content = (
       <>
@@ -60,7 +67,7 @@ function AdminNavItem({ item, selectedNav, setSelectedNav }) {
               <ul className="px-4 flex flex-col gap-2 top-0 bg-light_gradient_top shadow-lg rounded-md ml-6 absolute left-full">
                 {item.children.map((child) => {
                   return (
-                    <NavLink key={child.title} to={child.url} onClick={handleChildNav} >
+                    <NavLink key={child.title} to={child.url} onClick={handleChildNav} className={handleChildNavActive} end >
                       <div className="flex gap-2 items-center">
                         <div className="nav-icon">{child.icon}</div>
                         <h3 className=" text-sm">{child.title}</h3>

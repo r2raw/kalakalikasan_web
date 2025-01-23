@@ -15,6 +15,7 @@ import { usersAction } from '../../../store/slices/usersSlice';
 import { authActions } from '../../../store/slices/authSlice';
 import DoneSharpIcon from '@mui/icons-material/DoneSharp';
 import { titleCase } from "title-case";
+import { accountFormValidation, isObjEmpty } from '../../../util/validations';
 function EditOfficer() {
 
     const dispatch = useDispatch();
@@ -24,6 +25,7 @@ function EditOfficer() {
     const [image, setImage] = useState();
     const dialog = useRef(null);
 
+    const [formErrors, setFormErrors] = useState({});
     const userSelector = useSelector((state) => state.users);
     const formSelector = userSelector.formData
 
@@ -44,23 +46,18 @@ function EditOfficer() {
     })
 
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        // dialog.current.open();
-
-        const formData = new FormData(e.target);
-        let data = Object.fromEntries(formData);
-        data = { ...data, password: '123', role: 'officer', created_by: localStorage.getItem('id') };
-
-        mutate({ data })
-
-
-    }
 
     const handleEdit = (e) => {
         e.preventDefault();
-        console.log('ditin')
         // dialog.current.open();
+
+        const formErrorObj = accountFormValidation(formSelector);
+
+        const isFormValid = isObjEmpty(formErrorObj);
+
+        if (!isFormValid) {
+            return setFormErrors(formErrorObj)
+        }
 
         const formData = new FormData(e.target);
         let data = Object.fromEntries(formData);
@@ -88,7 +85,7 @@ function EditOfficer() {
         dispatch(usersAction.handleFormData({ [name]: value }))
     }
 
-    
+
     const handleModalClose = () => {
         navigate('../');
 
@@ -109,10 +106,10 @@ function EditOfficer() {
 
     useEffect(() => {
         if (data) {
-            const { 
-                firstname, 
-                middlename, 
-                lastname, 
+            const {
+                firstname,
+                middlename,
+                lastname,
                 street,
                 birthdate,
                 mobile_num,
@@ -139,7 +136,7 @@ function EditOfficer() {
 
     let content =
         <div className='card px-4'>
-            <form className='flex flex-col gap-4 w-full px-8 py-8' encType="multipart/form-data" onSubmit={!id ? handleSubmit : handleEdit}>
+            <form className='flex flex-col gap-4 w-full px-8 py-8' encType="multipart/form-data" onSubmit={ handleEdit}>
                 <div className='flex flex-col md:flex-row gap-4'>
                     <div className='flex flex-col'>
                         {imageContent}
@@ -153,31 +150,34 @@ function EditOfficer() {
                         <label htmlFor='officer-img' className='text-center cursor-pointer bg-dark_font text-white px-2 py-1 rounded-md shadow-md hover:shadow-none'>Upload photo</label>
                     </div>
                     <div className='flex flex-col gap-4 w-full'>
-                        <FormInput placeholderName={'First Name'} name='firstname' value={titleCase(formSelector.firstname) || ''} type='text' onChange={handleInputChange} />
+                        <FormInput placeholderName={'First Name'} name='firstname' value={titleCase(formSelector.firstname) || ''} type='text' onChange={handleInputChange} error={formErrors.firstname} />
                         <FormInput placeholderName={'Middle Name'} name='middlename' value={titleCase(formSelector.middlename) || ''} type='text' onChange={handleInputChange} />
-                        <FormInput placeholderName={'Last Name'} name='lastname' value={titleCase(formSelector.lastname) || ''} type='text' onChange={handleInputChange} />
-                        <div className='flex gap-4'>
-                            <p>Sex: </p>
-                            <div>
-                                <input className='peer hidden' type='radio' id='sex-male' name='sex' value='male' checked={formSelector.sex == 'male'} onChange={handleInputChange} />
-                                <label htmlFor='sex-male' className='cursor-pointer border border-light_font text-light_font peer-checked:bg-dark_font peer-checked:text-white px-4 py-2 rounded-md'>Male</label></div>
-                            <div>
-                                <input className='peer hidden' type='radio' id='sex-female' name='sex' value='female' checked={formSelector.sex == 'female'} onChange={handleInputChange} />
-                                <label htmlFor='sex-female' className='cursor-pointer border border-light_font text-light_font peer-checked:bg-dark_font peer-checked:text-white px-4 py-2 rounded-md'>Female</label>
-                            </div>
+                        <FormInput placeholderName={'Last Name'} name='lastname' value={titleCase(formSelector.lastname) || ''} type='text' onChange={handleInputChange} error={formErrors.lastname} />
 
+                        <div>
+                            <div className='flex gap-4'>
+                                <p>Sex: </p>
+                                <div>
+                                    <input className='peer hidden' type='radio' id='sex-male' name='sex' value='male' checked={formSelector.sex == 'male'} onChange={handleInputChange} />
+                                    <label htmlFor='sex-male' className='cursor-pointer border border-light_font text-light_font peer-checked:bg-dark_font peer-checked:text-white px-4 py-2 rounded-md'>Male</label></div>
+                                <div>
+                                    <input className='peer hidden' type='radio' id='sex-female' name='sex' value='female' checked={formSelector.sex == 'female'} onChange={handleInputChange} />
+                                    <label htmlFor='sex-female' className='cursor-pointer border border-light_font text-light_font peer-checked:bg-dark_font peer-checked:text-white px-4 py-2 rounded-md'>Female</label>
+                                </div>
+                            </div>
+                            {formErrors.sex && <p className='text-red-500'>{formErrors.sex}</p>}
                         </div>
                     </div>
                 </div>
                 <div className='flex flex-col gap-4'>
-                    <FormInput placeholderName={'Username'} name='username' type='text' value={formSelector.username || ''} onChange={handleInputChange} />
-                    <FormInput placeholderName={'Birthdate'} name='birthdate' type='date' value={formSelector.birthdate} onChange={handleInputChange} />
-                    <FormInput placeholderName={'Mobile No.'} name='mobile_num' type='number' value={formSelector.mobile_num || ''} onChange={handleInputChange} />
-                    <FormInput placeholderName={'Email Address.'} name='email' type='email' value={formSelector.email || ''} onChange={handleInputChange} />
+                    <FormInput placeholderName={'Username'} name='username' type='text' value={formSelector.username || ''} onChange={handleInputChange} error={formErrors.username} />
+                    <FormInput placeholderName={'Birthdate'} name='birthdate' type='date' value={formSelector.birthdate} onChange={handleInputChange} error={formErrors.birthdate} />
+                    <FormInput placeholderName={'Mobile No.'} name='mobile_num' type='number' value={formSelector.mobile_num || ''} onChange={handleInputChange} error={formErrors.mobile_num} />
+                    <FormInput placeholderName={'Email Address.'} name='email' type='email' value={formSelector.email || ''} onChange={handleInputChange} error={formErrors.email} />
                 </div>
                 <div className='grid md:grid-cols-3 lg:grid-cols-4 gap-4'>
 
-                    <FormInput placeholderName={'Street'} name='street' type='text' value={titleCase(formSelector.street) || ''} onChange={handleInputChange} />
+                    <FormInput placeholderName={'Street'} name='street' type='text' value={titleCase(formSelector.street) || ''} onChange={handleInputChange} error={formErrors.street} />
                     <FormInput placeholderName={'Barangay'} value='Batasan Hills' readOnly name='barangay' type='text' />
                     <FormInput placeholderName={'City'} value='Quezon City' readOnly name='city' type='text' />
                     <FormInput placeholderName={'Zip'} value='1126' readOnly name='zip' type='number' />
@@ -194,19 +194,19 @@ function EditOfficer() {
 
     return (
         <>
-        <Modal ref={dialog} onClose={handleModalClose} >
+            <Modal ref={dialog} onClose={handleModalClose} >
 
-            <div className='flex mb-8 items-center gap-2'>
-                <DoneSharpIcon fontSize='large' sx={{ color: '#204d2c' }} />
-                <h2 className='text-dark_font'>Success</h2>
-            </div>
-            <p className=' max-w-[36rem] w-96 text-lg'>
-                Data updated successfully!
-            </p>
-            <div className='mt-8 flex gap-2 justify-end'>
-                <button onClick={handleModalClose} className='bg-dark_font hover:bg-light_font rounded-md px-4 py-1 text-white'>Ok</button>
-            </div>
-        </Modal>
+                <div className='flex mb-8 items-center gap-2'>
+                    <DoneSharpIcon fontSize='large' sx={{ color: '#204d2c' }} />
+                    <h2 className='text-dark_font'>Success</h2>
+                </div>
+                <p className=' max-w-[36rem] w-96 text-lg'>
+                    Data updated successfully!
+                </p>
+                <div className='mt-8 flex gap-2 justify-end'>
+                    <button onClick={handleModalClose} className='bg-dark_font hover:bg-light_font rounded-md px-4 py-1 text-white'>Ok</button>
+                </div>
+            </Modal>
             <div>
                 <NavLink to='../'>
                     <ArrowBackSharpIcon />

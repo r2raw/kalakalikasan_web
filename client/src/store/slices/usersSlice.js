@@ -7,6 +7,7 @@ const initialState = {
         firstname: '',
         middlename: '',
         lastname: '',
+        sex: '',
         username: '',
         birthdate: '',
         mobile_num: '',

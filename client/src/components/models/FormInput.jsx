@@ -1,6 +1,6 @@
 import React from 'react'
 
-function FormInput({ placeholderName,  ...props },) {
+function FormInput({ placeholderName, error, ...props },) {
 
     let content = <>
         <input placeholder=' ' className='peer border-b-2 border-dark_font shadow-lg hover:shadow-none text-dark_font rounded-lg bg-white ' {...props} />
@@ -8,9 +8,11 @@ function FormInput({ placeholderName,  ...props },) {
     </>
 
     return (
-        <div className='relative py-2'>
-            {content}
-
+        <div>
+            <div className='relative py-2'>
+                {content}
+            </div>
+            {error && <p className='text-red-500 px-2 m-0'>{error}</p>}
         </div>
     )
 }
