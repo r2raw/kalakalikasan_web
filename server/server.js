@@ -1,13 +1,17 @@
 const bodyParser = require("body-parser");
 const userRoutes = require("./routes/users.js")
 const contentRoutes = require("./routes/contents.js")
+const smartBinRoutes = require("./routes/smartBin.js")
+const dotenv =require('dotenv')
 const express = require("express");
 const app = express();
 const _ = require('lodash')
 const fs = require("fs");
 const path = require("path");
 const cors = require('cors');
+dotenv.config()
 
+const PORT = process.env.PORT || 8080;
 const uploadDir = path.join(__dirname, "./public/media-content");
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
@@ -15,7 +19,7 @@ if (!fs.existsSync(uploadDir)) {
 
 
 app.use(cors({
-  origin:'http://localhost:5173',
+  // origin:'*',
   methods: ['GET, POST, PATCH'],
   allowedHeaders:['Content-Type,Authorization']
 }));
@@ -34,7 +38,7 @@ app.use(cors({
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
-
+// app.use(express.json());
 app.use(express.static("public"));
 // app.use((req, res, next) => {
 //   res.setHeader('Access-Control-Allow-Origin', 'http://localhost:173/');
@@ -47,9 +51,8 @@ app.use(express.static("public"));
 // ROUTES
 app.use(userRoutes);
 app.use(contentRoutes);
+app.use(smartBinRoutes)
 
-app.listen(8080, ()=>{
-  const email = 'r2raaaw'
-
-  console.log(email.substring(0))
+app.listen(PORT, ()=>{
+  console.log(`Running on port ${PORT}...`)
 });

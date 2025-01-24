@@ -1,26 +1,38 @@
-POST http://localhost:8080/register
-Content-Type: application/json
+# POST http://localhost:8080/register
+# Content-Type: application/json
+
+# {
+#     "username": "admin",
+#     "password": "admin",
+#     "email": "admin@gmail.com",
+#     "role": "admin",
+#     "mobile_num": "09264093116",
+#     "firstname": "admin", 
+#     "lastname": "admin", 
+#     "middlename": null,
+#     "birthdate": "07/17/2001",
+#     "sex":  "male",
+#     "zip": "1126", 
+#     "street": "Kalayaan A st.", 
+#     "barangay": "Batasan Hills",
+#     "city": "Quezon City",
+#     "created_by": null
+# }
+
+
+POST http://localhost:8080/smart-bin
+Content-Type:: application/json
 
 {
-    "username": "admin",
-    "password": "admin",
-    "email": "admin@gmail.com",
-    "role": "admin",
-    "mobile_num": "09264093116",
-    "firstname": "admin", 
-    "lastname": "admin", 
-    "middlename": null,
-    "birthdate": "07/17/2001",
-    "sex":  "male",
-    "zip": "1126", 
-    "street": "Kalayaan A st.", 
-    "barangay": "Batasan Hills",
-    "city": "Quezon City",
-    "created_by": null
+    "transaction_id": "123111",
+    "claim_type": "qr_reciept",
+    "materials": [
+        {"material_name": "pet bottle", "point_per_kg": "1", "total_kg": "2"}, 
+        {"material_name": "can", "point_per_kg": "2", "total_kg": "3"}
+    ],
+    "total_points": "8"
 }
 
-# PATCH http://localhost:8080/deactivate-user
-#  Content-Type: application/json
 
 # {
 #     "username": "admin",

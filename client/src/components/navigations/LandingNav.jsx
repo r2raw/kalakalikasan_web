@@ -8,6 +8,11 @@ import CloseSharpIcon from '@mui/icons-material/CloseSharp';
 function LandingNav({ currRoute }) {
   let headerClass = "";
 
+  let menuColor = 'text-white';
+
+  if (currRoute == 'support') {
+    menuColor = 'text-dark_font'
+  }
   if (currRoute !== "") {
     headerClass = "bg-light_gradient_bot";
   }
@@ -37,27 +42,27 @@ function LandingNav({ currRoute }) {
                 }`}
             >
               <li>
-                <NavLink to={"/"} className="hover:text-yellow_highlight">
+                <NavLink to={"/"} className={({isActive}) => isActive ? 'text-yellow_highlight' : "hover:text-yellow_highlight"} end>
                   HOME
                 </NavLink>
               </li>
               <li>
-                <NavLink to="about" className="hover:text-yellow_highlight">
+                <NavLink to="about" className={({isActive}) => isActive ? 'text-yellow_highlight' : "hover:text-yellow_highlight"} end>
                   ABOUT US
                 </NavLink>
               </li>
               <li>
-                <NavLink to="services" className="hover:text-yellow_highlight">
+                <NavLink to="services" className={({isActive}) => isActive ? 'text-yellow_highlight' : "hover:text-yellow_highlight"} end>
                   SERVICES
                 </NavLink>
               </li>
               <li>
-                <NavLink to="features" className="hover:text-yellow_highlight">
+                <NavLink to="features" className={({isActive}) => isActive ? 'text-yellow_highlight' : "hover:text-yellow_highlight"} end>
                   FEATURES
                 </NavLink>
               </li>
               <li>
-                <NavLink to="support" className="hover:text-yellow_highlight">
+                <NavLink to="support" className={({isActive}) => isActive ? 'text-yellow_highlight' : "hover:text-yellow_highlight"} end>
                   SUPPORT US
                 </NavLink>
               </li>
@@ -66,20 +71,47 @@ function LandingNav({ currRoute }) {
         </motion.header>
       </AnimatePresence>
 
-      <div className="fixed top-2 right-4 z-50 lg:hidden">
-        <IconButton onClick={() => { setOpenMenu(prev => !prev) }}>
-          {openMenu ? <CloseSharpIcon className=' text-white size-96' /> : <MenuSharpIcon className=' text-white size-96' />}
-        </IconButton>
-      </div>
       {openMenu &&
-        <div className="w-full lg:hidden flex justify-end fixed top-0 p-4 flex-col bg-light_gradient_top">
+        <div className="w-full lg:hidden flex justify-end fixed top-0 p-4 flex-col bg-light_gradient_top z-50 ">
+          <div className="px-10 flex justify-start items-center gap-4">
+            <img className=" w-20 h-20" src={brand_logo} alt="KalaKalikasan Brand Logo" />
+            <h1 className=" font-mono text-dark_font text-lg">KalaKalikasan</h1>
+          </div>
           <nav className="mt-16">
-            <div className="flex justify-center items-center gap-4">
-              <img className=" w-20 h-20" src={brand_logo} alt="KalaKalikasan Brand Logo" />
-              <h1 className=" font-mono text-dark_font">KalaKalikasan</h1>
-            </div>
+            <ul className=" py-10">
+              <li>
+                <NavLink to={"/"} className="hover:text-yellow_highlight px-10">
+                  HOME
+                </NavLink>
+              </li>
+              <li>
+                <NavLink to="about" className="hover:text-yellow_highlight px-10">
+                  ABOUT US
+                </NavLink>
+              </li>
+              <li>
+                <NavLink to="services" className="hover:text-yellow_highlight px-10">
+                  SERVICES
+                </NavLink>
+              </li>
+              <li>
+                <NavLink to="features" className="hover:text-yellow_highlight px-10">
+                  FEATURES
+                </NavLink>
+              </li>
+              <li>
+                <NavLink to="support" className="hover:text-yellow_highlight px-10">
+                  SUPPORT US
+                </NavLink>
+              </li>
+            </ul>
           </nav>
         </div>}
+      <div className="fixed top-8 right-4 z-50 lg:hidden">
+        <IconButton onClick={() => { setOpenMenu(prev => !prev) }}>
+          {openMenu ? <CloseSharpIcon className={`${menuColor} size-96`} /> : <MenuSharpIcon className={`${menuColor} size-96`} />}
+        </IconButton>
+      </div>
     </>
   );
 }
