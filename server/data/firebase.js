@@ -1,8 +1,22 @@
-const {initializeApp, cert} = require('firebase-admin/app');
-const dotenv = require('dotenv')
-const {getFirestore} = require('firebase-admin/firestore');
+// const {initializeApp, cert} = require('firebase-admin/app');
+var  admin = require('firebase-admin');
+const { initializeApp } = require("firebase-admin/app");
+const { getFirestore } = require('firebase-admin/firestore');
+const dotenv =require('dotenv')
 dotenv.config()
-// const serviceAccount = require('../creds.json');
+
+// const firebaseConfig = {
+//   apiKey: "AIzaSyDRhLBJrl3cj3OLmEuoz_seryFLCGi40Kw",
+//   authDomain: "kalakalikasandb.firebaseapp.com",
+//   projectId: "kalakalikasandb",
+//   storageBucket: "kalakalikasandb.firebasestorage.app",
+//   messagingSenderId: "856444206901",
+//   appId: "1:856444206901:web:3984ec87068f9d2617567c"
+// };
+
+// Initialize Firebase
+// const app = initializeApp(firebaseConfig);
+// var  serviceAccount = require('../creds.json');
 
 const serviceAccount = {
     type: process.env.FIREBASE_TYPE,
@@ -18,30 +32,11 @@ const serviceAccount = {
     universe_domain: process.env.FIREBASE_UNIVERSE_DOMAIN,
 }
 
-initializeApp({
-    credential: cert(serviceAccount)
-})
-
+console.log(serviceAccount)
+// const app = initializeApp(firebaseConfig);
+admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount)
+  });
 const db = getFirestore();
 
-module.exports = {db};
-
-
-
-// Import the functions you need from the SDKs you need
-// import { initializeApp } from "firebase/app";
-// // TODO: Add SDKs for Firebase products that you want to use
-// // https://firebase.google.com/docs/web/setup#available-libraries
-
-// // Your web app's Firebase configuration
-// const firebaseConfig = {
-//   apiKey: "AIzaSyDRhLBJrl3cj3OLmEuoz_seryFLCGi40Kw",
-//   authDomain: "kalakalikasandb.firebaseapp.com",
-//   projectId: "kalakalikasandb",
-//   storageBucket: "kalakalikasandb.firebasestorage.app",
-//   messagingSenderId: "856444206901",
-//   appId: "1:856444206901:web:3984ec87068f9d2617567c"
-// };
-
-// // Initialize Firebase
-// const app = initializeApp(firebaseConfig);
+module.exports = { db };
