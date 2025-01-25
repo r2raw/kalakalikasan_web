@@ -5,19 +5,6 @@ const { getFirestore } = require('firebase-admin/firestore');
 const dotenv =require('dotenv')
 dotenv.config()
 
-// const firebaseConfig = {
-//   apiKey: "AIzaSyDRhLBJrl3cj3OLmEuoz_seryFLCGi40Kw",
-//   authDomain: "kalakalikasandb.firebaseapp.com",
-//   projectId: "kalakalikasandb",
-//   storageBucket: "kalakalikasandb.firebasestorage.app",
-//   messagingSenderId: "856444206901",
-//   appId: "1:856444206901:web:3984ec87068f9d2617567c"
-// };
-
-// Initialize Firebase
-// const app = initializeApp(firebaseConfig);
-// var  serviceAccount = require('../creds.json');
-
 const serviceAccount = {
     type: process.env.FIREBASE_TYPE,
     project_id: process.env.FIREBASE_PROJECT_ID,
@@ -32,8 +19,6 @@ const serviceAccount = {
     universe_domain: process.env.FIREBASE_UNIVERSE_DOMAIN,
 }
 
-console.log(serviceAccount)
-// const app = initializeApp(firebaseConfig);
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount)
   });
