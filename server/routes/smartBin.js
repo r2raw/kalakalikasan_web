@@ -45,7 +45,9 @@ router.post('/smart-bin', async (req, res, next) => {
             total_points,
             claiming_status,
             transaction_date: admin.firestore.FieldValue.serverTimestamp(),
-            claiming_date: claim_type == 'direct_to_bin' ? admin.firestore.FieldValue.serverTimestamp() : null
+            claiming_date: claim_type == 'direct_to_bin' ? admin.firestore.FieldValue.serverTimestamp() : null,
+            claimed_by: null,
+            transaction_officer: null,
         }
 
         const smartBinRef = db.collection('smart_bin').doc(transaction_id);
