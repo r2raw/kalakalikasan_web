@@ -2,6 +2,7 @@ const bodyParser = require("body-parser");
 const userRoutes = require("./routes/users.js")
 const contentRoutes = require("./routes/contents.js")
 const smartBinRoutes = require("./routes/smartBin.js")
+const storesRoutes = require("./routes/stores.js")
 const dotenv =require('dotenv')
 const express = require("express");
 const app = express();
@@ -53,6 +54,7 @@ app.use(express.static("public"));
 app.use(userRoutes);
 app.use(contentRoutes);
 app.use(smartBinRoutes)
+app.use(storesRoutes);
 
 app.listen(PORT, ()=>{
   console.log(`Running on port ${PORT}...`)
