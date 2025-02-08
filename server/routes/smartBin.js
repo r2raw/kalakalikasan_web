@@ -81,7 +81,7 @@ router.get('/rates', async (req, res, next) => {
             'pet_bottle': {
                 "coins_value": pet_coins_value,
                 "points_value": pet_points_value
-            }, "incan_bottlw": {
+            }, "incan_bottle": {
 
                 "coins_value": can_coins_value,
                 "points_value": can_points_value
