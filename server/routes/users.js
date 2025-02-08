@@ -9,10 +9,16 @@ const path = require("path");
 const bcrypt = require("bcrypt");
 const _ = require('lodash');
 const { lowerCaseTrim } = require("../util/myFunctions.js");
+const qr = require('qr-image');
+const { isConvertibleToInt } = require("../util/validations.js");
 
-const uploadDir = path.join(__dirname, "../public/userImg");
+const uploadDir = path.join(__dirname, "../public/userImg/");
+const userQrDir = path.join(__dirname,  "../public/userQr/");
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
+}
+if (!fs.existsSync(userQrDir)) {
+    fs.mkdirSync(userQrDir, { recursive: true });
 }
 
 
@@ -95,12 +101,82 @@ router.post("/register", upload.single('image'), async (req, res, next) => {
     }
 });
 
+router.post('/register-actor', async (req, res, next) => {
+    const { username, password, email, role, mobileNum, birthdate, zip, city, barangay, street, firstname, lastname, middlename, sex } = req.body;
 
+    const errors = [];
+    const convertedBirthdateString = new Date(birthdate)
+    try {
+
+
+        const id = uid(16)
+        const salt = await bcrypt.genSalt(saltRounds);
+        const hash = await bcrypt.hash(password, salt);
+        const usersRef = db.collection('users')
+        const existingUsername = await usersRef.where('username', '==', lowerCaseTrim(username)).get();
+        const existingEmail = await usersRef.where('email', '==', lowerCaseTrim(email)).get();
+        const existingMobile = await usersRef.where('mobile_num', '==', lowerCaseTrim(mobileNum)).get();
+
+        if (!existingUsername.empty) {
+            errors.push('Username already exist!');
+        }
+
+        if (!existingEmail.empty) {
+            errors.push('Email already exist!');
+        }
+        if (!existingMobile.empty) {
+            errors.push('Mobile number already exist!');
+        }
+
+        if (errors.length > 0) {
+            return res.status(501).json({ message: 'error', errors })
+        }
+
+        const usersRefDoc = db.collection('users').doc(id);
+
+        const url = id;
+        var qr_svg = qr.image(url);
+        const qrFilePath = userQrDir + id + ".png";
+        qr_svg.pipe(fs.createWriteStream(qrFilePath));
+        const primaryData = {
+            username: lowerCaseTrim(username).replaceAll(' ', ''),
+            password: hash,
+            email: lowerCaseTrim(email),
+            role: 'actor',
+            sex,
+            mobile_num: lowerCaseTrim(mobileNum),
+            image: null,
+            firstname,
+            lastname,
+            middlename,
+            zip,
+            city,
+            barangay,
+            street,
+            birthdate: admin.firestore.Timestamp.fromDate(convertedBirthdateString),
+            date_created: admin.firestore.FieldValue.serverTimestamp(),
+            first_time_log: true,
+            status: 'activated'
+        }
+        
+        const saveData = await usersRefDoc.set(primaryData, { merge: true })
+
+        return res.status(200).json({ message: 'success' });
+
+    } catch (error) {
+        console.log(error.message);
+        return res.status(501).json({ message: 'error' })
+    }
+})
+
+router.post('/test', async (req, res, next) => {
+    console.log(req.body)
+    return res.status(200).json({ message: 'success' })
+})
 // login
 router.post('/login', async (req, res, next) => {
     const { username, password } = req.body;
     const errors = [];
-    console.log({ username, password })
 
     try {
         const userRef = db.collection('users').where('username', '==', username);
@@ -140,6 +216,47 @@ router.post('/login', async (req, res, next) => {
         errors.push('Internal server error')
         console.log(error.message)
         return res.status(501).json({ message: error.message, errors: errors })
+    }
+})
+
+
+router.post('/login-mobile', async (req, res, next) => {
+    const { userCred, password } = req.body;
+    const errors = [];
+
+    try {
+        let enteredCred = 'email';
+
+        if(isConvertibleToInt(userCred)){
+            enteredCred = 'mobile_num'
+        }
+        console.log(enteredCred)
+        const userRef = db.collection('users').where(enteredCred, '==', userCred).where('role', '!=', 'admin');
+        const doc = await userRef.get();
+        const responseArr = [];
+
+        if (doc.empty) {
+            return res.status(401).json({ message: 'internal server error', error: 'Incorrect username or password' });
+
+        }
+
+
+
+        doc.forEach(doc => {
+            responseArr.push({ id: doc.id, data: doc.data() })
+        });
+
+        const dbPass = responseArr[0].data.password
+
+        const match = await bcrypt.compare(password, dbPass);
+
+        if (!match) {
+            return res.status(401).json({ message: 'Imvalid login', error: 'Incorrect password' })
+        }
+        return res.status(200).json({ message: 'success', userData: responseArr[0] });
+    } catch (error) {
+        console.log(error)
+        return res.status(501).json({ message: error.message, error: 'Something went wrong!' })
     }
 })
 

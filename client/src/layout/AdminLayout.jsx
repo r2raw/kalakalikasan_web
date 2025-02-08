@@ -29,7 +29,7 @@ const list_nav = [
   {
     title: "Dashboard",
     icon: <DashboardSharpIcon />,
-    url: "./",
+    url: ".",
   },
   {
     title: "Stores",
@@ -85,26 +85,26 @@ const list_nav = [
     ],
   },
   {
-    title: "Collection Schedules",
+    title: "Payment Request",
     icon: <CalendarMonthSharpIcon />,
     url: "collection-schedules",
   },
-  {
-    title: "Materials",
-    icon: <RecyclingSharpIcon />,
-    children: [
-      {
-        title: "Manage",
-        icon: <SettingsSharpIcon />,
-        url: "materials",
-      },
-      {
-        title: "Archive",
-        icon: <ArchiveSharpIcon />,
-        url: "materials/archived",
-      },
-    ],
-  },
+  // {
+  //   title: "Materials",
+  //   icon: <RecyclingSharpIcon />,
+  //   children: [
+  //     {
+  //       title: "Manage",
+  //       icon: <SettingsSharpIcon />,
+  //       url: "materials",
+  //     },
+  //     {
+  //       title: "Archive",
+  //       icon: <ArchiveSharpIcon />,
+  //       url: "materials/archived",
+  //     },
+  //   ],
+  // },
   {
     title: "Analytics",
     icon: <AnalyticsSharpIcon />,

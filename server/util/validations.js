@@ -1,9 +1,13 @@
-const isEmptyData = (data)=>{
+const isEmptyData = (data) => {
 
-    if(data == null || data == '' || data == undefined){
+    if (data == null || data == '' || data == undefined) {
         return true;
     }
     return false;
 }
 
-module.exports = { isEmptyData };
+const isConvertibleToInt = (str) => {
+    return /^-?\d+$/.test(str);
+};
+
+module.exports = { isEmptyData, isConvertibleToInt };

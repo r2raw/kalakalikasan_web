@@ -1,12 +1,15 @@
 import React, { useState } from "react";
 // MATERIAL ICON
 import ArrowForwardIosSharpIcon from "@mui/icons-material/ArrowForwardIosSharp";
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { currentRouteActions } from "../../store/slices/currentRouteSlice";
+import { getURLString } from "../../myFunctions/myFunctions";
+import {titleCase} from 'title-case';
 
 function AdminNavItem({ item, selectedNav, setSelectedNav }) {
   const hasChild = !item.url;
+  const location = useLocation();
 
   const dispatch = useDispatch();
 
@@ -51,11 +54,17 @@ function AdminNavItem({ item, selectedNav, setSelectedNav }) {
     return "flex justify-between items-center py-2 w-full px-4"
   }
   if (hasChild) {
+    let currentRoute = getURLString(location, 2);
+
+    if(currentRoute){
+      currentRoute = titleCase(currentRoute)
+    }
+    
     content = (
       <>
         <button
           onClick={handleClick}
-          className="flex justify-between items-center py-2 w-full px-4"
+          className={currentRoute != item.title ? "flex justify-between items-center py-2 w-full px-4" : "flex justify-between items-center py-2 w-full px-4 text-white bg-dark_font"}
         >
           <div className="flex gap-2 items-center">
             <div className="nav-icon">{item.icon}</div>

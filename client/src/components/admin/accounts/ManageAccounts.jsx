@@ -28,7 +28,9 @@ function ManageAccounts() {
   const { data, isPending, isError, error } = useQuery({
     queryKey: ['users'],
     queryFn: ({ signal }) => fetchActiveUsers({ signal }),
-    staleTime: 30000
+    staleTime: 3000,
+    gcTime: 30000,
+    refetchInterval: 3000,
   })
 
   const { mutate, isPending: pendingDeletion, isError: isDeletionError, error: deletionError } = useMutation({
