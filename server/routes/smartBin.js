@@ -14,10 +14,10 @@ router.post('/smart-bin', async (req, res, next) => {
     const errors = [];
     const { transaction_id, claim_type, materials, total_points } = req.body;
 
-    const {material_name, points_per_kg, total_kg} = materials[0]
+    const { material_name, points_per_kg, total_kg } = materials[0]
     const batch = db.batch();
     let claiming_status = 'pending'
-    
+
     try {
 
         if (claim_type == 'direct_to_bin') {
@@ -52,11 +52,11 @@ router.post('/smart-bin', async (req, res, next) => {
 
         const smartBinRef = db.collection('smart_bin').doc(transaction_id);
 
-        batch.set(smartBinRef, binData, {merge: true});
+        batch.set(smartBinRef, binData, { merge: true });
 
         materials.forEach(material => {
             const materialRef = smartBinRef.collection('materials').doc();
-            batch.set(materialRef, material, {merge: true})
+            batch.set(materialRef, material, { merge: true })
         });
 
         const saveData = batch.commit()
@@ -70,15 +70,29 @@ router.post('/smart-bin', async (req, res, next) => {
     }
 })
 
-router.get('/rates', async (req,res, next) =>{
+router.get('/rates', async (req, res, next) => {
     try {
-        const coins_value = 100;
-        const points_value = 100;
+        const pet_coins_value = 100;
+        const pet_points_value = 100;
+        const can_coins_value = 100;
+        const can_points_value = 100;
 
-        res.status(200).json({coins_value, points_value})
+        const rates = {
+            'pet_bottle': {
+                "coins_value": pet_coins_value,
+                "points_value": pet_points_value
+            }, "incan_bottlw": {
+
+                "coins_value": can_coins_value,
+                "points_value": can_points_value
+            }
+        }
+
+        res.status(200).json(rates)
     } catch (error) {
-        return res.status(501).json({ message: error.message})
+        return res.status(501).json({ message: error.message })
     }
 })
+
 
 module.exports = router;
