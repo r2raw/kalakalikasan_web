@@ -68,4 +68,15 @@ router.post('/smart-bin', async (req, res, next) => {
     }
 })
 
+router.get('/rates', async (req,res, next) =>{
+    try {
+        const coins_value = 100;
+        const points_value = 100;
+
+        res.status(200).json({coins_value, points_value})
+    } catch (error) {
+        return res.status(501).json({ message: error.message})
+    }
+})
+
 module.exports = router;
