@@ -14,7 +14,7 @@ router.post('/smart-bin', async (req, res, next) => {
     const errors = [];
     const { transaction_id, claim_type, materials, total_points } = req.body;
 
-    const { material_name, points_per_kg, total_kg } = materials[0]
+    const { material_name, points_collected, total_grams } = materials[0]
     const batch = db.batch();
     let claiming_status = 'pending'
 
@@ -30,8 +30,8 @@ router.post('/smart-bin', async (req, res, next) => {
             materials.length == 0 ||
             !total_points ||
             !material_name || material_name == '' ||
-            !points_per_kg ||
-            !total_kg
+            !points_collected ||
+            !total_grams
         ) {
             errors.push('Invalid data')
         }
@@ -78,13 +78,13 @@ router.get('/rates', async (req, res, next) => {
         const can_points_value = 100;
 
         const rates = {
-            'pet_bottle': {
-                "coins_value": pet_coins_value,
-                "points_value": pet_points_value
-            }, "incan_bottle": {
+            pet_bottle: {
+                coins_value: pet_coins_value,
+                points_value: pet_points_value
+            }, incan_bottle: {
 
-                "coins_value": can_coins_value,
-                "points_value": can_points_value
+                coins_value: can_coins_value,
+                points_value: can_points_value
             }
         }
 

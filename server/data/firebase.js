@@ -5,6 +5,7 @@ const { getFirestore } = require('firebase-admin/firestore');
 const dotenv =require('dotenv')
 dotenv.config()
 
+
 const serviceAccount = {
     type: process.env.FIREBASE_TYPE,
     project_id: process.env.FIREBASE_PROJECT_ID,
