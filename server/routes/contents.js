@@ -175,6 +175,45 @@ router.get('/fetch-contents', async (req, res, next) => {
     }
 })
 
+router.get('/fetch-contents-mobile', async (req, res, next) => {
+    const errors = [];
+    const groupedData = []
+
+    try {
+        const contentDoc =  db.collection('contents').orderBy('type', 'asc').orderBy('date_created', 'desc')
+        const contentSnapshot = await contentDoc.where('status', '!=', 'deactivated').get()
+        for (const doc of contentSnapshot.docs) {
+            const data = doc.data();
+            const type = data.type;
+
+            // Fetch images from the media subcollection
+            const contentImagesCollection = doc.ref.collection('media');
+            const imagesSnapshot = await contentImagesCollection.get();
+            // Group data by type
+
+            // Check if media is empty and log if so
+            const images = [];
+            if (!imagesSnapshot.empty) {
+                imagesSnapshot.forEach(imageDoc => {
+                    images.push({ imgId: imageDoc.id, ...imageDoc.data() });
+                });
+            }
+            console.log(images);
+            groupedData.push({ id: doc.id, ...data, images });
+
+
+        }
+
+        console.log(groupedData);
+
+        return res.status(200).json({message: 'success', contentData: groupedData})
+    } catch (error) {
+        console.log(error.message)
+        errors.push('Internal server error')
+        return res.status(501).json({ message: error.message, errors: errors })
+    }
+})
+
 router.get('/fetch-archived-contents', async (req, res, next)=>{
     
     const errors = [];
