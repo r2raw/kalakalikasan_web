@@ -53,7 +53,6 @@ const upload = multer({ storage }).fields([
     { name: "store_logo", maxCount: 1 }
 ]);
 
-const parsedMulter = multer().none();
 
 const storeExisting = async (store_name) => {
 
@@ -72,105 +71,71 @@ const saveStore = async (data) => {
     const saveData = await storesRef.set(data, { merge: true })
     return saveData;
 }
-router.post('/register-store', async (req, res) => {
+
+
+router.post('/verify-store', async (req, res, next) => {
+    try {
+        const { store_name } = req.body;
+
+        console.log('verifying')
+        const storenameExist = await storeExisting(store_name);
+        if (storenameExist) {
+            return res.status(501).json({ message: "Store name already exists. Please choose another name." });
+        }
+
+        return res.status(200).json({ message: 'Valid store name' })
+
+    } catch (error) {
+        console.log(error.message)
+        return res.status(501).json({ message: error.message });
+    }
+})
+router.post('/register-store', upload, async (req, res) => {
     try {
 
-        const storeData = {
-            user_id: null,
-            store_name: null,
-            street: null,
-            barangay: null,
-            city: null,
-            province: null,
-            zip: null,
-        }
+        const {
+            user_id,
+            store_name,
+            street,
+            barangay,
+            city,
+            province,
+            zip,
+        } = req.body;
         // let storenameExist = false;
+        console.log("Uploaded files:", req.files);
 
+        let store_logo = null;
 
-        parsedMulter(req, res, (err) => {
-            const { store_name, province, city, barangay, street, zip, user_id } = req.body;
-
-            storeData.user_id = user_id;
-            storeData.store_name = store_name;
-            storeData.street = street;
-            storeData.barangay = barangay;
-            storeData.city = city;
-            storeData.province = province;
-            storeData.zip = zip;
-
-        })
-
-        const storenameExist = await storeExisting(storeData.store_name);
-        if (storenameExist) {
-            return res.status(400).json({ message: "Store name already exists. Please choose another name." });
+        if(req.files['store_logo']){
+            store_logo = req.files['store_logo'][0].filename
         }
 
-
-        const storePrimaryData = {
-            owner_id: null,
-            store_name: null,
-            street: null,
-            barangay: null,
-            city: null,
-            province: null,
-            zip: null,
-            store_logo: null,
-            barangay_permit: null,
-            dti_permit: null,
-            store_image: null,
-            application_date: null,
-            status: null,
+        const primaryData = {
+            owner_id: user_id,
+            store_name,
+            street,
+            barangay,
+            city,
+            province,
+            zip,
+            store_logo,
+            barangay_permit: req.files['barangay_permit'][0].filename,
+            dti_permit: req.files['credentials_dti'][0].filename,
+            store_image: req.files['store_image'][0].filename,
+            application_date: admin.firestore.FieldValue.serverTimestamp(),
+            status: 'pending',
             approved_by: null,
             aprroval_date: null,
             rejected_by: null,
             date_rejection: null,
             rejection_reason: null,
-        };
-        await upload(req, res, (err) => {
-            if (err) {
-                return res.status(500).json({ message: "File upload error", error: err.message });
-            }
-            const { store_name, province, city, barangay, street, user_id, zip } = storeData;
-            // console.log("Uploaded files:", req.files);
-            // console.log("Form Data2:", { store_name, province, city, barangay, street, user_id });
-            let store_logo = null;
-
-            if (req.files['store_logo']) {
-                store_logo = req.files['store_logo'][0].filename;
-            }
-            // 
-            // console.log(req.files['credentials_dti'][0].filename)
-
-            console.log('aasdas')
-            const primaryData = {
-                owner_id: user_id,
-                store_name,
-                street,
-                barangay,
-                city,
-                province,
-                zip,
-                store_logo,
-                barangay_permit: req.files['barangay_permit'][0].filename,
-                dti_permit: req.files['credentials_dti'][0].filename,
-                store_image: req.files['store_image'][0].filename,
-                application_date: admin.firestore.FieldValue.serverTimestamp(),
-                status: 'pending',
-                approved_by: null,
-                aprroval_date: null,
-                rejected_by: null,
-                date_rejection: null,
-                rejection_reason: null,
-            }
-
-            console.log(primaryData)
-            saveStore(storePrimaryData);
-            // storePrimaryData = primaryData;
-
-        });
+        }
+        const storesRef = db.collection('stores').doc();
+        const saveData = await storesRef.set(primaryData, { merge: true })
 
 
-        console.log(storePrimaryData)
+
 
         return res.status(200).json({
             message: "Files and data uploaded successfully"

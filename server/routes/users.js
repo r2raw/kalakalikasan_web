@@ -13,7 +13,7 @@ const qr = require('qr-image');
 const { isConvertibleToInt } = require("../util/validations.js");
 
 const uploadDir = path.join(__dirname, "../public/userImg/");
-const userQrDir = path.join(__dirname,  "../public/userQr/");
+const userQrDir = path.join(__dirname, "../public/userQr/");
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
 }
@@ -158,7 +158,7 @@ router.post('/register-actor', async (req, res, next) => {
             first_time_log: true,
             status: 'activated'
         }
-        
+
         const saveData = await usersRefDoc.set(primaryData, { merge: true })
 
         return res.status(200).json({ message: 'success' });
@@ -227,10 +227,9 @@ router.post('/login-mobile', async (req, res, next) => {
     try {
         let enteredCred = 'email';
 
-        if(isConvertibleToInt(userCred)){
+        if (isConvertibleToInt(userCred)) {
             enteredCred = 'mobile_num'
         }
-        console.log(enteredCred)
         const userRef = db.collection('users').where(enteredCred, '==', userCred).where('role', '!=', 'admin');
         const doc = await userRef.get();
         const responseArr = [];
@@ -253,7 +252,34 @@ router.post('/login-mobile', async (req, res, next) => {
         if (!match) {
             return res.status(401).json({ message: 'Imvalid login', error: 'Incorrect password' })
         }
-        return res.status(200).json({ message: 'success', userData: responseArr[0] });
+
+
+
+        const resData = { message: 'success', userData: responseArr[0] };
+        if (responseArr[0].data.role !== 'officer') {
+            const storeRef = db.collection('stores').where('owner_id', '==', responseArr[0].id);
+
+            const storeDoc = await storeRef.get();
+            let storeObj = {}; // Use 'let' instead of 'const'
+
+            if (!storeDoc.empty) {
+                storeObj = storeDoc.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data(),
+                }));
+
+
+                resData.store = storeObj;
+            }
+
+        }
+
+
+        console.log(resData);
+
+
+
+        return res.status(200).json(resData);
     } catch (error) {
         console.log(error)
         return res.status(501).json({ message: error.message, error: 'Something went wrong!' })

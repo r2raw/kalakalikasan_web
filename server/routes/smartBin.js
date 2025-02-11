@@ -29,9 +29,7 @@ router.post('/smart-bin', async (req, res, next) => {
             !materials ||
             materials.length == 0 ||
             !total_points ||
-            !material_name || material_name == '' ||
-            !points_collected ||
-            !total_grams
+            !material_name || material_name == ''
         ) {
             errors.push('Invalid data')
         }
