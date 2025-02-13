@@ -38,10 +38,14 @@ import { QueryClientProvider } from "@tanstack/react-query";
 
 import { queryClient } from "./util/http";
 import EditOfficer from "./components/admin/accounts/EditOfficer";
+import PaymentRequest from "./components/admin/payments/PaymentRequest";
+import ViewBarangayPermit from "./components/admin/stores/ViewBarangayPermit";
+import ErrorPage from "./components/ErrorPage";
 const router = createBrowserRouter([
   {
     path: "/",
     element: <IndexLayout />,
+    errorElement: <ErrorPage />,
     children: [
       { index: true, element: <Home /> },
       { path: "about", element: <About /> },
@@ -61,7 +65,7 @@ const router = createBrowserRouter([
       { index: true, element: <Dashboard /> },
       {
         path: 'stores', element: <StoresLayout />, children: [
-          { index: true, element: <RegisteredStore /> },
+          { path: 'list', element: <RegisteredStore /> },
           {
             path: 'application-request', element: <StoreApplicationLayout />, children: [
               { index: true, element: <StoreApplication /> },
@@ -69,6 +73,7 @@ const router = createBrowserRouter([
                 path: ':id', element: <ViewStoreApplicationLayout />, children: [
                   { index: true, element: <ViewStoreApplication /> },
                   { path: 'dti', element: <ViewDti /> },
+                  { path: 'barangay-permit', element: <ViewBarangayPermit /> },
                 ]
               }
             ]
@@ -78,21 +83,21 @@ const router = createBrowserRouter([
       },
       {
         path: 'accounts', element: <ManageAccountLayout />, children: [
-          { index: true, element: <ManageAccounts /> },
+          { path: 'active', element: <ManageAccounts /> },
           { path: 'add', element: <CreateOfficer /> },
           { path: 'archived', element: <ArchivedAccounts /> },
-          { path: 'edit/:id', element: <EditOfficer /> },
+          { path: 'active/edit/:id', element: <EditOfficer /> },
         ]
       },
       { path: 'archived-accounts', element: <ArchivedAccounts /> },
       {
         path: 'contents', element: <ManageContentLayout />, children: [
-          { index: true, element: <ManageContents /> },
+          { path: 'list', element: <ManageContents /> },
           { path: 'add', element: <CreatePosts /> },
           { path: 'archived', element: <ArchivedContents /> },
         ]
       },
-      { path: 'collection-schedules', element: <CollectionSchedules /> },
+      { path: 'payments', element: <PaymentRequest /> },
       {
         path: 'materials', element: <MaterialLayout />, children: [
           { index: true, element: <ManageMaterials /> },

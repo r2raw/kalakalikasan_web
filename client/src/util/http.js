@@ -181,7 +181,7 @@ export const fetchDeactivatedContent = async ({ signal }) => {
     }
 }
 
-export const deactivateContent = async ({data}) =>{
+export const deactivateContent = async ({ data }) => {
     try {
         const response = await axios.patch(`/deactivate-content`, { id: data });
 
@@ -190,6 +190,61 @@ export const deactivateContent = async ({data}) =>{
         const err = new Error(error.response?.data?.message || "An error occurred");
         err.code = error.response?.status || 500;
         err.info = error.response?.data || ['Error fetching data'];
+        throw err;
+    }
+}
+
+
+
+// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> STORES REQUEST HERE <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+export const fetchPendingStores = async ({ signal }) => {
+    try {
+        const response = await axios.get(`/application-request`, { signal });
+        return response.data.stores;
+    } catch (error) {
+        const err = new Error(error.response?.data?.message || "An error occurred");
+        err.code = error.response?.status || 500;
+        err.info = error.response?.data || ['Error fetching data'];
+        throw err;
+    }
+}
+
+export const fetchApprovedStore = async ({ signal }) => {
+    try {
+        const response = await axios.get(`/approved-stores`, { signal });
+        return response.data.stores;
+    } catch (error) {
+        const err = new Error(error.response?.data?.message || "An error occurred");
+        err.code = error.response?.status || 500;
+        err.info = error.response?.data || ['Error fetching data'];
+        throw err;
+    }
+}
+
+export const fetchStoreInfo = async ({ signal, id }) => {
+    try {
+        const response = await axios.get(`/store-info/${id}`, { signal });
+        return response.data.store;
+    } catch (error) {
+
+        const err = new Error(error.response?.data?.message || "An error occurred");
+        err.code = error.response?.status || 500;
+        err.info = error.response?.data || ['Error fetching data'];
+        throw err;
+    }
+}
+
+
+export const approveStore= async ({ data }) => {
+    try {
+        const response = await axios.patch(`/approve-store`, data);
+        return response.data.user;
+    } catch (error) {
+        const err = new Error(error.response?.data?.message || "An error occurred");
+        err.code = error.response?.status || 500;
+        err.info = error.response?.data || ['Error saving data'];
         throw err;
     }
 }

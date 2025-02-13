@@ -125,7 +125,7 @@ function ManageAccounts() {
 
       </Modal>
       <div className=' flex justify-end items-center'>
-        <NavLink to='add' className='bg-blue_btn text-white px-4 py-2 rounded-xl self-end shadow-lg hover:shadow-none'>Create officer account</NavLink>
+        <NavLink to='../add' className='bg-blue_btn text-white px-4 py-2 rounded-xl self-end shadow-lg hover:shadow-none'>Create officer account</NavLink>
       </div>
       {content}
     </>

@@ -1,7 +1,5 @@
 import React, { useRef, useState } from 'react'
 import { Worker, Viewer } from "@react-pdf-viewer/core";
-import samplePdf from '../../../assets/pdfs/sample.pdf'
-
 import '@react-pdf-viewer/core/lib/styles/index.css';
 import "@react-pdf-viewer/default-layout/lib/styles/index.css";
 import { defaultLayoutPlugin } from "@react-pdf-viewer/default-layout";
@@ -9,12 +7,12 @@ import { zoomPlugin } from "@react-pdf-viewer/zoom";
 import { useOutletContext } from 'react-router-dom';
 
 
-function ViewDti() {
+function ViewBarangayPermit() {
     const viewerRef = useRef(null);
     const [zoomPluginInstance] = useState(zoomPlugin());
     const [defaultLayoutPluginInstance] = useState(defaultLayoutPlugin());
-    const {dti_permit} = useOutletContext();
-    const url = `${import.meta.env.VITE_BASE_URL}/store-cred/dti-permit/${dti_permit}`
+    const {barangay_permit} = useOutletContext();
+    const url = `${import.meta.env.VITE_BASE_URL}/store-cred/barangay-permit/${barangay_permit}`
     const handleLoadSuccess = () => {
         console.log(viewerRef.current)
         if (viewerRef.current) {
@@ -39,4 +37,4 @@ function ViewDti() {
     )
 }
 
-export default ViewDti
+export default ViewBarangayPermit

@@ -9,6 +9,7 @@ const path = require("path");
 const _ = require('lodash');
 const { lowerCaseTrim } = require("../util/myFunctions.js");
 const { isEmptyData } = require("../util/validations.js");
+const { ADDRGETNETWORKPARAMS } = require("dns");
 
 const uploadDir = path.join(__dirname, "../public/store-cred/");
 if (!fs.existsSync(uploadDir)) {
@@ -66,11 +67,6 @@ const storeExisting = async (store_name) => {
     return false;
 }
 
-const saveStore = async (data) => {
-    const storesRef = db.collection('stores').doc();
-    const saveData = await storesRef.set(data, { merge: true })
-    return saveData;
-}
 
 
 router.post('/verify-store', async (req, res, next) => {
@@ -90,6 +86,8 @@ router.post('/verify-store', async (req, res, next) => {
         return res.status(501).json({ message: error.message });
     }
 })
+
+
 router.post('/register-store', upload, async (req, res) => {
     try {
 
@@ -107,7 +105,7 @@ router.post('/register-store', upload, async (req, res) => {
 
         let store_logo = null;
 
-        if(req.files['store_logo']){
+        if (req.files['store_logo']) {
             store_logo = req.files['store_logo'][0].filename
         }
 
@@ -126,7 +124,7 @@ router.post('/register-store', upload, async (req, res) => {
             application_date: admin.firestore.FieldValue.serverTimestamp(),
             status: 'pending',
             approved_by: null,
-            aprroval_date: null,
+            approval_date: null,
             rejected_by: null,
             date_rejection: null,
             rejection_reason: null,
@@ -136,9 +134,9 @@ router.post('/register-store', upload, async (req, res) => {
 
 
 
-
         return res.status(200).json({
-            message: "Files and data uploaded successfully"
+            message: "Files and data uploaded successfully",
+            store: primaryData,
         });
     } catch (error) {
         console.error(error.message);
@@ -146,85 +144,154 @@ router.post('/register-store', upload, async (req, res) => {
     }
 });
 
-// router.post('/register-store', async (req, res) => {
-//     try {
-//         console.log('Received request for /register-store');
 
-//         // Ensure multer parses form data first
-//         await new Promise((resolve, reject) => {
-//             parsedMulter(req, res, (err) => {
-//                 if (err) return reject(err);
-//                 resolve();
-//             });
-//         });
+router.get('/approved-stores', async (req, res, next) => {
+    try {
+        const stores = [];
 
-//         const { store_name, province, city, barangay, street, zip, user_id } = req.body;
+        const storeRef = db.collection('stores');
 
-//         console.log('storename: ' + store_name)
-//         // Check if store name already exists
-//         const storenameExist = await storeExisting(store_name);
-//         if (storenameExist) {
-//             return res.status(400).json({ message: "Store name already exists. Please choose another name." });
-//         }
+        const storesDoc = await storeRef.where('status', '==', 'approved').orderBy('store_name', 'asc').get();
 
-//         // Prepare store data
-//         const storeData = {
-//             user_id,
-//             store_name,
-//             street,
-//             barangay,
-//             city,
-//             province,
-//             zip
-//         };
+        if (storesDoc.empty) {
+            return res.status(200).json({ message: 'No stores found', stores: stores });
+        }
 
-//         // Handle file uploads
-//         await new Promise((resolve, reject) => {
-//             upload(req, res, (err) => {
-//                 if (err) return reject(err);
-//                 resolve();
-//             });
-//         });
+        storesDoc.forEach(doc => stores.push({ id: doc.id, ...doc.data() }));
+        return res.status(200).json({ message: 'success', stores: stores });
 
-//         // Extract file names
-//         let store_logo = req.files['store_logo'] ? req.files['store_logo'][0].filename : null;
-//         let barangay_permit = req.files['credentials_barangay'] ? req.files['credentials_barangay'][0].filename : null;
-//         let dti_permit = req.files['credentials_dti'] ? req.files['credentials_dti'][0].filename : null;
-//         let store_image = req.files['store_image'] ? req.files['store_image'][0].filename : null;
+    } catch (error) {
 
-//         // Final data to save
-//         const primaryData = {
-//             owner_id: user_id,
-//             store_name,
-//             street,
-//             barangay,
-//             city,
-//             province,
-//             zip,
-//             store_logo,
-//             barangay_permit,
-//             dti_permit,
-//             store_image,
-//             application_date: admin.firestore.FieldValue.serverTimestamp(),
-//             status: 'pending',
-//             approved_by: null,
-//             aprroval_date: null,
-//             rejected_by: null,
-//             date_rejection: null,
-//             rejection_reason: null,
-//         };
+        console.error(error.message);
+        return res.status(500).json({ message: 'Internal server error', error: [error.message] });
+    }
 
-//         // Save to Firestore
-//         await saveStore(primaryData);
+})
 
-//         return res.status(200).json({
-//             message: "Files and data uploaded successfully",
-//         });
+router.get('/fetch-user-store/:id', async (req,res, next)=>{
+    try {
+        const {userId} = req.params;
+        const storeRef = db.collection('stores').where('owner_id', '==', userId);
 
-//     } catch (error) {
-//         console.error("Error:", error.message);
-//         return res.status(500).json({ message: "Error uploading files", error: error.message });
-//     }
-// });
+        const storeDoc = await storeRef.get();
+        let storeObj = {}; // Use 'let' instead of 'const'
+
+
+        if(storeDoc.empty){
+            return res.status(200).json({message: 'No store'})
+        }
+        if (!storeDoc.empty) {
+            storeObj = storeDoc.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data(),
+            }));
+        }
+
+        return res.status(200).json({message: 'success', storeData: storeObj})
+    } catch (error) {
+        return res.status(500).json({ message: 'Internal server error', error: error.message })
+    }
+})
+
+
+router.get('/application-request', async (req, res, next) => {
+    try {
+        const stores = [];
+
+        const storeRef = db.collection('stores');
+
+        const storesDoc = await storeRef.where('status', '==', 'pending').orderBy('application_date', 'desc').get();
+
+        if (storesDoc.empty) {
+            return res.status(200).json({ message: 'No stores found', stores: stores });
+        }
+
+        storesDoc.forEach(doc => stores.push({ id: doc.id, ...doc.data() }));
+        return res.status(200).json({ message: 'success', stores: stores });
+
+    } catch (error) {
+
+        console.error(error.message);
+        return res.status(500).json({ message: 'Internal server error', error: [error.message] });
+    }
+
+})
+
+
+router.get('/store-info/:id', async (req, res, next) => {
+    try {
+        const { id } = req.params
+        const errors = [];
+        let responseObj = {};
+
+        const storeRef = db.collection('stores').doc(id);
+
+        const storeDoc = await storeRef.get();
+
+
+        if (!storeDoc.exists) {
+            errors.push(`A store with an id of ${id} does not exist`)
+            return res.status(401).json({ message: 'Unauthorized', errors: errors });
+
+        }
+
+        const userRef = db.collection('users').doc(storeDoc.data().owner_id);
+
+        const userDoc = await userRef.get();
+
+        if (!userDoc.exists) {
+            errors.push(`A user with an id of ${id} does not exist`)
+            return res.status(401).json({ message: 'Unauthorized', errors: errors });
+
+        }
+
+        const { firstname, lastname, middlename } = userDoc.data();
+
+        responseObj = {
+            ...storeDoc.data(),
+            firstname,
+            lastname,
+            middlename
+        }
+
+        return res.status(200).json({ message: 'success', store: responseObj })
+
+    } catch (error) {
+        console.error(error.message);
+        return res.status(500).json({ message: 'Internal server error', error: [error.message] });
+    }
+})
+
+
+
+router.patch('/approve-store', async (req, res, next) => {
+
+    const { store_id, owner_id, approved_by, } = req.body;
+    const errors = []
+    try {
+
+        const storeRef = db.collection('stores')
+        const userRef = db.collection('users')
+        const userDoc = userRef.doc(owner_id)
+        const storeDoc = storeRef.doc(store_id)
+
+        await userDoc.set({
+            role: 'partner'
+        }, { merge: true })
+
+        const response = await storeDoc.set({
+            status: 'approved',
+            approval_date: admin.firestore.FieldValue.serverTimestamp(),
+            approved_by,
+        }, { merge: true })
+
+
+        res.status(200).send({ message: 'success' })
+    } catch (error) {
+        console.log(error.message)
+        errors.push('Internal server error')
+        return res.status(501).json({ message: error.message, errors: errors })
+    }
+})
 
 module.exports = router;

@@ -1,5 +1,6 @@
 import _ from 'lodash'
 import { titleCase } from 'title-case';
+import {dbDateFormatter} from '../../../util/formatter'
 export const schedColumns = [
     { Header: 'Id', accessor: 'id', },
     { Header: 'Barangay', accessor: 'barangay', },
@@ -51,5 +52,5 @@ export const contentColumn = [
 export const storeColumns = [
     { Header: 'Id', accessor: 'id', },
     { Header: 'Store Name', accessor: 'store_name', },
-    { Header: 'Application date', accessor: 'application_date', },
+    { Header: 'Application date', accessor: 'application_date', Cell: ({value}) => dbDateFormatter(value) },
 ]

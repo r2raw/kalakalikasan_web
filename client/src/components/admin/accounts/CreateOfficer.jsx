@@ -76,7 +76,7 @@ function CrreateOfficer() {
     }
 
     const handleModalClose = () => {
-        navigate('../');
+        navigate('../active');
 
     }
 
@@ -185,7 +185,7 @@ function CrreateOfficer() {
                 </div>
             </Modal>
             <div>
-                <NavLink to='../'>
+                <NavLink to='../active'>
                     <ArrowBackSharpIcon />
                 </NavLink>
             </div>

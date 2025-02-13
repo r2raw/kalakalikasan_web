@@ -87,7 +87,7 @@ function EditOfficer() {
 
 
     const handleModalClose = () => {
-        navigate('../');
+        navigate('../active');
 
     }
 
@@ -208,7 +208,7 @@ function EditOfficer() {
                 </div>
             </Modal>
             <div>
-                <NavLink to='../'>
+                <NavLink to='../active'>
                     <ArrowBackSharpIcon />
                 </NavLink>
             </div>

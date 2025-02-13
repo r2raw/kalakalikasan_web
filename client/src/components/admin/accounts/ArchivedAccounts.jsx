@@ -19,12 +19,13 @@ function ArchivedAccounts() {
 
   const dispatch = useDispatch()
   const selector = useSelector((state) => state.users)
-  const modalError = useSelector((state) => state.ui.errorMessage)
   const restoringId = selector.isRestoring;
   const { data, isPending, isError, error } = useQuery({
     queryKey: ['users', 'inactive'],
     queryFn: ({ signal }) => fetchInactiveUsers({ signal }),
-    staleTime: 30000
+    staleTime: 3000,
+    gcTime: 30000,
+    refetchInterval: 3000,
   })
 
 
@@ -108,7 +109,7 @@ function ArchivedAccounts() {
           {formAction}
         </div>
         
-        {modalError && <ErrorBlock message={modalError} />}
+        {isRestoreError && <ErrorBlock message={restoreError.info?.errors || ['Failed to load data.']} />}
       </Modal>
       {content}
     </>

@@ -159,7 +159,7 @@ function CreatePosts() {
 
   }
   const handleModalClose = () => {
-    navigate('../');
+    navigate('../list');
 
   }
 
