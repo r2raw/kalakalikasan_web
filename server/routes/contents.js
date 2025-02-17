@@ -180,7 +180,7 @@ router.get('/fetch-contents-mobile', async (req, res, next) => {
     const groupedData = []
 
     try {
-        const contentDoc =  db.collection('contents').orderBy('type', 'asc').orderBy('date_created', 'desc')
+        const contentDoc =  db.collection('contents').orderBy('date_created', 'desc')
         const contentSnapshot = await contentDoc.where('status', '!=', 'deactivated').get()
         for (const doc of contentSnapshot.docs) {
             const data = doc.data();

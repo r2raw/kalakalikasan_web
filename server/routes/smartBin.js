@@ -13,7 +13,6 @@ const { lowerCaseTrim } = require("../util/myFunctions.js");
 router.post('/smart-bin', async (req, res, next) => {
     const errors = [];
     const { transaction_id, claim_type, materials, total_points } = req.body;
-
     const { material_name, points_collected, total_grams } = materials[0]
     const batch = db.batch();
     let claiming_status = 'pending'
@@ -92,5 +91,46 @@ router.get('/rates', async (req, res, next) => {
     }
 })
 
+
+router.get('/get-receipt/:id', async (req, res, next) => {
+
+    const { id } = req.params;
+    const errors = [];
+    const materials = [];
+    let responseObj = {};
+    try {
+        const smartBinRef = db.collection('smart_bin').doc(id);
+        const materialRef = smartBinRef.collection('materials');
+        const smartBinDoc = await smartBinRef.get();
+        const materialDoc = await materialRef.get();
+
+        if (!smartBinDoc.exists) {
+            errors.push(`Transaction id ${id} does not exist`)
+            return res.status(401).json({ message: 'Not found', errors: errors });
+
+        }
+
+        materialDoc.forEach(material => {
+            materials.push({...material.data()});
+        })
+
+
+
+        responseObj = {
+            ...smartBinDoc.data(),
+            materials
+        }
+
+
+        console.log(responseObj);
+
+        // console.log(responseArr)
+        return res.status(200).json({ message: 'success', receipt: responseObj })
+    } catch (error) {
+        console.log(error.message)
+        errors.push('Internal server error')
+        return res.status(501).json({ message: error.message })
+    }
+})
 
 module.exports = router;

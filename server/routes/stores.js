@@ -194,6 +194,7 @@ router.get('/fetch-user-store/:id', async (req,res, next)=>{
 })
 
 
+
 router.get('/application-request', async (req, res, next) => {
     try {
         const stores = [];
@@ -292,6 +293,15 @@ router.patch('/approve-store', async (req, res, next) => {
         errors.push('Internal server error')
         return res.status(501).json({ message: error.message, errors: errors })
     }
+})
+
+
+router.post('/check-product-existing', async (req, res, next)=>{
+    
+})
+
+router.post('/add-product', async (req, res, next)=>{
+    
 })
 
 module.exports = router;
