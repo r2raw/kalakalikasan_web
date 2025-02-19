@@ -223,7 +223,6 @@ router.post('/login', async (req, res, next) => {
 router.post('/login-mobile', async (req, res, next) => {
     const { userCred, password } = req.body;
     const errors = [];
-
     try {
         let enteredCred = 'email';
 
@@ -274,9 +273,7 @@ router.post('/login-mobile', async (req, res, next) => {
 
         }
 
-
-        console.log(resData);
-
+        console.log(resData)
 
 
         return res.status(200).json(resData);
@@ -290,7 +287,6 @@ router.post('/login-mobile', async (req, res, next) => {
 // GET REQUEST
 
 router.get('/activeUsers', async (req, res, next) => {
-    console.log('asdasd')
     const errors = [];
     try {
 
@@ -408,6 +404,66 @@ router.get('/user/:id', async (req, res, next) => {
     }
 })
 
+router.get('/notifications/:id', async (req, res, next) => {
+    const { id } = req.params;
+    const errors = [];
+    const notifs = [];
+    const notifObj = {
+        unread: [],
+        read: []
+    }
+    try {
+        const notificationRef = db.collection('notifications');
+
+        const directNotifDoc = await notificationRef.where('userId', '==', id).get()
+        const globalNotifDoc = await notificationRef.where('send_type', '==', 'global').get()
+
+        if (!directNotifDoc.empty) {
+            directNotifDoc.forEach(notifItem => notifs.push({ id: notifItem.id, ...notifItem.data() }))
+        }
+
+        if (!globalNotifDoc.empty) {
+
+            globalNotifDoc.forEach(notifItem => notifs.push({ id: notifItem.id, ...notifItem.data() }))
+        }
+
+
+        notifs.sort((a, b) => b.notif_date._seconds - a.notif_date._seconds);
+        notifs.forEach(notif => {
+            if (notif.readBy && notif.readBy.includes(id)) {
+                notifObj.read.push(notif);
+            } else {
+                notifObj.unread.push(notif);
+            }
+        });
+        return res.status(200).json({ notifObj })
+
+    } catch (error) {
+        console.error(error.message)
+        errors.push('Internal server error')
+        return res.status(501).json({ message: error.message, errors: errors })
+    }
+})
+
+
+router.get('/user-points/:id', async (req, res, next) => {
+    const { id } = req.params;
+    const errors = [];
+    let responseObj = {};
+    try {
+        const userRef = db.collection('users').doc(id);
+
+        const userDoc = await userRef.get();
+
+        const points = userDoc.data().points || 0;
+
+        return res.status(200).json({ message: 'success', points })
+    } catch (error) {
+
+        errors.push('Internal server error')
+        return res.status(501).json({ message: error.message, errors: errors })
+    }
+})
 
 
 // patch request

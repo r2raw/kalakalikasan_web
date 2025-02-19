@@ -8,6 +8,7 @@ const fs = require("fs");
 const path = require("path");
 const _ = require('lodash');
 const { lowerCaseTrim } = require("../util/myFunctions.js");
+const { type } = require("os");
 
 
 router.post('/smart-bin', async (req, res, next) => {
@@ -111,7 +112,7 @@ router.get('/get-receipt/:id', async (req, res, next) => {
         }
 
         materialDoc.forEach(material => {
-            materials.push({...material.data()});
+            materials.push({ ...material.data() });
         })
 
 
@@ -122,10 +123,66 @@ router.get('/get-receipt/:id', async (req, res, next) => {
         }
 
 
-        console.log(responseObj);
-
         // console.log(responseArr)
         return res.status(200).json({ message: 'success', receipt: responseObj })
+    } catch (error) {
+        console.log(error.message)
+        errors.push('Internal server error')
+        return res.status(501).json({ message: error.message })
+    }
+})
+
+router.patch('/receipt', async (req, res, next) => {
+    const { userId, transactionId, points } = req.body;
+    const errors = [];
+    const materials = [];
+    let responseObj = {};
+    try {
+        const userRef = db.collection('users').doc(userId);
+        const transactionRef = userRef.collection('transactions').doc();
+        const notificationRef = db.collection('notifications').doc();
+        const smartBinRef = db.collection('smart_bin').doc(transactionId);
+
+        const userRefDoc = await userRef.get();
+        let currentPoints = points;
+
+        if(userRefDoc.data().points !== undefined){
+            currentPoints = userRefDoc.data().points + points;
+        }
+        const notificationData = {
+            title: 'Points successfully claimed',
+            message: `You have claimed a total of ${points} Eco-coins.`,
+            send_type: 'direct',
+            notif_type: 'transactions',
+            redirect_type: 'receipt',
+            redirect_id: transactionId,
+            userId,
+            readBy: [],
+            notif_date: admin.firestore.FieldValue.serverTimestamp(),
+        }
+
+        const smartBinData = {
+            claimed_by: userId,
+            claiming_date: admin.firestore.FieldValue.serverTimestamp(),
+            claiming_status: 'claimed',
+        }
+
+        const transactionData = {
+            transactionId,
+            type: 'received',
+            transactionDate: admin.firestore.FieldValue.serverTimestamp(),
+        }
+
+
+        const savePoints = await userRef.set({ points: currentPoints }, { merge: true });
+        const saveSmartBin = await smartBinRef.set(smartBinData, { merge: true });
+        const saveTransaction = await transactionRef.set(transactionData, { merge: true });
+        const saveNotification = await notificationRef.set(notificationData, { merge: true });
+
+
+
+        // console.log(responseArr)
+        return res.status(200).json({ message: 'success', smartBinData, notificationData, transactionData })
     } catch (error) {
         console.log(error.message)
         errors.push('Internal server error')
