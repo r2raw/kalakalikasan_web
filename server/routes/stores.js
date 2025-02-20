@@ -351,6 +351,7 @@ router.post('/check-product-existing', async (req, res, next) => {
 
 router.post('/add-product', uploadProduct.single('productImage'), async (req, res, next) => {
     const { store_id, quantity, price, productName } = req.body;
+    const id = uid(20)
     const errors = []
     try {
 
@@ -361,7 +362,7 @@ router.post('/add-product', uploadProduct.single('productImage'), async (req, re
 
 
         const storeRef = db.collection('stores').doc(store_id)
-        const productRef = storeRef.collection('products').doc();
+        const productRef = storeRef.collection('products').doc(id);
         const productInfo = {
             productImage,
             productName,
@@ -375,7 +376,7 @@ router.post('/add-product', uploadProduct.single('productImage'), async (req, re
 
 
 
-        res.status(200).send({ message: 'success', productInfo })
+        res.status(200).send({ message: 'success', productInfo: { id: id, ...productInfo } })
     } catch (error) {
         errors.push('Internal server error')
         console.error(error.message)
@@ -440,14 +441,16 @@ router.get('/fetch-stores/:id', async (req, res, next) => {
 
             const hasRated = ratings.find(item => item.rating_id === id) || null
             let myRate = 0
-            if(hasRated != null){
+            if (hasRated != null) {
                 myRate = hasRated.ratings;
             }
 
             const averageRounded = getAverageRoundedRating(ratings);
 
+        
             stores.push({ store_id: store.id, ...store.data(), ratings, myRate, total_ratings: averageRounded })
         })
+
 
         return res.status(200).json({ message: 'Success', stores })
     } catch (error) {
