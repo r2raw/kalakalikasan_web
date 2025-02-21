@@ -459,4 +459,14 @@ router.get('/fetch-stores/:id', async (req, res, next) => {
     }
 })
 
+router.post('/checkout-products', async(req,res,next)=>{
+    try {
+        console.log(req.body);
+        return res.status(200).json({message: 'Success'})
+        
+    } catch (error) {
+        return res.status(501).json({message: 'Checkout error', error: error.message})
+    }
+})
+
 module.exports = router;
