@@ -20,6 +20,9 @@ router.post('/smart-bin', async (req, res, next) => {
 
     try {
 
+        
+        const trans_id = transaction_id.substring(0, 12);
+
         if (claim_type == 'direct_to_bin') {
             claiming_status = 'completed'
         }
@@ -38,7 +41,7 @@ router.post('/smart-bin', async (req, res, next) => {
             return res.status(501).json({ message: 'error', errors: errors })
         }
         const binData = {
-            transaction_id,
+            transaction_id: trans_id,
             claim_type,
             total_points,
             claiming_status,

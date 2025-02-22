@@ -366,8 +366,8 @@ router.post('/add-product', uploadProduct.single('productImage'), async (req, re
         const productInfo = {
             productImage,
             productName,
-            quantity,
-            price,
+            quantity: parseInt(quantity),
+            price: parseInt(price),
             date_created: admin.firestore.FieldValue.serverTimestamp(),
 
         }
@@ -447,7 +447,7 @@ router.get('/fetch-stores/:id', async (req, res, next) => {
 
             const averageRounded = getAverageRoundedRating(ratings);
 
-        
+
             stores.push({ store_id: store.id, ...store.data(), ratings, myRate, total_ratings: averageRounded })
         })
 
@@ -459,13 +459,37 @@ router.get('/fetch-stores/:id', async (req, res, next) => {
     }
 })
 
-router.post('/checkout-products', async(req,res,next)=>{
+const getProduct = async (productRef) => {
+
+    const productDoc = await productRef.get();
+    return productDoc;
+}
+router.post('/checkout-products', async (req, res, next) => {
+
     try {
-        console.log(req.body);
-        return res.status(200).json({message: 'Success'})
-        
+        const errors = [];
+        const { user_id, cart } = req.body;
+        const fetchProducts = [];
+        await Promise.all(cart.map(async (store) => {
+            const { store_id, products, store_name } = store;
+            const storeRef = db.collection('stores').doc(store_id);
+
+            await Promise.all(products.map(async (product) => {
+                const productRef = storeRef.collection('products').doc(product.product_id);
+                const productDoc = await getProduct(productRef);
+
+                if (productDoc.exists) {
+                    fetchProducts.push({ id: productDoc.id, ...productDoc.data() });
+                }
+            }));
+        }));
+
+        console.log(fetchProducts)
+        return res.status(200).json({ message: 'Success' })
+
     } catch (error) {
-        return res.status(501).json({message: 'Checkout error', error: error.message})
+        console.error(error.message)
+        return res.status(501).json({ message: 'Checkout error', error: error.message })
     }
 })
 
