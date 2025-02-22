@@ -51,7 +51,7 @@ router.post('/smart-bin', async (req, res, next) => {
             transaction_officer: null,
         }
 
-        const smartBinRef = db.collection('smart_bin').doc(transaction_id);
+        const smartBinRef = db.collection('smart_bin').doc(trans_id);
 
         batch.set(smartBinRef, binData, { merge: true });
 
