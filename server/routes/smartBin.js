@@ -99,7 +99,6 @@ router.get('/rates', async (req, res, next) => {
 router.get('/get-receipt/:id', async (req, res, next) => {
 
     const { id } = req.params;
-    const errors = [];
     const materials = [];
     let responseObj = {};
     try {
@@ -109,8 +108,7 @@ router.get('/get-receipt/:id', async (req, res, next) => {
         const materialDoc = await materialRef.get();
 
         if (!smartBinDoc.exists) {
-            errors.push(`Transaction id ${id} does not exist`)
-            return res.status(401).json({ message: 'Not found', errors: errors });
+            return res.status(401).json({ message: 'Not found', error: `Transaction id ${id} does not exist` });
 
         }
 
@@ -131,7 +129,7 @@ router.get('/get-receipt/:id', async (req, res, next) => {
     } catch (error) {
         console.log(error.message)
         errors.push('Internal server error')
-        return res.status(501).json({ message: error.message })
+        return res.status(501).json({ message: error.message, error: 'Something went wrong!' })
     }
 })
 
@@ -167,7 +165,7 @@ router.patch('/receipt', async (req, res, next) => {
         const smartBinData = {
             claimed_by: userId,
             claiming_date: admin.firestore.FieldValue.serverTimestamp(),
-            claiming_status: 'claimed',
+            claiming_status: 'completed',
         }
 
         const transactionData = {

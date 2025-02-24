@@ -10,6 +10,7 @@ const _ = require('lodash');
 const { lowerCaseTrim } = require("../util/myFunctions.js");
 const { isEmptyData } = require("../util/validations.js");
 const { ADDRGETNETWORKPARAMS } = require("dns");
+const { error } = require("console");
 
 const uploadDir = path.join(__dirname, "../public/store-cred/");
 const uploadProdDir = path.join(__dirname, "../public/products/");
@@ -206,6 +207,7 @@ router.get('/fetch-user-store/:id', async (req, res, next) => {
 
         return res.status(200).json({ message: 'success', storeData: storeObj })
     } catch (error) {
+        console.error(error.message)
         return res.status(500).json({ message: 'Internal server error', error: error.message })
     }
 })
@@ -469,27 +471,273 @@ router.post('/checkout-products', async (req, res, next) => {
     try {
         const errors = [];
         const { user_id, cart } = req.body;
-        const fetchProducts = [];
+        const userRef = db.collection('users').doc(user_id);
+        const userDoc = await userRef.get();
+        const { username, points } = userDoc.data()
+        let totalProductPrice = 0;
+        // CHECK DB
         await Promise.all(cart.map(async (store) => {
             const { store_id, products, store_name } = store;
             const storeRef = db.collection('stores').doc(store_id);
+            const totalPoints = products.reduce((sum, product) => sum + (product.price * product.quantity), 0);
+            totalProductPrice += totalPoints
+            console.log(totalProductPrice)
 
             await Promise.all(products.map(async (product) => {
                 const productRef = storeRef.collection('products').doc(product.product_id);
                 const productDoc = await getProduct(productRef);
-
                 if (productDoc.exists) {
-                    fetchProducts.push({ id: productDoc.id, ...productDoc.data() });
+                    const { quantity, productName } = productDoc.data()
+                    // CHECK IF THE CURRENT STOCKS IN DB IS SUFFICIENT
+                    if (product.quantity > quantity) {
+                        errors.push(`Insufficient stocks for ${productName}. Only ${quantity} is available, but ${product.quantity} were requested.`)
+                    }
                 }
             }));
         }));
 
-        console.log(fetchProducts)
+
+        if (points < totalProductPrice) {
+            errors.push('Insufficient points')
+        }
+
+        if (errors.length > 0) {
+            return res.status(409).json({ message: 'Insufficient products', errors });
+        }
+
+
+        // NO ERRORS
+        await Promise.all(cart.map(async (store) => {
+            const notificationRef = db.collection('notifications').doc();
+
+            const id = uid(16)
+            const { store_id, products, store_name } = store;
+            const storeRef = db.collection('stores').doc(store_id);
+            const storeDoc = await storeRef.get();
+            const { owner_id } = storeDoc.data();
+            const orderRef = db.collection('orders').doc(id);
+
+
+            // PRODUCTS
+
+            const orderData = {
+                ordered_by: user_id,
+                store_id: store_id,
+                status: 'pending',
+                order_date: admin.firestore.FieldValue.serverTimestamp(),
+            }
+
+            const saveOrder = await orderRef.set(orderData, { merge: true })
+
+            await Promise.all(products.map(async (product) => {
+
+                const orderedProductRef = orderRef.collection('products_ordered').doc();
+                const saveOrderedProducts = await orderedProductRef.set(product, { merge: true })
+
+            }));
+
+            const notificationData = {
+                title: 'Product request',
+                message: `${username} has a product request.`,
+                send_type: 'direct',
+                notif_type: 'transactions',
+                redirect_type: 'selling',
+                redirect_id: id,
+                userId: owner_id,
+                readBy: [],
+                notif_date: admin.firestore.FieldValue.serverTimestamp(),
+            }
+
+            const transactionRef = userRef.collection('transactions').doc();
+
+            const transactionData = {
+                transactionId: id,
+                type: 'buying',
+                transactionDate: admin.firestore.FieldValue.serverTimestamp(),
+            }
+
+            const saveNotification = await notificationRef.set(notificationData, { merge: true })
+            const saveTransaction = await transactionRef.set(transactionData, { merge: true })
+            // console.log(notificationData)
+        }));
+
+        const currentPoints = points - totalProductPrice;
+
+        const saveUser = await userRef.set({ points: currentPoints }, { merge: true })
+
+
         return res.status(200).json({ message: 'Success' })
 
     } catch (error) {
         console.error(error.message)
         return res.status(501).json({ message: 'Checkout error', error: error.message })
+    }
+})
+
+router.get('/pending-product-request/:store_id', async (req, res, next) => {
+    try {
+        const { store_id } = req.params;
+
+        console.log(store_id)
+        const orders = [];
+        const orderRef = db.collection('orders')
+            .where('store_id', '==', store_id).where('status', '==', 'pending')
+            .orderBy('order_date', 'desc');
+        const orderDoc = await orderRef.get();
+
+
+        if (!orderDoc.empty) {
+            await Promise.all(orderDoc.docs.map(async (item) => {
+
+                const { ordered_by } = item.data();
+                const userRef = db.collection('users').doc(ordered_by);
+                const userDoc = await userRef.get();
+
+                if (userDoc.exists) {
+                    const { username } = userDoc.data();
+
+                    orders.push({ order_id: item.id, ...item.data(), username })
+                }
+
+            }));
+        }
+
+        console.log(orders)
+        return res.status(200).json({ message: 'success', orders })
+    } catch (error) {
+        console.error(error.message)
+        return res.status(501).json({ message: 'Checkout error', error: error.message })
+    }
+})
+
+router.get('/product-request/:id', async (req, res, next) => {
+    const errors = []
+    try {
+        const { id } = req.params;
+
+        const orderRef = db.collection('orders').doc(id)
+        const orderDoc = await orderRef.get();
+        const productRef = orderRef.collection('products_ordered')
+        const productDoc = await productRef.get();
+        const { ordered_by, store_id } = orderDoc.data();
+        const userRef = db.collection('users').doc(ordered_by)
+        const userDoc = await userRef.get();
+        const storeRef = db.collection('stores').doc(store_id)
+        const storeDoc = await storeRef.get()
+
+        if (!storeDoc.exists) {
+            errors.push('Store not found')
+        }
+        if (!userDoc.exists) {
+            errors.push('User not found')
+        }
+        if (!orderDoc.exists) {
+            errors.push('Order not found')
+        }
+
+        if (productDoc.empty) {
+            errors.push('Product not found')
+        }
+
+        if (errors.length > 0) {
+            console.log(errors)
+            return res.status(401).json({ message: 'error', errors })
+
+        }
+        const fetchedProducts = [];
+        productDoc.forEach(item => {
+            fetchedProducts.push({ ordered_product_id: item.id, ...item.data() })
+        })
+
+        const { username } = userDoc.data()
+        const { store_name } = storeDoc.data()
+        const orderData = {
+            ...orderDoc.data(),
+            username,
+            store_name,
+            products: fetchedProducts,
+        }
+
+
+
+        return res.status(200).json({ message: 'success', order: orderData })
+
+    } catch (error) {
+        console.log(error.message)
+        return res.status(501).json({ message: 'Error', error: error.message })
+    }
+})
+
+router.patch('/reject-product-request', async (req, res, next) => {
+    try {
+        const { orderId } = req.body;
+
+        const orderRef = db.collection('orders').doc(orderId);
+        const orderDoc = await orderRef.get()
+        if (!orderDoc.exists) {
+            res.status(401).json({ message: 'error', error: 'Order id not found!' })
+        }
+
+
+
+        const productRef = orderRef.collection('products_ordered');
+        const productDoc = await productRef.get()
+
+        if (productDoc.empty) {
+            if (!orderRef.exists) {
+                res.status(401).json({ message: 'error', error: 'No product found' })
+            }
+        }
+
+
+        const products = [];
+        productDoc.forEach(item => products.push({ ...item.data() }))
+        const totalPoints = products.reduce((sum, product) => sum + (product.price * product.quantity), 0);
+
+
+        const { ordered_by } = orderDoc.data();
+        const userRef = db.collection('users').doc(ordered_by);
+        const userDoc = await userRef.get();
+
+        if (!userDoc.exists) {
+            return res.status(401).json({ message: 'error', error: 'User not found' })
+        }
+
+
+        const { points } = userDoc.data();
+        const currentPoints = points + totalPoints;
+
+
+        const notificationRef = db.collection('notifications').doc();
+        const notificationData = {
+            title: 'Product request rejected',
+            message: `Your product requests have been rejected. A refund of ${totalPoints} points has been issued to your account`,
+            send_type: 'direct',
+            notif_type: 'transactions',
+            redirect_type: 'refund',
+            redirect_id: orderId,
+            userId: ordered_by,
+            readBy: [],
+            notif_date: admin.firestore.FieldValue.serverTimestamp(),
+        }
+
+        const transactionRef = userRef.collection('transactions').doc()
+        const transactionData = {
+            transactionId: orderId,
+            type: 'refund',
+            transactionDate: admin.firestore.FieldValue.serverTimestamp(),
+        }
+
+        const updateOrder = await orderRef.set({ status: 'rejected' }, { merge: true })
+        const saveCurrentpoints = await userRef.set({ points: currentPoints, }, { merge: true })
+        const saveNotification = await notificationRef.set(notificationData, { merge: true })
+        const saveTransaction = await transactionRef.set(transactionData, { merge: true })
+
+        res.status(200).json({ message: 'success' })
+    } catch (error) {
+        console.log(error.message)
+        res.status(501).json({ message: 'error', error: error.message })
+
     }
 })
 
