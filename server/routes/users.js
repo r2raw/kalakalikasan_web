@@ -11,7 +11,9 @@ const _ = require('lodash');
 const { lowerCaseTrim } = require("../util/myFunctions.js");
 const qr = require('qr-image');
 const { isConvertibleToInt } = require("../util/validations.js");
-
+const twilio = require('twilio');
+const { Vonage } = require('@vonage/server-sdk');
+const { error } = require("console");
 const uploadDir = path.join(__dirname, "../public/userImg/");
 const userQrDir = path.join(__dirname, "../public/userQr/");
 if (!fs.existsSync(uploadDir)) {
@@ -83,7 +85,8 @@ router.post("/register", upload.single('image'), async (req, res, next) => {
             date_modified: null,
             created_by,
             modified_by: null,
-            status: 'activated'
+            status: 'activated',
+            points: 0,
         }
 
 
@@ -430,6 +433,8 @@ router.get('/notifications/:id', async (req, res, next) => {
 
         notifs.sort((a, b) => b.notif_date._seconds - a.notif_date._seconds);
         notifs.forEach(notif => {
+
+            const notifReadRed = notificationRef.collection('notifRead').doc(id)
             if (notif.readBy && notif.readBy.includes(id)) {
                 notifObj.read.push(notif);
             } else {
@@ -577,5 +582,82 @@ router.patch("/edit-user", upload.single('image'), async (req, res, next) => {
     }
 });
 
+
+const accountSid = process.env.TWILIOSID;
+const authToken = process.env.TWILIOAUTHTOKEN;
+
+const client = twilio(accountSid, authToken)
+
+router.post('/send-sms', async (req, res, next) => {
+    try {
+        const { send_to, msg } = req.body;
+        const to = `+63${send_to.substring(1, 11)}`
+
+        
+        const smsRes = await client.messages.create({
+            body: msg,
+            to,
+            from: process.env.TWILIONUM
+
+        })
+
+        console.log(smsRes)
+        if(!smsRes){
+            return res.status(501).json({error: 'Failed to send otp'})
+        }
+        if (smsRes) {
+            return res.status(200).json({ message: 'message sent successfully' })
+        }
+
+    } catch (error) {
+        console.error(error.message)
+        return res.status(501).json({ message: error.message })
+    }
+})
+router.patch('/view-notif', async (req, res) => {
+    try {
+        const { notifId, userId } = req.body;
+
+        console.log(notifId)
+        const notifRef = db.collection('notifications').doc(notifId);
+        const notifSnapshot = await notifRef.get();
+
+        if (!notifSnapshot.exists) {
+            return res.status(404).json({ message: 'error', error: `Notification ID ${notifId} not found.` });
+        }
+
+        // Update the readBy array using arrayUnion to prevent duplicates
+        await notifRef.update({
+            readBy: admin.firestore.FieldValue.arrayUnion(userId)
+        });
+
+        return res.status(200).json({ message: 'success', notifId, userId });
+    } catch (error) {
+        console.error(error.message);
+        return res.status(500).json({ message: 'error', error: error.message });
+    }
+});
+
+// const vonage = new Vonage({
+//     apiKey: "2a3677c5",
+//     apiSecret: "RE090262SpnzSSAD"
+//   })
+// router.post('/send-sms', async (req,res,next) =>{
+//     try {
+//         const {to, text} = req.body;
+//         const from ='Vonage'
+//         const response = await vonage.sms.send({
+//             to: to,
+//             text: 'Hello from Vonage!' // ✅ No 'from' field, Vonage assigns one automatically
+//         });
+//         console.log(JSON.stringify(smsRes, null, 2));
+
+//         res.status(200).json({message: 'message sent successfully'})
+
+//     } catch (error) {
+//         console.error(error.message)
+//         return res.status(501).json({message: error.message})
+//     }
+// })
 
 module.exports = router;

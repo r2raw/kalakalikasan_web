@@ -89,7 +89,7 @@ router.get('/rates', async (req, res, next) => {
             }
         }
 
-        res.status(200).json(rates)
+        return res.status(200).json(rates)
     } catch (error) {
         return res.status(501).json({ message: error.message })
     }
