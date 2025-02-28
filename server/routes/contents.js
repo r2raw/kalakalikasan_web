@@ -9,6 +9,7 @@ const path = require("path");
 const _ = require('lodash');
 const { lowerCaseTrim } = require("../util/myFunctions.js");
 const { isEmptyData } = require("../util/validations.js");
+const { error } = require("console");
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -138,7 +139,7 @@ router.get('/fetch-contents', async (req, res, next) => {
     const groupedData = {}
 
     try {
-        const contentDoc =  db.collection('contents').orderBy('type', 'asc').orderBy('date_created', 'desc')
+        const contentDoc = db.collection('contents').orderBy('type', 'asc').orderBy('date_created', 'desc')
         const contentSnapshot = await contentDoc.where('status', '!=', 'deactivated').get()
         for (const doc of contentSnapshot.docs) {
             const data = doc.data();
@@ -167,7 +168,7 @@ router.get('/fetch-contents', async (req, res, next) => {
 
         }
 
-        return res.status(200).json({message: 'success', contentData: groupedData})
+        return res.status(200).json({ message: 'success', contentData: groupedData })
     } catch (error) {
         console.log(error.message)
         errors.push('Internal server error')
@@ -180,14 +181,19 @@ router.get('/fetch-contents-mobile', async (req, res, next) => {
     const groupedData = []
 
     try {
-        const contentDoc =  db.collection('contents').orderBy('date_created', 'desc')
-        const contentSnapshot = await contentDoc.where('status', '!=', 'deactivated').get()
+        const contentDoc = db.collection('contents').orderBy('date_created', 'desc')
+        const contentSnapshot = await contentDoc.where('status', '==', 'visible').get()
+
         for (const doc of contentSnapshot.docs) {
             const data = doc.data();
             const type = data.type;
 
             // Fetch images from the media subcollection
             const contentImagesCollection = doc.ref.collection('media');
+            const userComments = doc.ref.collection('comments');
+            const userCommentsDoc = await userComments.get()
+            const userReactions = doc.ref.collection('reacts');
+            const userReactionsDoc = await userReactions.get()
             const imagesSnapshot = await contentImagesCollection.get();
             // Group data by type
 
@@ -198,15 +204,30 @@ router.get('/fetch-contents-mobile', async (req, res, next) => {
                     images.push({ imgId: imageDoc.id, ...imageDoc.data() });
                 });
             }
-            console.log(images);
-            groupedData.push({ id: doc.id, ...data, images });
+
+            const comments = [];
+
+            if (!userCommentsDoc.empty) {
+                userCommentsDoc.forEach(commentDoc => {
+                    comments.push({ commentId: commentDoc.id, ...commentDoc.data() })
+                })
+            }
+
+            const reacts = [];
+
+            if (!userReactionsDoc.empty) {
+                userReactionsDoc.forEach(reactDoc => {
+                    reacts.push({ reactId: reactDoc.id, })
+                })
+            }
+            groupedData.push({ id: doc.id, ...data, images, comments, reacts });
 
 
         }
 
         console.log(groupedData);
 
-        return res.status(200).json({message: 'success', contentData: groupedData})
+        return res.status(200).json({ message: 'success', contentData: groupedData })
     } catch (error) {
         console.log(error.message)
         errors.push('Internal server error')
@@ -214,20 +235,20 @@ router.get('/fetch-contents-mobile', async (req, res, next) => {
     }
 })
 
-router.get('/fetch-archived-contents', async (req, res, next)=>{
-    
+router.get('/fetch-archived-contents', async (req, res, next) => {
+
     const errors = [];
     const contents = [];
-    
+
     try {
-        const contentDoc =  db.collection('contents').orderBy('type', 'asc').orderBy('date_created', 'desc').where('status', '==', 'deactivated')
+        const contentDoc = db.collection('contents').orderBy('type', 'asc').orderBy('date_created', 'desc').where('status', '==', 'deactivated')
         const contentSnapshot = await contentDoc.get()
 
-        contentSnapshot.forEach(doc =>{
-            contents.push({id: doc.id, ...doc.data()})
+        contentSnapshot.forEach(doc => {
+            contents.push({ id: doc.id, ...doc.data() })
         })
 
-        return res.status(200).json({message: 'success', contents})
+        return res.status(200).json({ message: 'success', contents })
     } catch (error) {
         console.log(error.message)
         errors.push('Internal server error')
@@ -237,11 +258,11 @@ router.get('/fetch-archived-contents', async (req, res, next)=>{
 
 
 // PATCH REQUEST
-router.patch('/deactivate-content', async(req, res, next)  =>{
-    const {id} = req.body;
+router.patch('/deactivate-content', async (req, res, next) => {
+    const { id } = req.body;
     const errors = [];
     try {
-        
+
         const contentDoc = db.collection('contents').doc(id)
 
         const response = await contentDoc.set({
@@ -252,15 +273,15 @@ router.patch('/deactivate-content', async(req, res, next)  =>{
     } catch (error) {
         console.log(error.message)
         errors.push('Internal server error')
-        return res.status(501).json({message: error.message, errors: errors})
+        return res.status(501).json({ message: error.message, errors: errors })
     }
 })
 
-router.patch('/hide-content', async(req, res, next)  =>{
-    const {id} = req.body;
+router.patch('/hide-content', async (req, res, next) => {
+    const { id } = req.body;
     const errors = [];
     try {
-        
+
         const contentDoc = db.collection('contents').doc(id)
 
         const response = await contentDoc.set({
@@ -271,8 +292,78 @@ router.patch('/hide-content', async(req, res, next)  =>{
     } catch (error) {
         console.log(error.message)
         errors.push('Internal server error')
-        return res.status(501).json({message: error.message, errors: errors})
+        return res.status(501).json({ message: error.message, errors: errors })
     }
 })
 
+
+router.post('/react-to-post', async (req, res, next) => {
+    try {
+        const { userId, contentId } = req.body;
+
+        const contentRef = db.collection('contents').doc(contentId)
+        const contentDoc = await contentRef.get()
+        const reactsRef = contentRef.collection('reacts').doc(userId)
+        if (!contentDoc.exists) {
+            return res.status(401).json({ error: `Cannot find a content that has an ID of ${contentId}` })
+        }
+
+        const saveReact = await reactsRef.set({ date_reacted: admin.firestore.FieldValue.serverTimestamp(), }, { merge: true },);
+
+        return res.status(200).json({ message: 'success', react: { reactId: 'userId', date_reacted: admin.firestore.FieldValue.serverTimestamp(), }, },)
+    } catch (error) {
+        console.error(error.message)
+        return res.status(501).json({ error: error.message })
+    }
+})
+
+router.post('/remove-react-to-post', async (req, res, next) => {
+    try {
+        const { userId, contentId } = req.body;
+
+        const contentRef = db.collection('contents').doc(contentId)
+        const contentDoc = await contentRef.get()
+        const reactsRef = contentRef.collection('reacts').doc(userId)
+        if (!contentDoc.exists) {
+            return res.status(401).json({ error: `Cannot find a content that has an ID of ${contentId}` })
+        }
+
+        const saveReact = await reactsRef.delete();
+
+        return res.status(200).json({ message: 'success', react: { reactId: userId, date_reacted: admin.firestore.FieldValue.serverTimestamp(), }, },)
+    } catch (error) {
+        console.error(error.message)
+        return res.status(501).json({ error: error.message })
+    }
+})
+
+
+router.post('/add-comment', async (req, res, next) => {
+    try {
+        const { userId, contentId, comment } = req.body;
+        console.log(req.body)
+        const commentId = uid(16)
+        const contentRef = db.collection('contents').doc(contentId)
+        const contentDoc = await contentRef.get()
+
+        if (!contentDoc.exists) {
+            return res.status(401).json({ error: `Cannot find a content that has an ID of ${contentId}` })
+        }
+        const commentRef = contentRef.collection('comments').doc(commentId)
+
+        const commentData = {
+            commentedBy: userId,
+            comment,
+            date_commented:admin.firestore.FieldValue.serverTimestamp(),
+        }
+        console.log(comment)
+        const saveComment = await commentRef.set(commentData, {merge: true})
+        return res.status(200).json({id: commentId, ...commentData})
+
+    } catch (error) {
+
+        console.error(error.message)
+        return res.status(501).json({ error: error.message })
+    }
+})
 module.exports = router;
