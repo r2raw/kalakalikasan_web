@@ -420,7 +420,6 @@ router.get('/fetch-products/:id', async (req, res, next) => {
         const products = [];
         const storeRef = db.collection('stores').doc(id);
         const productRef = storeRef.collection('products').where('quantity', '>', 0).orderBy('productName');
-        const productRef = storeRef.collection('products').where('quantity', '>', 0).orderBy('productName');
         const productDoc = await productRef.get();
 
     if (productDoc.empty) {
