@@ -55,11 +55,6 @@ router.post("/register", upload.single('image'), async (req, res, next) => {
     try {
         let image = null
 
-        if (errors.length > 0) {
-            return res.status(401).json({ errors: errors });
-        }
-
-
         if (req.file) {
             image = req.file.filename
         }
@@ -68,10 +63,31 @@ router.post("/register", upload.single('image'), async (req, res, next) => {
         const userAddressRef = usersRef.collection("user_address").doc();
         const fullnameRef = usersRef.collection('fullname').doc();
 
+        const existingUsername = await usersRef.where('username', '==', lowerCaseTrim(username).replaceAll(' ', '')).get();
+        const existingEmail = await usersRef.where('email', '==', lowerCaseTrim(email)).get();
+        const existingMobile = await usersRef.where('mobile_num', '==', lowerCaseTrim(mobile_num)).get();
+
+        if (!existingUsername.empty) {
+            errors.push('Username already exist!');
+        }
+
+        if (!existingEmail.empty) {
+            errors.push('Email already exist!');
+        }
+        if (!existingMobile.empty) {
+            errors.push('Mobile number already exist!');
+        }
+
+        if (errors.length > 0) {
+            return res.status(401).json({ errors: errors });
+        }
+
+
 
 
         const primaryData = {
             username: lowerCaseTrim(username).replaceAll(' ', ''),
+            // username: username,
             password: hash,
             email: lowerCaseTrim(email),
             role,
@@ -86,7 +102,6 @@ router.post("/register", upload.single('image'), async (req, res, next) => {
             created_by,
             modified_by: null,
             status: 'activated',
-            points: 0,
         }
 
 
@@ -116,7 +131,7 @@ router.post('/register-actor', async (req, res, next) => {
         const salt = await bcrypt.genSalt(saltRounds);
         const hash = await bcrypt.hash(password, salt);
         const usersRef = db.collection('users')
-        const existingUsername = await usersRef.where('username', '==', lowerCaseTrim(username)).get();
+        const existingUsername = await usersRef.where('username', '==', lowerCaseTrim(username).replaceAll(' ', '')).get();
         const existingEmail = await usersRef.where('email', '==', lowerCaseTrim(email)).get();
         const existingMobile = await usersRef.where('mobile_num', '==', lowerCaseTrim(mobileNum)).get();
 
@@ -159,7 +174,8 @@ router.post('/register-actor', async (req, res, next) => {
             birthdate: admin.firestore.Timestamp.fromDate(convertedBirthdateString),
             date_created: admin.firestore.FieldValue.serverTimestamp(),
             first_time_log: true,
-            status: 'activated'
+            status: 'activated',
+            points: 0,
         }
 
         const saveData = await usersRefDoc.set(primaryData, { merge: true })
@@ -398,10 +414,11 @@ router.get('/user/:id', async (req, res, next) => {
 
 
 
-        // console.log(responseArr)
+        console.log(responseObj)
         return res.status(200).json({ message: 'success', user: responseObj })
     } catch (error) {
 
+        console.error(error.message)
         errors.push('Internal server error')
         return res.status(501).json({ message: error.message, errors: errors })
     }
@@ -416,6 +433,7 @@ router.get('/notifications/:id', async (req, res, next) => {
         read: []
     }
     try {
+        console.log(id)
         const notificationRef = db.collection('notifications');
 
         const directNotifDoc = await notificationRef.where('userId', '==', id).get()
@@ -434,13 +452,15 @@ router.get('/notifications/:id', async (req, res, next) => {
         notifs.sort((a, b) => b.notif_date._seconds - a.notif_date._seconds);
         notifs.forEach(notif => {
 
-            const notifReadRed = notificationRef.collection('notifRead').doc(id)
+            // const notifReadRed = notificationRef.collection('notifRead').doc(id)
             if (notif.readBy && notif.readBy.includes(id)) {
                 notifObj.read.push(notif);
             } else {
                 notifObj.unread.push(notif);
             }
         });
+
+        console.log(notifObj)
         return res.status(200).json({ notifObj })
 
     } catch (error) {
@@ -593,7 +613,7 @@ router.post('/send-sms', async (req, res, next) => {
         const { send_to, msg } = req.body;
         const to = `+63${send_to.substring(1, 11)}`
 
-        
+
         const smsRes = await client.messages.create({
             body: msg,
             to,
@@ -602,8 +622,8 @@ router.post('/send-sms', async (req, res, next) => {
         })
 
         console.log(smsRes)
-        if(!smsRes){
-            return res.status(501).json({error: 'Failed to send otp'})
+        if (!smsRes) {
+            return res.status(501).json({ error: 'Failed to send otp' })
         }
         if (smsRes) {
             return res.status(200).json({ message: 'message sent successfully' })
@@ -637,6 +657,73 @@ router.patch('/view-notif', async (req, res) => {
         return res.status(500).json({ message: 'error', error: error.message });
     }
 });
+
+
+
+router.post('/request-payment', async (req, res, next) => {
+    const batch = db.batch();
+    try {
+        const id = uid(16)
+        const { store_id, amount, userId } = req.body;
+        const userRef = db.collection('users').doc(userId)
+        const userSnapshot = await userRef.get()
+        const storeRef = db.collection('stores').doc(store_id)
+        const storeSnapshot = await storeRef.get()
+        if (!userSnapshot.exists) {
+            return res.status(404).json({ error: 'User not found!' })
+        }
+
+        if (!storeSnapshot.exists) {
+            return res.status(404).json({ error: 'Store not found' })
+        }
+
+
+
+
+
+        const transactionRef = userRef.collection('transactions').doc()
+
+        //UPDATE POINTS
+        const { points } = userSnapshot.data()
+
+        if (amount > points) {
+            return res.status(409).json({ error: 'Insufficient points' })
+        }
+
+        const currentPoints = points - amount;
+
+        batch.set(userRef, { points: currentPoints }, { merge: true })
+
+        // TRANSACTION REF
+        const paymentData = {
+            transactionId: id,
+            type: "withdraw",
+            transactionDate: admin.firestore.FieldValue.serverTimestamp(),
+        };
+
+        batch.set(transactionRef, paymentData, { merge: true })
+
+        // PAYMENT REQ
+        const requestPaymentRef = db.collection('payment_request').doc(id)
+
+        const requestPaymentData = {
+            store_id,
+            amount,
+            status: 'pending',
+            acceptance_image: null
+        }
+
+        batch.set(requestPaymentRef, requestPaymentData, { merge: true })
+
+
+        await batch.commit()
+
+        return res.status(200).json({ message: 'success' })
+    } catch (error) {
+        console.error(error.message)
+        return res.status(501).json({ error: error.message })
+    }
+})
 
 // const vonage = new Vonage({
 //     apiKey: "2a3677c5",
