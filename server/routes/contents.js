@@ -209,7 +209,7 @@ router.get('/fetch-contents-mobile', async (req, res, next) => {
 
             if (!userCommentsDoc.empty) {
                 userCommentsDoc.forEach(commentDoc => {
-                    comments.push({ commentId: commentDoc.id, ...commentDoc.data() })
+                    comments.push({ ...commentDoc.data() })
                 })
             }
 
@@ -346,19 +346,29 @@ router.post('/add-comment', async (req, res, next) => {
         const contentRef = db.collection('contents').doc(contentId)
         const contentDoc = await contentRef.get()
 
+        const userRef = db.collection('users').doc(userId)
+        const userSnapshot = await userRef.get()
+
         if (!contentDoc.exists) {
             return res.status(401).json({ error: `Cannot find a content that has an ID of ${contentId}` })
         }
+
+        if (!userSnapshot.exists) {
+            return res.status(401).json({ error: `Cannot find a user id ${userId}` })
+        }
+
+        const {username} = userSnapshot.data()
         const commentRef = contentRef.collection('comments').doc(commentId)
 
         const commentData = {
-            commentedBy: userId,
+            userId,
+            commentedBy: username,
             comment,
-            date_commented:admin.firestore.FieldValue.serverTimestamp(),
+            date_commented: admin.firestore.FieldValue.serverTimestamp(),
         }
         console.log(comment)
-        const saveComment = await commentRef.set(commentData, {merge: true})
-        return res.status(200).json({id: commentId, ...commentData})
+        const saveComment = await commentRef.set(commentData, { merge: true })
+        return res.status(200).json({ id: commentId, ...commentData })
 
     } catch (error) {
 
@@ -366,4 +376,7 @@ router.post('/add-comment', async (req, res, next) => {
         return res.status(501).json({ error: error.message })
     }
 })
+
+
+
 module.exports = router;
