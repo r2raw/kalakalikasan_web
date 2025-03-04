@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import brand_logo from "../../assets/images/brand_logo.png";
+import brand_logo from '../../assets/logo/logo_transparent.png';
 import MenuSharpIcon from '@mui/icons-material/MenuSharp';
 import { IconButton } from "@mui/material";
 import CloseSharpIcon from '@mui/icons-material/CloseSharp';

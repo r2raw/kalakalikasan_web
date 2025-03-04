@@ -9,6 +9,7 @@ const path = require("path");
 const _ = require('lodash');
 const { lowerCaseTrim } = require("../util/myFunctions.js");
 const { type } = require("os");
+const { Timestamp } = require("firebase-admin/firestore");
 
 
 router.post('/smart-bin', async (req, res, next) => {
@@ -144,7 +145,7 @@ router.post('/smart-bin-officer', async (req, res, next) => {
             transactionDate: admin.firestore.FieldValue.serverTimestamp(),
         };
 
-        const {points} = residentSnapshot.data()
+        const { points } = residentSnapshot.data()
 
         const updatedPoints = points + total_points
 
@@ -155,9 +156,9 @@ router.post('/smart-bin-officer', async (req, res, next) => {
         console.log(updatedPoints)
         batch.set(smartBinRef, binData, { merge: true });
         batch.set(residentTransactionRef, residentTransactionData, { merge: true })
-        batch.set(officerTransactionRef, officerTransactionData, {merge: true})
-        batch.set(residentNotifRef, residentNotif, {merge: true});
-        batch.set(residentRef, {points: updatedPoints}, {merge: true})
+        batch.set(officerTransactionRef, officerTransactionData, { merge: true })
+        batch.set(residentNotifRef, residentNotif, { merge: true });
+        batch.set(residentRef, { points: updatedPoints }, { merge: true })
 
         materials.forEach(material => {
             const materialRef = smartBinRef.collection('materials').doc();
@@ -336,5 +337,478 @@ router.get('/qr-scan-user/:id', async (req, res, next) => {
         return res.status(501).json({ message: 'error', error: error.message });
     }
 })
+
+
+router.get('/total-collected-today', async (req, res, next) => {
+    try {
+        const now = new Date();
+        const startOfDay = new Date(now.setHours(0, 0, 0, 0)); // 12:00 AM
+        const endOfDay = new Date(now.setHours(23, 59, 59, 999)); // 11:59 PM
+
+        // Convert to Firestore Timestamp
+        const startTimestamp = Timestamp.fromDate(startOfDay);
+        const endTimestamp = Timestamp.fromDate(endOfDay);
+
+        // Query Firestore for today's transactions
+        const binRef = db.collection('smart_bin')
+            .where('transaction_date', '>=', startTimestamp)
+            .where('transaction_date', '<=', endTimestamp);
+
+        const snapshot = await binRef.get();
+
+        if (snapshot.empty) {
+            return res.status(200).json({ message: "No transactions found today", total_grams: 0 });
+        }
+
+        let totalGrams = 0;
+        const transactionPromises = snapshot.docs.map(async (doc) => {
+            const materialsRef = doc.ref.collection('materials'); // Access subcollection
+            const materialsSnapshot = await materialsRef.get();
+
+            // Sum total grams from each material document
+            materialsSnapshot.forEach(materialDoc => {
+                const materialData = materialDoc.data();
+                totalGrams += materialData.total_grams || 0; // Ensure it doesn't break if field is missing
+            });
+        });
+
+        // Wait for all transactions to process
+        await Promise.all(transactionPromises);
+        return res.status(200).json({ total_grams: totalGrams });
+    } catch (error) {
+        return res.status(501).json({ error: error.message })
+    }
+})
+
+
+router.get('/materials-collected-today', async (req, res, next) => {
+    try {
+        const now = new Date();
+        const startOfDay = new Date(now.setHours(0, 0, 0, 0)); // 12:00 AM
+        const endOfDay = new Date(now.setHours(23, 59, 59, 999)); // 11:59 PM
+
+        const startTimestamp = Timestamp.fromDate(startOfDay);
+        const endTimestamp = Timestamp.fromDate(endOfDay);
+
+        const binRef = db.collection('smart_bin')
+            .where('transaction_date', '>=', startTimestamp)
+            .where('transaction_date', '<=', endTimestamp);
+
+        const snapshot = await binRef.get();
+
+        if (snapshot.empty) {
+            return res.status(200).json({ message: "No transactions found today", materials: {} });
+        }
+
+        let materialTotals = {};
+
+        const transactionPromises = snapshot.docs.map(async (doc) => {
+            const materialsRef = doc.ref.collection('materials');
+            const materialsSnapshot = await materialsRef.get();
+
+            materialsSnapshot.forEach(materialDoc => {
+                const materialData = materialDoc.data();
+                const materialName = materialData.material_name || "Unknown";
+                const grams = materialData.total_grams || 0;
+
+                if (!materialTotals[materialName]) {
+                    materialTotals[materialName] = 0;
+                }
+                materialTotals[materialName] += grams;
+            });
+        });
+
+        await Promise.all(transactionPromises);
+
+        return res.status(200).json({ materials: materialTotals });
+    } catch (error) {
+        return res.status(501).json({ error: error.message })
+    }
+})
+
+router.get('/total-materials-collected', async (req, res, next) => {
+    try {
+        console.log(`Fetching all data...`);
+
+        const binRef = db.collection('smart_bin');
+        const snapshot = await binRef.get();
+
+        let materialData = [];
+
+        for (const doc of snapshot.docs) {
+            const transactionData = doc.data();
+
+            // Convert Firestore timestamp to JavaScript Date
+            let transactionDate = transactionData.transaction_date?.toDate ? transactionData.transaction_date.toDate() : new Date(transactionData.transaction_date);
+
+            // if (!transactionDate || isNaN(transactionDate.getTime())) {
+            //     console.log(`⚠️ Skipping ${doc.id}: Invalid transaction_date`);
+            //     continue;
+            // }
+
+            // console.log(`✅ Found transaction_date:`, transactionDate);
+
+            const materialsRef = binRef.doc(doc.id).collection('materials');
+            const materialsSnapshot = await materialsRef.get();
+
+            materialsSnapshot.forEach((materialDoc) => {
+                const data = materialDoc.data();
+
+                materialData.push({
+                    material_name: data.material_name,
+                    date: transactionDate,
+                    total_grams: data.total_grams
+                });
+            });
+        }
+
+        console.log("📌 Returning all raw data...");
+        return res.status(200).json(materialData);
+    } catch (error) {
+        return res.status(500).json({ error: error.message });
+    }
+});
+
+
+
+
+
+
+router.get('/monthly-expense-summary', async (req, res) => {
+    try {
+        const now = new Date();
+
+        // Get start and end dates for this, last, and two months ago
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+        const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+
+        const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1, 0, 0, 0, 0);
+        const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
+
+        const startOfTwoMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 2, 1, 0, 0, 0, 0);
+        const endOfTwoMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 1, 0, 23, 59, 59, 999);
+
+        // Convert to Firestore Timestamp
+        const startTimestampThisMonth = Timestamp.fromDate(startOfMonth);
+        const endTimestampThisMonth = Timestamp.fromDate(endOfMonth);
+
+        const startTimestampLastMonth = Timestamp.fromDate(startOfLastMonth);
+        const endTimestampLastMonth = Timestamp.fromDate(endOfLastMonth);
+
+        const startTimestampTwoMonthsAgo = Timestamp.fromDate(startOfTwoMonthsAgo);
+        const endTimestampTwoMonthsAgo = Timestamp.fromDate(endOfTwoMonthsAgo);
+
+        // Function to fetch total expenses for a given period
+        const fetchMonthlyExpenses = async (startTimestamp, endTimestamp) => {
+            let totalExpense = 0;
+
+            const binRef = db.collection('smart_bin')
+                .where('transaction_date', '>=', startTimestamp)
+                .where('transaction_date', '<=', endTimestamp);
+
+            const snapshot = await binRef.get();
+
+            if (!snapshot.empty) {
+                const transactionPromises = snapshot.docs.map(async (doc) => {
+                    const transactionData = doc.data();
+
+                    if (transactionData.claim_type === "direct_to_bin" || transactionData.claim_type === "cash") {
+                        totalExpense += transactionData.total_points || 0;
+                    } else {
+                        const paymentRef = db.collection('payment_request')
+                            .where('store_id', '==', doc.id)
+                            .where('status', '==', 'approved');
+
+                        const paymentSnapshot = await paymentRef.get();
+                        paymentSnapshot.forEach((paymentDoc) => {
+                            totalExpense += paymentDoc.data().amount || 0;
+                        });
+                    }
+                });
+
+                await Promise.all(transactionPromises);
+            }
+
+            return totalExpense;
+        };
+
+        // Fetch expenses for current, last, and two months ago
+        const thisMonthExpense = await fetchMonthlyExpenses(startTimestampThisMonth, endTimestampThisMonth);
+        const lastMonthExpense = await fetchMonthlyExpenses(startTimestampLastMonth, endTimestampLastMonth);
+        const twoMonthsAgoExpense = await fetchMonthlyExpenses(startTimestampTwoMonthsAgo, endTimestampTwoMonthsAgo);
+
+        let growthRate;
+        if (lastMonthExpense === 0) {
+            growthRate = "N/A"; // No comparison possible
+        } else if (thisMonthExpense < lastMonthExpense) {
+            if (twoMonthsAgoExpense > 0) {
+                // Compare with two months ago if it exists
+                growthRate = ((thisMonthExpense - twoMonthsAgoExpense) / twoMonthsAgoExpense) * 100;
+                growthRate = Number(growthRate.toFixed(2)) + "%";
+            } else {
+                // If two months ago has no data, return the max of last month
+                growthRate = `Max Expense Last Month: ${lastMonthExpense}`;
+            }
+        } else {
+            // Normal growth rate calculation
+            growthRate = ((thisMonthExpense - lastMonthExpense) / lastMonthExpense) * 100;
+            growthRate = Number(growthRate.toFixed(2)) + "%";
+        }
+
+        return res.status(200).json({
+            this_month_expense: thisMonthExpense,
+            last_month_expense: lastMonthExpense,
+            two_months_ago_expense: twoMonthsAgoExpense,
+            growth_rate: growthRate
+        });
+    } catch (error) {
+        console.error("Error computing monthly expense summary:", error);
+        return res.status(500).json({ error: error.message });
+    }
+});
+
+router.get('/available-years', async (req, res) => {
+    try {
+        const binRef = db.collection('smart_bin');
+        const snapshot = await binRef.get();
+
+        let years = new Set();
+
+        snapshot.forEach(doc => {
+            const data = doc.data();
+           
+            if (data.transaction_date) {
+                let transactionDate;
+
+                // Check if transaction_date is a Firestore Timestamp
+                if (data.transaction_date.toDate) {
+                    transactionDate = data.transaction_date.toDate();
+                } else {
+                    transactionDate = new Date(data.transaction_date);
+                }
+
+                if (!isNaN(transactionDate.getTime())) {
+                    const year = transactionDate.getFullYear();
+                    years.add(year);
+                } else {
+                    console.warn(`Invalid date format in document ${doc.id}:`, data.transaction_date);
+                }
+            } else {
+                console.warn(`Missing transaction_date in document ${doc.id}`);
+            }
+        });
+
+        return res.status(200).json([...years].sort((a, b) => b - a));
+    } catch (error) {
+        return res.status(500).json({ error: error.message });
+    }
+});
+
+
+
+
+// router.get('/monthly-expense-forecast', async (req, res) => {
+//     try {
+//         const now = new Date();
+
+//         // Get start and end dates for this, last, and two months ago
+//         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+//         const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+
+//         const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1, 0, 0, 0, 0);
+//         const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
+
+//         const startOfTwoMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 2, 1, 0, 0, 0, 0);
+//         const endOfTwoMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 1, 0, 23, 59, 59, 999);
+
+//         // Convert to Firestore Timestamp
+//         const startTimestampThisMonth = Timestamp.fromDate(startOfMonth);
+//         const endTimestampThisMonth = Timestamp.fromDate(endOfMonth);
+
+//         const startTimestampLastMonth = Timestamp.fromDate(startOfLastMonth);
+//         const endTimestampLastMonth = Timestamp.fromDate(endOfLastMonth);
+
+//         const startTimestampTwoMonthsAgo = Timestamp.fromDate(startOfTwoMonthsAgo);
+//         const endTimestampTwoMonthsAgo = Timestamp.fromDate(endOfTwoMonthsAgo);
+
+//         // Function to fetch total expenses for a given period
+//         const fetchMonthlyExpenses = async (startTimestamp, endTimestamp) => {
+//             let totalExpense = 0;
+
+//             const binRef = db.collection('smart_bin')
+//                 .where('transaction_date', '>=', startTimestamp)
+//                 .where('transaction_date', '<=', endTimestamp);
+
+//             const snapshot = await binRef.get();
+
+//             if (!snapshot.empty) {
+//                 const transactionPromises = snapshot.docs.map(async (doc) => {
+//                     const transactionData = doc.data();
+
+//                     if (transactionData.claim_type === "direct_to_bin" || transactionData.claim_type === "cash") {
+//                         totalExpense += transactionData.total_points || 0;
+//                     } else {
+//                         const paymentRef = db.collection('payment_request')
+//                             .where('store_id', '==', doc.id)
+//                             .where('status', '==', 'approved');
+
+//                         const paymentSnapshot = await paymentRef.get();
+//                         paymentSnapshot.forEach((paymentDoc) => {
+//                             totalExpense += paymentDoc.data().amount || 0;
+//                         });
+//                     }
+//                 });
+
+//                 await Promise.all(transactionPromises);
+//             }
+
+//             return totalExpense;
+//         };
+
+//         // Fetch expenses for current, last, and two months ago
+//         const thisMonthExpense = await fetchMonthlyExpenses(startTimestampThisMonth, endTimestampThisMonth);
+//         const lastMonthExpense = await fetchMonthlyExpenses(startTimestampLastMonth, endTimestampLastMonth);
+//         const twoMonthsAgoExpense = await fetchMonthlyExpenses(startTimestampTwoMonthsAgo, endTimestampTwoMonthsAgo);
+
+//         let growthRate;
+//         if (lastMonthExpense === 0) {
+//             growthRate = "N/A"; // No comparison possible
+//         } else if (thisMonthExpense < lastMonthExpense) {
+//             if (twoMonthsAgoExpense > 0) {
+//                 growthRate = ((lastMonthExpense - twoMonthsAgoExpense) / twoMonthsAgoExpense) * 100;
+//                 growthRate = Number(growthRate.toFixed(2));
+//             } else {
+//                 growthRate = 0; // No historical data, assume no growth
+//             }
+//         } else {
+//             growthRate = ((thisMonthExpense - lastMonthExpense) / lastMonthExpense) * 100;
+//             growthRate = Number(growthRate.toFixed(2));
+//         }
+
+//         // Predict next 3 months based on growth rate
+//         let nextMonthExpense = thisMonthExpense * (1 + growthRate / 100);
+//         let secondMonthExpense = nextMonthExpense * (1 + growthRate / 100);
+//         let thirdMonthExpense = secondMonthExpense * (1 + growthRate / 100);
+
+//         return res.status(200).json({
+//             this_month_expense: thisMonthExpense,
+//             last_month_expense: lastMonthExpense,
+//             two_months_ago_expense: twoMonthsAgoExpense,
+//             growth_rate: growthRate + "%",
+//             predicted_expenses: {
+//                 next_month: Math.round(nextMonthExpense),
+//                 second_month: Math.round(secondMonthExpense),
+//                 third_month: Math.round(thirdMonthExpense)
+//             }
+//         });
+//     } catch (error) {
+//         console.error("Error computing monthly expense forecast:", error);
+//         return res.status(500).json({ error: error.message });
+//     }
+// });
+
+
+router.get('/monthly-expense-forecast', async (req, res) => {
+    try {
+        const now = new Date();
+
+        // Function to get start and end of any given month
+        const getMonthRange = (year, month) => {
+            const start = new Date(year, month, 1, 0, 0, 0, 0);
+            const end = new Date(year, month + 1, 0, 23, 59, 59, 999);
+            return { start: Timestamp.fromDate(start), end: Timestamp.fromDate(end) };
+        };
+
+        // Get timestamps for past 2 months, current month, and next 3 months
+        const monthRanges = {
+            thisMonth: getMonthRange(now.getFullYear(), now.getMonth()),
+            lastMonth: getMonthRange(now.getFullYear(), now.getMonth() - 1),
+            twoMonthsAgo: getMonthRange(now.getFullYear(), now.getMonth() - 2),
+            nextMonth: getMonthRange(now.getFullYear(), now.getMonth() + 1),
+            secondMonth: getMonthRange(now.getFullYear(), now.getMonth() + 2),
+            thirdMonth: getMonthRange(now.getFullYear(), now.getMonth() + 3),
+        };
+
+        // Function to fetch total expenses for a given period
+        const fetchMonthlyExpenses = async (startTimestamp, endTimestamp) => {
+            let totalExpense = 0;
+
+            // Fetch direct claim expenses (direct_to_bin & cash)
+            const binSnapshot = await db.collection('smart_bin')
+                .where('transaction_date', '>=', startTimestamp)
+                .where('transaction_date', '<=', endTimestamp)
+                .get();
+
+            binSnapshot.forEach(doc => {
+                const transactionData = doc.data();
+                if (transactionData.claim_type === "direct_to_bin" || transactionData.claim_type === "cash") {
+                    totalExpense += transactionData.total_points || 0;
+                }
+            });
+
+            // Fetch approved payment requests that fall within this period
+            const paymentSnapshot = await db.collection('payment_request')
+                .where('status', '==', 'approved')
+                .where('date_approved', '>=', startTimestamp)
+                .where('date_approved', '<=', endTimestamp)
+                .get();
+
+            paymentSnapshot.forEach(doc => {
+                const paymentData = doc.data();
+                totalExpense += paymentData.amount || 0;
+            });
+
+            return totalExpense;
+        };
+
+        // Fetch expenses for current, last, and two months ago
+        const thisMonthExpense = await fetchMonthlyExpenses(monthRanges.thisMonth.start, monthRanges.thisMonth.end);
+        const lastMonthExpense = await fetchMonthlyExpenses(monthRanges.lastMonth.start, monthRanges.lastMonth.end);
+        const twoMonthsAgoExpense = await fetchMonthlyExpenses(monthRanges.twoMonthsAgo.start, monthRanges.twoMonthsAgo.end);
+
+        // Determine growth rate base
+        let growthRate;
+        if (thisMonthExpense > lastMonthExpense) {
+            // Base on this month's expense if it's growing
+            growthRate = ((thisMonthExpense - lastMonthExpense) / lastMonthExpense) * 100;
+        } else if (lastMonthExpense > 0 && twoMonthsAgoExpense > 0) {
+            // Base on previous two months if this month's expense is declining
+            growthRate = ((lastMonthExpense - twoMonthsAgoExpense) / twoMonthsAgoExpense) * 100;
+        } else {
+            // If no previous data, set N/A
+            growthRate = "N/A";
+        }
+
+        // Ensure growth rate is a number before using
+        growthRate = growthRate !== "N/A" ? Number(growthRate.toFixed(2)) : "N/A";
+
+        // Predict expenses for the next 3 months using dynamic growth rate
+        let predictedExpenses = [];
+        let currentExpense = thisMonthExpense;
+
+        for (let i = 1; i <= 3; i++) {
+            if (growthRate !== "N/A") {
+                currentExpense = currentExpense * (1 + growthRate / 100);
+            }
+            predictedExpenses.push(Math.round(currentExpense));
+        }
+
+        return res.status(200).json({
+            months: [
+                { name: "Two Months Ago", expense: twoMonthsAgoExpense },
+                { name: "Last Month", expense: lastMonthExpense },
+                { name: "This Month", expense: thisMonthExpense },
+                { name: "Next Month", expense: predictedExpenses[0] },
+                { name: "In Two Months", expense: predictedExpenses[1] },
+                { name: "In Three Months", expense: predictedExpenses[2] }
+            ],
+            growth_rate: growthRate + "%"
+        });
+    } catch (error) {
+        console.error("Error computing monthly expense forecast:", error);
+        return res.status(500).json({ message: error.message });
+    }
+});
+
 
 module.exports = router;

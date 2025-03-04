@@ -248,3 +248,151 @@ export const approveStore= async ({ data }) => {
         throw err;
     }
 }
+
+
+export const fetchNewUsers = async ({ signal }) => {
+    try {
+        const response = await axios.get(`/new-users`, { signal });
+        return response.data.users;
+    } catch (error) {
+
+        const err = new Error(error.response?.data?.message || "An error occurred");
+        err.code = error.response?.status || 500;
+        err.info = error.response?.data || 'Error fetching data';
+        throw err;
+    }
+}
+export const fetchNewStores = async ({ signal }) => {
+    try {
+        const response = await axios.get(`/new-stores`, { signal });
+        return response.data.stores;
+    } catch (error) {
+
+        const err = new Error(error.response?.data?.message || "An error occurred");
+        err.code = error.response?.status || 500;
+        err.info = error.response?.data || 'Error fetching data';
+        throw err;
+    }
+}
+export const fetchTotalWasteToday = async ({ signal }) => {
+    try {
+        const response = await axios.get(`/total-collected-today`, { signal });
+        return response.data.total_grams;
+    } catch (error) {
+
+        const err = new Error(error.response?.data?.message || "An error occurred");
+        err.code = error.response?.status || 500;
+        err.info = error.response?.data || 'Error fetching data';
+        throw err;
+    }
+}
+export const fetchMaterialsToday = async ({ signal }) => {
+    try {
+        const response = await axios.get(`/materials-collected-today`, { signal });
+        return response.data;
+    } catch (error) {
+
+        const err = new Error(error.response?.data?.error || "An error occurred");
+        err.code = error.response?.status || 500;
+        err.info = error.response?.data || 'Error fetching data';
+        throw err;
+    }
+}
+export const fetchExpenseForecast = async ({ signal }) => {
+    try {
+        const response = await axios.get(`/monthly-expense-forecast`, { signal });
+        return response.data;
+    } catch (error) {
+
+        const err = new Error(error.response?.data?.message || "An error occurred");
+        err.code = error.response?.status || 500;
+        err.info = error.response?.data || 'Error fetching data';
+        throw err;
+    }
+}
+
+export const fetchTotalUsers= async ({ signal }) => {
+    try {
+        const response = await axios.get(`/total-users`, { signal });
+        return response.data;
+    } catch (error) {
+
+        const err = new Error(error.response?.data?.message || "An error occurred");
+        err.code = error.response?.status || 500;
+        err.info = error.response?.data || 'Error fetching data';
+        throw err;
+    }
+}
+export const fetchMostReactedContents= async ({ signal }) => {
+    try {
+        const response = await axios.get(`/top-reacted-contents`, { signal });
+        return response.data.top_contents;
+    } catch (error) {
+
+        const err = new Error(error.response?.data?.message || "An error occurred");
+        err.code = error.response?.status || 500;
+        err.info = error.response?.data || 'Error fetching data';
+        throw err;
+    }
+}
+
+
+
+
+// Fetch total collected materials
+export const fetchTotalMaterialsCollected = async ({ queryKey, signal }) => {
+    const [, { year, filter, collectionType }] = queryKey;
+
+    try {
+        const response = await axios.get('/total-materials-collected', {
+            params: { year, filter, collectionType },
+            signal
+        });
+        return response.data;
+    } catch (error) {
+        throw new Error(error.response?.data?.message || "Error fetching materials");
+    }
+};
+
+// Fetch available years
+export const fetchAvailableYears = async () => {
+    try {
+        const response = await axios.get('/available-years');
+        return response.data;
+    } catch (error) {
+        throw new Error("Error fetching available years");
+    }
+};
+
+
+
+export const addFeedback = async ( data ) => {
+    try {
+
+        console.log(data)
+        const response = await axios.post(`/feedback`, data, {
+            headers: {
+                'Content-Type': 'application/json', // Specify multipart/form-data
+            },
+        });
+        return response.data;
+    } catch (error) {
+        const err = new Error(error.response?.data?.message || "An error occurred");
+        err.code = error.response?.status || 500;
+        err.info = error.response?.data || ['Error saving data'];
+        throw err;
+    }
+}
+
+export const fetchFeedback = async ( {signal} ) => {
+    try {
+
+        const response = await axios.get(`/feedback`, { signal });
+        return response.data.feedbacks;
+    } catch (error) {
+        const err = new Error(error.response?.data?.message || "An error occurred");
+        err.code = error.response?.status || 500;
+        err.info = error.response?.data || ['Error saving data'];
+        throw err;
+    }
+}

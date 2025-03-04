@@ -23,6 +23,17 @@ export const dbDateFormatter  = (timestamp) =>{
 
     return formattedDate;
 }
+export const dbDateFormatterShort  = (timestamp) =>{
+    const date = new Date(timestamp._seconds * 1000);
+
+    const formattedDate = date.toLocaleDateString("en-US", {
+        day: 'numeric',
+        month:"2-digit",
+        year: "numeric",
+    })
+
+    return formattedDate;
+}
 
 export const dbDateInputFormatter = (timestamp) =>{
     const date = new Date(timestamp._seconds * 1000);
@@ -32,4 +43,9 @@ export const dbDateInputFormatter = (timestamp) =>{
 
 export const capitalizeFirstLetters = (text) => {
     return text.replace(/(?:^|\.\s*)([a-z])/g, (match, char) => char.toUpperCase());
+};
+
+
+export const truncateText = (text, maxLength) => {
+    return text.length > maxLength ? text.slice(0, maxLength) + "..." : text;
 };

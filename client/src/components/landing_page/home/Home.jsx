@@ -1,6 +1,6 @@
 import React from "react";
 import imgbg from "../../../assets/images/Ellipse 24.png";
-import playstore_logo from "../../../assets/images/playstore_logo.png";
+import playstore_logo from "../../../assets/images/android-download.png";
 import phone_hold from "../../../assets/images/phone_hold.png";
 function Home() {
   return (

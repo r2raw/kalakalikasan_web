@@ -29,22 +29,22 @@ function MyProfileLayout() {
     }
     let bannerText = 'Mr. Administrator Admin'
 
-    if(isPending){
+    if (isPending) {
         bannerText = 'Loading...'
     }
 
-    if(isError){
-        bannerText =  error.info?.errors[0]  || 'Error fetching user name'
+    if (isError) {
+        bannerText = error.info?.errors[0] || 'Error fetching user name'
     }
 
-    if(data){
-        const {firstname, lastname} = data;
-        bannerText = `Mr. ${_.startCase(firstname)} ${_.startCase(lastname)}`
+    if (data) {
+        const { firstname, lastname, sex } = data;
+        bannerText = `${sex == 'male' ? 'Mr.' : 'Ms.'} ${_.startCase(firstname)} ${_.startCase(lastname)}`
     }
     return (
         <div className=' -z-50'>
 
-            <div className={`-full rounded-md px-4 py-8 relative textured-bg  text-dark_font `}>
+            <div className={`rounded-md px-4 py-8 relative textured-bg  text-dark_font `}>
 
                 <h1 className=''> Welcome,</h1>
                 <h3>{bannerText}</h3>

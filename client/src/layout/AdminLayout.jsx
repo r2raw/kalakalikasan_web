@@ -57,17 +57,17 @@ function AdminLayout() {
     nameHeader = _.startCase(`${firstname} ${lastname}`)
   }
   return (
-    <div className="flex bg-gradient-to-b from-light_gradient_top to-white min-h-dvh">
+    <div className="flex bg-base_color">
       <AdminNav  />
-      <main className="h-full w-full ml-[20%] px-4">
-        <div className="px-4 py-16 flex justify-between items-center text-dark_font">
+      <main className="h-full w-full ml-[20%] px-2 md:px-4">
+        <div className="px-4 py-16 flex justify-between items-center text-secondary_color">
           <h1 className="text-lg md:text-2xl lg:text-4xl">{currentRoute}</h1>
           <NavLink to={'my-profile'}   className="flex gap-2 items-center">
             <AccountCircleSharpIcon />
             <h4 className="text-sm md:text-lg lg:text-xl">{nameHeader}</h4>
           </NavLink>
         </div>
-        <div className=" bg-white_fb min-h-[80dvh] w-full rounded-md shadow-2xl px-4 py-4 mb-8">
+        <div className=" bg-base_color min-h-[80dvh] w-full rounded-md shadow-2xl px-2 md:px-4 py-4 mb-8">
           <Outlet />
         </div>
       </main>

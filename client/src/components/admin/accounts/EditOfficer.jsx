@@ -87,7 +87,7 @@ function EditOfficer() {
 
 
     const handleModalClose = () => {
-        navigate('../active');
+        navigate('..');
 
     }
 
@@ -183,7 +183,7 @@ function EditOfficer() {
                     <FormInput placeholderName={'Zip'} value='1126' readOnly name='zip' type='number' />
                 </div>
                 <div className='flex justify-end'>
-                    <button className='px-4 py-2 bg-dark_font rounded-md text-white shadow-lg hover:shadow-none w-full md:w-fit' disabled={isPending}>{isPending ? 'Submitting...' : 'Submit'}</button>
+                    <button className='px-4 py-2 bg-accent_color hover:bg-dark_font rounded-md text-white shadow-lg hover:shadow-none w-full md:w-fit' disabled={isPending}>{isPending ? 'Submitting...' : 'Submit'}</button>
                 </div>
             </form>
         </div>
@@ -208,7 +208,7 @@ function EditOfficer() {
                 </div>
             </Modal>
             <div>
-                <NavLink to='../active'>
+                <NavLink to='..'>
                     <ArrowBackSharpIcon />
                 </NavLink>
             </div>

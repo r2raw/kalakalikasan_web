@@ -5,6 +5,9 @@ import MasonryContainer from "./MasonryContainer";
 import TotalUsers from "./TotalUsers";
 import DashboardMap from "./DashboardMap";
 import BarangayCollectionSummary from "./BarangayCollectionSummary";
+import TotalWasteToday from "./TotalWasteToday";
+import MaterialsCollectedToday from "./MaterialsCollectedToday";
+import TopReactedContents from "./TopReactedContents";
 function Dashboard() {
   return (
     <>
@@ -15,12 +18,13 @@ function Dashboard() {
         </MasonryContainer>
         <MasonryContainer>
           <TotalUsers />
-          <UpcomingSchedule />
-          <UpcomingSchedule />
+          <TotalWasteToday />
+          <MaterialsCollectedToday />
         </MasonryContainer>
         <MasonryContainer>
-          <DashboardMap />
-          <BarangayCollectionSummary />
+        <TopReactedContents/>
+          {/* <DashboardMap />
+          <BarangayCollectionSummary /> */}
         </MasonryContainer>
       </div>
     </>

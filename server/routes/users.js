@@ -541,6 +541,49 @@ router.patch('/activate-user', async (req, res, next) => {
 })
 
 
+router.get('/total-collected/:id', async (req, res, next) => {
+    try {
+        const { id } = req.params;
+
+        const transactionRef = db.collection('smart_bin').where('claimed_by', '==', id)
+        const transactionDoc = await transactionRef.get()
+        let totalGrams = 0;
+        if (transactionDoc.empty) {
+
+            return res.status(200).json({ totalGrams })
+        }
+        console.log('transaction not empty')
+        const smart_bin = [];
+
+        transactionDoc.forEach(item => smart_bin.push({ transactionId: item.id, ...item.data() }))
+
+
+        await Promise.all(smart_bin.map(async (bin) => {
+            const binRef = db.collection('smart_bin').doc(bin.transactionId);
+            const materialRef = binRef.collection('materials')
+            const materialsSnapshot = await materialRef.get()
+
+            const materials = []
+
+            if (materialsSnapshot.empty) {
+                return res.status(200).json({ totalGrams })
+            }
+            console.log('material not empty')
+
+            materialsSnapshot.forEach(item => {
+                totalGrams += item.data().total_grams
+                materials.push({ id: item.id, ...item.data() })
+            })
+
+        }))
+        return res.status(200).json({ totalGrams })
+
+    } catch (error) {
+        console.log(error.message);
+        return res.status(200).json({ error: error.message })
+    }
+})
+
 // PUT REQUEST
 
 router.patch("/edit-user", upload.single('image'), async (req, res, next) => {
@@ -585,7 +628,6 @@ router.patch("/edit-user", upload.single('image'), async (req, res, next) => {
 
 
         const updateRes = await usersRef.set(primaryData, { merge: true })
-
 
         // batch.set(usersRef, primaryData, { merge: true });
         // batch.set(userAddressRef, user_address, { merge: true });
@@ -724,6 +766,115 @@ router.post('/request-payment', async (req, res, next) => {
         return res.status(501).json({ error: error.message })
     }
 })
+
+
+router.get('/new-users', async (req, res, next) => {
+    try {
+        const userRef = db.collection('users')
+            .where('role', 'in', ['actor', 'partner'])
+            .orderBy('date_created', 'desc')
+            .limit(5);
+        const snapshot = await userRef.get();
+
+        if (snapshot.empty) {
+            return [];
+        }
+
+        const users = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+        return res.status(200).json({ users });
+    } catch (error) {
+        return res.status(501).json({ error: error.message })
+    }
+})
+
+router.get('/new-stores', async (req, res, next) => {
+    try {
+        const storeRef = db.collection('stores')
+            .where('status', '==', 'approved')
+            .orderBy('approval_date', 'desc')
+            .limit(5);
+        const snapshot = await storeRef.get();
+
+        if (snapshot.empty) {
+            return res.status(200).json({ stores: [] });
+        }
+
+        const stores = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+        return res.status(200).json({ stores });
+    } catch (error) {
+        console.error(error.message)
+        return res.status(501).json({ message: error.message })
+    }
+})
+
+router.get('/total-users', async (req, res, next) => {
+    try {
+        // Fetch user counts by role in parallel
+        const [actorSnap, partnerSnap, officerSnap] = await Promise.all([
+            db.collection('users').where('role', '==', 'actor').where('status', '==', 'activated').get(),
+            db.collection('users').where('role', '==', 'partner').where('status', '==', 'activated').get(),
+            db.collection('users').where('role', '==', 'officer').where('status', '==', 'activated').get()
+        ]);
+
+        // Get document counts for each role
+        const totalUsers = {
+            actors: actorSnap.size,
+            partners: partnerSnap.size,
+            officers: officerSnap.size
+        };
+
+        return res.status(200).json(totalUsers);
+    } catch (error) {
+        console.error("Error fetching user counts:", error);
+        return res.status(500).json({ error: error.message });
+    }
+});
+
+
+
+router.post('/feedback', async (req, res, next) => {
+    try {
+        const { message, email, name } = req.body;
+
+        const feedbackRef = db.collection('feedbacks').doc()
+        await feedbackRef.set({ message, email, name: lowerCaseTrim(name), date_submitted: admin.firestore.FieldValue.serverTimestamp(), }, { merge: true })
+        return res.status(200).json({ message: 'success' })
+    } catch (error) {
+
+        console.error(error.message)
+        return res.status(500).json({ error: error.message });
+    }
+})
+
+router.get('/feedback', async (req, res, next) => {
+    try {
+
+        const feedbackRef = db.collection('feedbacks').orderBy('date_submitted', 'desc')
+        const feedBackSnapshot = await feedbackRef.get();
+
+        const feedbacks = [];
+
+        if (feedBackSnapshot.empty) {
+            return res.status(200).json({ message: 'success', feedbacks })
+        }
+
+        feedBackSnapshot.forEach((feedback)=> feedbacks.push({id: feedback.id, ...feedback.data()}))
+        
+        return res.status(200).json({ message: 'success', feedbacks })
+    } catch (error) {
+
+        console.error(error.message)
+        return res.status(500).json({ error: error.message });
+    }
+})
+
+
 
 // const vonage = new Vonage({
 //     apiKey: "2a3677c5",

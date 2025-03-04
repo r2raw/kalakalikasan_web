@@ -212,6 +212,7 @@ router.get('/fetch-contents-mobile', async (req, res, next) => {
                     comments.push({ ...commentDoc.data() })
                 })
             }
+            console.log(comments)
 
             const reacts = [];
 
@@ -366,9 +367,9 @@ router.post('/add-comment', async (req, res, next) => {
             comment,
             date_commented: admin.firestore.FieldValue.serverTimestamp(),
         }
-        console.log(comment)
+        console.log(commentData.date_commented)
         const saveComment = await commentRef.set(commentData, { merge: true })
-        return res.status(200).json({ id: commentId, ...commentData })
+        return res.status(200).json({ ...commentData })
 
     } catch (error) {
 
@@ -376,6 +377,54 @@ router.post('/add-comment', async (req, res, next) => {
         return res.status(501).json({ error: error.message })
     }
 })
+
+
+router.get('/top-reacted-contents', async (req, res) => {
+    try {
+        // Step 1: Query all reactions using collectionGroup to get reactions from all contents
+        const reactsSnapshot = await db.collectionGroup('reacts').get();
+
+        if (reactsSnapshot.empty) {
+            return res.status(200).json({ message: "No reactions found", top_contents: [] });
+        }
+
+        // Step 2: Count reactions per content
+        const contentReactionCount = {};
+
+        const countPromises = reactsSnapshot.docs.map(async (reactDoc) => {
+            const contentDocRef = reactDoc.ref.parent.parent;
+
+            if (!contentDocRef) return;
+
+            const contentDoc = await contentDocRef.get();
+
+            if (!contentDoc.exists) return;
+
+            const contentId = contentDoc.id;
+            const contentTitle = contentDoc.data().title || "Unknown Title";
+
+            if (!contentReactionCount[contentId]) {
+                contentReactionCount[contentId] = {contentId, title: contentTitle, count: 0 };
+            }
+
+            contentReactionCount[contentId].count += 1;
+        });
+
+        await Promise.all(countPromises);
+
+        // Step 3: Sort contents by reaction count in descending order
+        const sortedContents = Object.values(contentReactionCount)
+            .sort((a, b) => b.count - a.count)
+            .slice(0, 5); // Get the top 5
+
+        // Step 4: Return response
+        return res.status(200).json({ top_contents: sortedContents });
+
+    } catch (error) {
+        console.error("Error fetching top contents by reactions:", error);
+        return res.status(500).json({ error: error.message });
+    }
+});
 
 
 

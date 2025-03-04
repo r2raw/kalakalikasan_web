@@ -51,13 +51,53 @@ h6{
   @apply w-4 h-4 md:h-6 md:w-6;
 }
 
+/* Custom Scrollbar */
+
+@layer components {
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 2px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #204d2c;
+    border-radius: 2px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #1a3e24;
+  }
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px; /* Scrollbar width */
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f1f1f1; /* Track color */
+  border-radius: 2px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #204d2c; /* Scrollbar thumb color */
+  border-radius: 2px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #1a3e24; /* Darker green on hover */
+}
+
 
 .card{
-  @apply shadow-md rounded-md hover:shadow-none bg-white flex items-center justify-center px-2 py-4;
+  @apply shadow-cardShadow rounded-md hover:shadow-none bg-white text-secondary_color flex items-center justify-center px-2 py-4;
 }
 
 .my-card{
-  @apply shadow-md rounded-md hover:shadow-none
+  @apply shadow-cardShadow rounded-md hover:shadow-none
 }
 
 .card table{
@@ -79,6 +119,6 @@ input{
 .textured-bg{
   background-repeat: no-repeat;
   background-size: cover;
-  background-image: linear-gradient(150deg, #c2ffbc, #c2ffbc95, #c2ffbc90, #ffffff97),
+  background-image: linear-gradient(70deg, #A9D9B4, #C2FFBC, #DFFFD6, #E8F8E0 ),
     url(./assets/images/OIP.jpg);
 }
