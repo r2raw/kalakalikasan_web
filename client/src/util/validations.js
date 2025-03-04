@@ -1,4 +1,4 @@
-export const accountFormValidation = (values)=>{
+export const accountFormValidation = (values) => {
     const errors = {}
     if (values.firstname === '' || values.firstname === undefined || values.firstname === null) {
         errors.firstname = 'First name is required. Please provide your first name.';
@@ -28,7 +28,7 @@ export const accountFormValidation = (values)=>{
     return errors;
 }
 
-export const contentFormValidation = (values) =>{
+export const contentFormValidation = (values) => {
     const errors = {}
     if (values.title === '' || values.title === undefined || values.title === null) {
         errors.title = 'Title is required. Please provide a title.';
@@ -43,13 +43,35 @@ export const contentFormValidation = (values) =>{
     return errors;
 
 }
+export const feedbackFormValidation = (values) => {
+    const errors = {};
 
-export const  isObjEmpty = (obj) => {
-    for (const prop in obj) {
-      if (Object.hasOwn(obj, prop)) {
-        return false;
-      }
+    // Standard email regex pattern
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+    if (!values.name || values.name.trim() === '') {
+        errors.name = 'Please provide your name';
     }
-  
+
+    if (!values.email || values.email.trim() === '') {
+        errors.email = 'Email is required. Please provide a valid email.';
+    } else if (!emailRegex.test(values.email)) {
+        errors.email = 'Invalid email format. Please provide a valid email.';
+    }
+
+    if (!values.message || values.message.trim() === '') {
+        errors.message = 'Message is required. Please enter your message.';
+    }
+
+    return errors;
+};
+
+export const isObjEmpty = (obj) => {
+    for (const prop in obj) {
+        if (Object.hasOwn(obj, prop)) {
+            return false;
+        }
+    }
+
     return true;
-  }
+}

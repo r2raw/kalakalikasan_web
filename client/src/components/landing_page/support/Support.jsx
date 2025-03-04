@@ -1,8 +1,7 @@
 import React from 'react'
 import wavedSvg from '../../../assets/images/wave-haikei.svg'
-import FormInput from '../../models/FormInput'
-import CustomTextArea from '../../models/CustomTextArea'
 import phone_img from '../../../assets/images/phone_img.png'
+import FeedbackForm from './FeedbackForm'
 function Support() {
   return (
     <>
@@ -16,11 +15,7 @@ function Support() {
         </div>
       </div>
       <div className='pb-40'>
-        <form className='mx-10 lg:ml-20 relative z-40 bottom-8 lg:w-1/3 bg-slate-100/10 rounded-md my-card px-4 py-8 backdrop-blur-md flex flex-col gap-6'>
-          <FormInput placeholderName={'Name'} />
-          <FormInput placeholderName={'Email'} />
-          <CustomTextArea placeholderName='Share your thoughts' />
-        </form>
+        <FeedbackForm />
         <img src={phone_img} alt='phone_img' className='hidden absolute right-20 lg:block md:top-80 lg:top-72 md:h-[40rem] lg:w-1/2 xl:w-1/3 xl:h-3/4' />
       </div>
     </>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Home from "./components/landing_page/home/Home";
 import IndexLayout from "./layout/IndexLayout";
@@ -16,7 +16,7 @@ import ManageAccounts from "./components/admin/accounts/ManageAccounts";
 import ArchivedAccounts from "./components/admin/accounts/ArchivedAccounts";
 import ManageContents from "./components/admin/contents/ManageContents";
 import ArchivedContents from "./components/admin/contents/ArchivedContents";
-import CollectionSchedules from "./components/admin/schedules/CollectionSchedules";
+
 import ManageMaterials from "./components/admin/materials/ManageMaterials";
 import ArchivedMaterials from "./components/admin/materials/ArchivedMaterials";
 import Analytics from "./components/admin/analytics/Analytics";
@@ -41,6 +41,7 @@ import EditOfficer from "./components/admin/accounts/EditOfficer";
 import PaymentRequest from "./components/admin/payments/PaymentRequest";
 import ViewBarangayPermit from "./components/admin/stores/ViewBarangayPermit";
 import ErrorPage from "./components/ErrorPage";
+import ViewStore from "./components/admin/stores/ViewStore";
 const router = createBrowserRouter([
   {
     path: "/",
@@ -64,8 +65,9 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <Dashboard /> },
       {
-        path: 'stores', element: <StoresLayout />, children: [
-          { path: 'list', element: <RegisteredStore /> },
+          path: 'stores', element: <StoresLayout />, children: [
+          { index:true, element: <RegisteredStore /> },
+          {path: ':id', element: <ViewStore/>},
           {
             path: 'application-request', element: <StoreApplicationLayout />, children: [
               { index: true, element: <StoreApplication /> },
@@ -83,10 +85,10 @@ const router = createBrowserRouter([
       },
       {
         path: 'accounts', element: <ManageAccountLayout />, children: [
-          { path: 'active', element: <ManageAccounts /> },
+          { index: true, element: <ManageAccounts /> },
           { path: 'add', element: <CreateOfficer /> },
           { path: 'archived', element: <ArchivedAccounts /> },
-          { path: 'active/edit/:id', element: <EditOfficer /> },
+          { path: 'edit/:id', element: <EditOfficer /> },
         ]
       },
       { path: 'archived-accounts', element: <ArchivedAccounts /> },
@@ -105,7 +107,7 @@ const router = createBrowserRouter([
           { path: 'add', element: <AddMaterials /> }
         ]
       },
-      { path: 'analytics', element: <Analytics /> },
+      { path: 'reports', element: <Analytics /> },
       { path: 'my-profile', element: <MyProfileLayout />, children: [{ index: true, element: <MyProfile /> }, { path: 'update-profile', element: <UpdateProfile /> }] },
     ],
   },

@@ -91,7 +91,7 @@ router.post("/verify-store", async (req, res, next) => {
     console.log("verifying");
     const storenameExist = await storeExisting(store_name);
     if (storenameExist) {
-      return res.status(501).json({
+      return res.status(409).json({
         message: "Store name already exists. Please choose another name.",
       });
     }
@@ -110,6 +110,7 @@ router.post("/register-store", upload, async (req, res) => {
     // let storenameExist = false;
     console.log("Uploaded files:", req.files);
 
+    
     let store_logo = null;
 
     if (req.files["store_logo"]) {
@@ -161,6 +162,8 @@ router.get("/approved-stores", async (req, res, next) => {
       .where("status", "==", "approved")
       .orderBy("store_name", "asc")
       .get();
+
+
 
     if (storesDoc.empty) {
       return res
@@ -314,6 +317,7 @@ router.patch("/approve-store", async (req, res, next) => {
     const userDoc = userRef.doc(owner_id);
     const storeDoc = storeRef.doc(store_id);
 
+
     await userDoc.set(
       {
         role: "partner",
@@ -330,6 +334,22 @@ router.patch("/approve-store", async (req, res, next) => {
       { merge: true }
     );
 
+
+    const notificationRef = db.collection('notifications').doc()
+    const notificationData = {
+      title: "Your Store is Approved!",
+      message: "Congratulations! Your store has been approved. Start listing your products now to earn Eco-Coins. To access your store dashboard, please log out first and log in again.",
+      send_type: "direct",
+      notif_type: "store",
+      redirect_type: "approval",
+      redirect_id: store_id,
+      userId: owner_id,
+      readBy: [],
+      notif_date: admin.firestore.FieldValue.serverTimestamp(),
+    };
+
+    await notificationRef.set(notificationData, {merge: true})
+
     res.status(200).send({ message: "success" });
   } catch (error) {
     console.log(error.message);
@@ -338,7 +358,7 @@ router.patch("/approve-store", async (req, res, next) => {
   }
 });
 
-router.post("/check-product-existing", async (req, res, next) => {});
+router.post("/check-product-existing", async (req, res, next) => { });
 
 router.patch("/existing-product", async (req, res, next) => {
   try {
@@ -350,7 +370,7 @@ router.patch("/existing-product", async (req, res, next) => {
     const productDoc = await productRef.get();
 
     if (productDoc.empty) {
-        console.log("Not existing")
+      console.log("Not existing")
       return res.status(200).json({ message: "not existing" });
     }
 
@@ -363,11 +383,11 @@ router.patch("/existing-product", async (req, res, next) => {
     const newQuantity = product.quantity + parseInt(quantity);
     product = { ...product, quantity: newQuantity };
     const existingProductRef = storeRef.collection("products").doc(product.id);
-    const existingProductDoc = await existingProductRef.set({quantity: newQuantity}, {merge: true});
+    const existingProductDoc = await existingProductRef.set({ quantity: newQuantity }, { merge: true });
     console.log(product)
     res
-    .status(200)
-    .send({ message: "success", productInfo: product});
+      .status(200)
+      .send({ message: "success", productInfo: product });
   } catch (error) {
     console.log(error.message);
     return res
@@ -415,12 +435,12 @@ router.post(
 
 router.get('/fetch-products/:id', async (req, res, next) => {
 
-    const { id } = req.params;
-    try {
-        const products = [];
-        const storeRef = db.collection('stores').doc(id);
-        const productRef = storeRef.collection('products').where('quantity', '>', 0).orderBy('productName');
-        const productDoc = await productRef.get();
+  const { id } = req.params;
+  try {
+    const products = [];
+    const storeRef = db.collection('stores').doc(id);
+    const productRef = storeRef.collection('products').where('quantity', '>', 0).orderBy('productName');
+    const productDoc = await productRef.get();
 
     if (productDoc.empty) {
       return res.status(200).json({ message: "No products found", products });
@@ -762,37 +782,37 @@ router.patch("/reject-product-request", async (req, res, next) => {
     const currentPoints = points + totalPoints;
 
 
-        const notificationRef = db.collection('notifications').doc();
-        const notificationData = {
-            title: 'Product request rejected',
-            message: `Your product request has been rejected. A refund of ${totalPoints} points has been issued to your account`,
-            send_type: 'direct',
-            notif_type: 'transactions',
-            redirect_type: 'refund',
-            redirect_id: orderId,
-            userId: ordered_by,
-            readBy: [],
-            notif_date: admin.firestore.FieldValue.serverTimestamp(),
-        }
-
-        const transactionRef = userRef.collection('transactions').doc()
-        const transactionData = {
-            transactionId: orderId,
-            type: 'refund',
-            transactionDate: admin.firestore.FieldValue.serverTimestamp(),
-        }
-
-        const updateOrder = await orderRef.set({ status: 'rejected' }, { merge: true })
-        const saveCurrentpoints = await userRef.set({ points: currentPoints, }, { merge: true })
-        const saveNotification = await notificationRef.set(notificationData, { merge: true })
-        const saveTransaction = await transactionRef.set(transactionData, { merge: true })
-
-        res.status(200).json({ message: 'success' })
-    } catch (error) {
-        console.log(error.message)
-        res.status(501).json({ message: 'error', error: error.message })
-
+    const notificationRef = db.collection('notifications').doc();
+    const notificationData = {
+      title: 'Product request rejected',
+      message: `Your product request has been rejected. A refund of ${totalPoints} points has been issued to your account`,
+      send_type: 'direct',
+      notif_type: 'transactions',
+      redirect_type: 'refund',
+      redirect_id: orderId,
+      userId: ordered_by,
+      readBy: [],
+      notif_date: admin.firestore.FieldValue.serverTimestamp(),
     }
+
+    const transactionRef = userRef.collection('transactions').doc()
+    const transactionData = {
+      transactionId: orderId,
+      type: 'refund',
+      transactionDate: admin.firestore.FieldValue.serverTimestamp(),
+    }
+
+    const updateOrder = await orderRef.set({ status: 'rejected' }, { merge: true })
+    const saveCurrentpoints = await userRef.set({ points: currentPoints, }, { merge: true })
+    const saveNotification = await notificationRef.set(notificationData, { merge: true })
+    const saveTransaction = await transactionRef.set(transactionData, { merge: true })
+
+    res.status(200).json({ message: 'success' })
+  } catch (error) {
+    console.log(error.message)
+    res.status(501).json({ message: 'error', error: error.message })
+
+  }
 })
 
 
@@ -919,188 +939,188 @@ router.patch("/reject-product-request", async (req, res, next) => {
 
 
 router.patch('/accept-product-request', async (req, res) => {
-    try {
-        const { orderId, owner_id } = req.body;
+  try {
+    const { orderId, owner_id } = req.body;
 
-        // References
-        const ownerRef = db.collection('users').doc(owner_id);
-        const orderRef = db.collection('orders').doc(orderId);
-        const ownerDoc = await ownerRef.get();
-        const orderDoc = await orderRef.get();
+    // References
+    const ownerRef = db.collection('users').doc(owner_id);
+    const orderRef = db.collection('orders').doc(orderId);
+    const ownerDoc = await ownerRef.get();
+    const orderDoc = await orderRef.get();
 
-        // Validate Owner and Order Existence
-        if (!ownerDoc.exists) {
-            return res.status(404).json({ message: 'error', error: `Owner with ID ${owner_id} not found.` });
-        }
-        if (!orderDoc.exists) {
-            return res.status(404).json({ message: 'error', error: `Order with ID ${orderId} not found.` });
-        }
-
-        const { ordered_by, store_id, status } = orderDoc.data();
-
-        // Prevent duplicate processing
-        if (status === 'accepted') {
-            return res.status(400).json({ message: 'error', error: 'Order has already been accepted.' });
-        }
-
-        // Fetch ordered products
-        const productRef = orderRef.collection('products_ordered');
-        const productDocs = await productRef.get();
-        if (productDocs.empty) {
-            return res.status(404).json({ message: 'error', error: 'No products found in the order.' });
-        }
-
-        // Fetch store products
-        const storeProductRef = db.collection('stores').doc(store_id).collection('products');
-        const storeProductDocs = await storeProductRef.get();
-        if (storeProductDocs.empty) {
-            return res.status(404).json({ message: 'error', error: 'No products found in the store inventory.' });
-        }
-
-        // Create a map of store products for efficient lookup
-        const storeProductMap = {};
-        storeProductDocs.forEach(doc => {
-            storeProductMap[doc.id] = doc.data();
-        });
-
-        let totalPoints = 0;
-        const newStoreProducts = [];
-
-        // Validate stock and prepare updates
-        for (const productDoc of productDocs.docs) { // Changed from forEach to for..of
-            const { product_id, quantity, price } = productDoc.data();
-            const storeProduct = storeProductMap[product_id];
-
-            if (!storeProduct) {
-                return res.status(404).json({ message: 'error', error: `Product with ID ${product_id} not found in store inventory.` });
-            }
-            if (quantity > storeProduct.quantity) {
-                return res.status(409).json({ message: 'error', error: `Insufficient stocks.` });
-            }
-
-            totalPoints += price * quantity;
-            newStoreProducts.push({ prodId: product_id, quantity: storeProduct.quantity - quantity });
-        }
-
-        // Batch update Firestore
-        const batch = db.batch();
-        newStoreProducts.forEach(({ prodId, quantity }) => {
-            batch.update(storeProductRef.doc(prodId), { quantity });
-        });
-
-        batch.update(orderRef, { status: 'accepted' });
-        batch.update(ownerRef, { points: (ownerDoc.data().points || 0) + totalPoints });
-
-        const transactionRef = ownerRef.collection('transactions').doc();
-        batch.set(transactionRef, {
-            transactionId: orderId,
-            type: 'sold',
-            transactionDate: admin.firestore.FieldValue.serverTimestamp(),
-        });
-
-        // Notifications
-        const ownerNotifRef = db.collection('notifications').doc();
-        const buyerNotifRef = db.collection('notifications').doc();
-
-        batch.set(ownerNotifRef, {
-            title: 'Product Sold',
-            message: `You received ${totalPoints} Eco-coins from selling a product.`,
-            send_type: 'direct',
-            notif_type: 'transactions',
-            redirect_type: 'selling',
-            redirect_id: orderId,
-            userId: owner_id,
-            readBy: [],
-            notif_date: admin.firestore.FieldValue.serverTimestamp(),
-        });
-
-        batch.set(buyerNotifRef, {
-            title: 'Product Request Accepted',
-            message: `Your product request has been accepted.`,
-            send_type: 'direct',
-            notif_type: 'transactions',
-            redirect_type: 'bought',
-            redirect_id: orderId,
-            userId: ordered_by,
-            readBy: [],
-            notif_date: admin.firestore.FieldValue.serverTimestamp(),
-        });
-
-        // Commit batch updates
-        await batch.commit();
-
-        return res.status(200).json({ message: 'success' });
-    } catch (error) {
-        console.error(error.message);
-        return res.status(500).json({ message: 'error', error: error.message });
+    // Validate Owner and Order Existence
+    if (!ownerDoc.exists) {
+      return res.status(404).json({ message: 'error', error: `Owner with ID ${owner_id} not found.` });
     }
+    if (!orderDoc.exists) {
+      return res.status(404).json({ message: 'error', error: `Order with ID ${orderId} not found.` });
+    }
+
+    const { ordered_by, store_id, status } = orderDoc.data();
+
+    // Prevent duplicate processing
+    if (status === 'accepted') {
+      return res.status(400).json({ message: 'error', error: 'Order has already been accepted.' });
+    }
+
+    // Fetch ordered products
+    const productRef = orderRef.collection('products_ordered');
+    const productDocs = await productRef.get();
+    if (productDocs.empty) {
+      return res.status(404).json({ message: 'error', error: 'No products found in the order.' });
+    }
+
+    // Fetch store products
+    const storeProductRef = db.collection('stores').doc(store_id).collection('products');
+    const storeProductDocs = await storeProductRef.get();
+    if (storeProductDocs.empty) {
+      return res.status(404).json({ message: 'error', error: 'No products found in the store inventory.' });
+    }
+
+    // Create a map of store products for efficient lookup
+    const storeProductMap = {};
+    storeProductDocs.forEach(doc => {
+      storeProductMap[doc.id] = doc.data();
+    });
+
+    let totalPoints = 0;
+    const newStoreProducts = [];
+
+    // Validate stock and prepare updates
+    for (const productDoc of productDocs.docs) { // Changed from forEach to for..of
+      const { product_id, quantity, price } = productDoc.data();
+      const storeProduct = storeProductMap[product_id];
+
+      if (!storeProduct) {
+        return res.status(404).json({ message: 'error', error: `Product with ID ${product_id} not found in store inventory.` });
+      }
+      if (quantity > storeProduct.quantity) {
+        return res.status(409).json({ message: 'error', error: `Insufficient stocks.` });
+      }
+
+      totalPoints += price * quantity;
+      newStoreProducts.push({ prodId: product_id, quantity: storeProduct.quantity - quantity });
+    }
+
+    // Batch update Firestore
+    const batch = db.batch();
+    newStoreProducts.forEach(({ prodId, quantity }) => {
+      batch.update(storeProductRef.doc(prodId), { quantity });
+    });
+
+    batch.update(orderRef, { status: 'accepted' });
+    batch.update(ownerRef, { points: (ownerDoc.data().points || 0) + totalPoints });
+
+    const transactionRef = ownerRef.collection('transactions').doc();
+    batch.set(transactionRef, {
+      transactionId: orderId,
+      type: 'sold',
+      transactionDate: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    // Notifications
+    const ownerNotifRef = db.collection('notifications').doc();
+    const buyerNotifRef = db.collection('notifications').doc();
+
+    batch.set(ownerNotifRef, {
+      title: 'Product Sold',
+      message: `You received ${totalPoints} Eco-coins from selling a product.`,
+      send_type: 'direct',
+      notif_type: 'transactions',
+      redirect_type: 'selling',
+      redirect_id: orderId,
+      userId: owner_id,
+      readBy: [],
+      notif_date: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    batch.set(buyerNotifRef, {
+      title: 'Product Request Accepted',
+      message: `Your product request has been accepted.`,
+      send_type: 'direct',
+      notif_type: 'transactions',
+      redirect_type: 'bought',
+      redirect_id: orderId,
+      userId: ordered_by,
+      readBy: [],
+      notif_date: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    // Commit batch updates
+    await batch.commit();
+
+    return res.status(200).json({ message: 'success' });
+  } catch (error) {
+    console.error(error.message);
+    return res.status(500).json({ message: 'error', error: error.message });
+  }
 });
 
 
-router.post('/linked-wallet', async(req,res, next) => {
-    try {
+router.post('/linked-wallet', async (req, res, next) => {
+  try {
 
-        const {storeId, accountName, mobileNum, type} = req.body;
+    const { storeId, accountName, mobileNum, type } = req.body;
 
-        const storeRef = db.collection('stores').doc(storeId);
-        const storeDoc = await storeRef.get();
+    const storeRef = db.collection('stores').doc(storeId);
+    const storeDoc = await storeRef.get();
 
-        if(!storeDoc.exists){
-            return res.status(401).json({error: `Cannot find a store with an id of ${storeId}`})
-        }
-
-        const walletRef = storeRef.collection('eWallet').doc();
-
-        const walletInfo = {
-            accountName,
-            mobileNum,
-            type,
-            date_created: admin.firestore.FieldValue.serverTimestamp(),
-        }
-
-        const saveWallet = await walletRef.set(walletInfo, {merge: true})
-
-        return res.status(200).json(walletInfo);
-    } catch (error) {
-        console.log(error);
-        return res.status(501).json({error: error.message})
+    if (!storeDoc.exists) {
+      return res.status(401).json({ error: `Cannot find a store with an id of ${storeId}` })
     }
+
+    const walletRef = storeRef.collection('eWallet').doc();
+
+    const walletInfo = {
+      accountName,
+      mobileNum,
+      type,
+      date_created: admin.firestore.FieldValue.serverTimestamp(),
+    }
+
+    const saveWallet = await walletRef.set(walletInfo, { merge: true })
+
+    return res.status(200).json(walletInfo);
+  } catch (error) {
+    console.log(error);
+    return res.status(501).json({ error: error.message })
+  }
 })
 
-router.get('/linked-wallet/:storeId', async (req, res, next)=>{
-    try {
-        const {storeId} = req.params;
-        const storeRef = db.collection('stores').doc(storeId);
-        const storeDoc = await storeRef.get();
+router.get('/linked-wallet/:storeId', async (req, res, next) => {
+  try {
+    const { storeId } = req.params;
+    const storeRef = db.collection('stores').doc(storeId);
+    const storeDoc = await storeRef.get();
 
-        if(!storeDoc.exists){
-            return res.status(401).json({error: `Cannot find store with an id of ${storeId}`});
-        }
-
-        const linkedWalletRef = storeRef.collection('eWallet');
-
-        const linkedWalletDoc = await linkedWalletRef.get();
-
-        let walletInfo ={}
-
-        if(linkedWalletDoc.empty){
-            walletInfo.hasWallet = false
-            return res.status(200).json(walletInfo);
-        }
-
-        linkedWalletDoc.forEach((wallet)=>{
-            walletInfo = {
-                hasWallet: true,
-                walletId: wallet.id,
-                ...wallet.data()
-            }
-        })
-        
-        console.log(walletInfo)
-        return res.status(200).json(walletInfo);
-    } catch (error) {
-        console.error(error.message)
-        return res.status(501).json({error: error.message})
+    if (!storeDoc.exists) {
+      return res.status(401).json({ error: `Cannot find store with an id of ${storeId}` });
     }
+
+    const linkedWalletRef = storeRef.collection('eWallet');
+
+    const linkedWalletDoc = await linkedWalletRef.get();
+
+    let walletInfo = {}
+
+    if (linkedWalletDoc.empty) {
+      walletInfo.hasWallet = false
+      return res.status(200).json(walletInfo);
+    }
+
+    linkedWalletDoc.forEach((wallet) => {
+      walletInfo = {
+        hasWallet: true,
+        walletId: wallet.id,
+        ...wallet.data()
+      }
+    })
+
+    console.log(walletInfo)
+    return res.status(200).json(walletInfo);
+  } catch (error) {
+    console.error(error.message)
+    return res.status(501).json({ error: error.message })
+  }
 })
 module.exports = router;

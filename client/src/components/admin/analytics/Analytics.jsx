@@ -1,8 +1,19 @@
-import React from 'react'
 
+import ExpenseForecast from './ExpenseForecast'
+import LineCollectedMaterials from './LineCollectedMaterials'
+import FeedbackList from './FeedbackList'
+import '../../../index.css'
 function Analytics() {
   return (
-    <div>Analytics</div>
+    <div className='flex flex-col lg:flex-row gap-4'>
+      <div className='lg:w-3/5 flex flex-col gap-4'>
+        <ExpenseForecast />
+        <LineCollectedMaterials />
+      </div>
+      <div className='lg:w-2/5 flex flex-col gap-4 h-[1000px] overflow-y-auto'>
+        <FeedbackList />
+      </div>
+    </div>
   )
 }
 

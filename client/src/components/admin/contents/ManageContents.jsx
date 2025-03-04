@@ -55,13 +55,13 @@ function ManageContents() {
     contentFilters = <div className='grid grid-cols-1 md:grid-cols-2 lg:flex gap-2 lg:gap-4 mb-4 sticky top-0 bg-white py-2 lg:py-4 z-50'>
       <div className='w-full lg:w-fit flex justify-center'>
         <input className='peer hidden' type='radio' name='content-filter' value='' checked={selectedFilter == ''} onChange={handleRadioChange} id='all-content' />
-        <label htmlFor='all-content' className='cursor-pointer peer-checked:text-white peer-checked:bg-light_font border-dark_font border rounded-2xl px-2 w-full lg:px-4 py-1'>All</label>
+        <label htmlFor='all-content' className='cursor-pointer text-light_font peer-checked:text-base_color peer-checked:bg-accent_color border-accent_color border rounded-2xl px-2 w-full lg:px-4 py-1'>All</label>
       </div>
       {Object.keys(data).map((contentType) => {
         return (
           <div key={contentType} className='w-full flex justify-center lg:w-fit'>
             <input className='peer hidden' type='radio' name='content-filter' value={contentType} checked={selectedFilter == contentType} onChange={handleRadioChange} id={contentType} />
-            <label htmlFor={contentType} className='cursor-pointer peer-checked:text-white peer-checked:bg-light_font border-dark_font border rounded-2xl w-full px-2 lg:px-4 py-1'>{titleCase(contentType)}</label>
+            <label htmlFor={contentType} className='cursor-pointer text-light_font peer-checked:text-base_color peer-checked:bg-accent_color border-accent_color border rounded-2xl w-full px-2 lg:px-4 py-1'>{titleCase(contentType)}</label>
           </div>
         )
       })}
@@ -88,7 +88,7 @@ function ManageContents() {
   return (
     <div className='flex flex-col gap-4 relative'>
       <div className='flex justify-end'>
-        <Link to='../add' className='bg-light_font hover:bg-dark_font text-white px-4 py-2 rounded-xl'>Create posts</Link>
+        <Link to='../add' className='bg-accent_color hover:bg-dark_font text-white px-4 py-2 rounded-xl'>Create posts</Link>
       </div>
       <div className='my-card bg-white py-8 px-4'>
         {selector && <SuccessBlock message={selector} />}

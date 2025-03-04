@@ -29,7 +29,7 @@ function RegisteredStore() {
     content = <h1 className='text-dark_font text-center'>No store found</h1>
     if (data.length > 0) {
       content =
-        <div className='grid grid-cols-4 mt-4'>
+        <div className='grid grid-cols-4 gap-4 mt-4'>
           {data.map(store => <StoreCard key={store.id} data={store} />)}
         </div>
     }

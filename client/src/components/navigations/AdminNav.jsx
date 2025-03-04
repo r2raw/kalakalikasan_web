@@ -1,6 +1,7 @@
 import React from "react";
 // import brand_logo from "../../assets/images/brand_logo_no_circle_fit.png";
-import brand_logo from "../../assets/images/new_brand_logo.png";
+// import brand_logo from "../../assets/images/new_brand_logo.png";
+import brand_logo from '../../assets/logo/logo_transparent.png'
 import LogoutSharpIcon from "@mui/icons-material/LogoutSharp";
 import AdminNavList from "./AdminNavList";
 import { NavLink, useNavigate } from "react-router-dom";
@@ -26,13 +27,13 @@ function AdminNav({ list_nav }) {
           KalaKalikasan
         </h2> */}
       </NavLink>
-      <nav className="flex flex-col justify-between bg-light_gradient_top h-full rounded-2xl py-6  shadow-2xl relative">
+      <nav className="flex flex-col justify-between bg-secondary_color h-full rounded-2xl py-6 pr-2 md:pr-4 shadow-2xl relative">
         <AdminNavList list_nav={list_nav} />
-        <button onClick={handleLogout} className="text-red-500 flex gap-2 items-center py-2 px-4">
+        <button onClick={handleLogout} className="text-red_highlight flex gap-2 items-center py-2 px-4">
           <div className="nav-icon">
             <LogoutSharpIcon />
           </div>
-          <h5 className=" hidden lg:inline-block text-red-500 ">Logout</h5>
+          <h5 className=" hidden lg:inline-block text-red_highlight">Logout</h5>
         </button>
       </nav>
     </aside>

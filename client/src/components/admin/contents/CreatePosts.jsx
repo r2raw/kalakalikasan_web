@@ -245,7 +245,7 @@ function CreatePosts() {
               )
             })}
           </div>
-          <button className='bg-light_font text-white rounded-md py-2 hover:bg-dark_font' disabled={isPending}>{isPending ? 'Submitting' : 'Submit'}</button>
+          <button className='bg-accent_color text-white rounded-md py-2 hover:bg-dark_font' disabled={isPending}>{isPending ? 'Submitting' : 'Submit'}</button>
 
         </div>
       </form>
