@@ -237,7 +237,7 @@ export const fetchStoreInfo = async ({ signal, id }) => {
 }
 
 
-export const approveStore= async ({ data }) => {
+export const approveStore = async ({ data }) => {
     try {
         const response = await axios.patch(`/approve-store`, data);
         return response.data.user;
@@ -311,7 +311,7 @@ export const fetchExpenseForecast = async ({ signal }) => {
     }
 }
 
-export const fetchTotalUsers= async ({ signal }) => {
+export const fetchTotalUsers = async ({ signal }) => {
     try {
         const response = await axios.get(`/total-users`, { signal });
         return response.data;
@@ -323,7 +323,7 @@ export const fetchTotalUsers= async ({ signal }) => {
         throw err;
     }
 }
-export const fetchMostReactedContents= async ({ signal }) => {
+export const fetchMostReactedContents = async ({ signal }) => {
     try {
         const response = await axios.get(`/top-reacted-contents`, { signal });
         return response.data.top_contents;
@@ -366,7 +366,7 @@ export const fetchAvailableYears = async () => {
 
 
 
-export const addFeedback = async ( data ) => {
+export const addFeedback = async (data) => {
     try {
 
         console.log(data)
@@ -384,7 +384,7 @@ export const addFeedback = async ( data ) => {
     }
 }
 
-export const fetchFeedback = async ( {signal} ) => {
+export const fetchFeedback = async ({ signal }) => {
     try {
 
         const response = await axios.get(`/feedback`, { signal });
@@ -393,6 +393,25 @@ export const fetchFeedback = async ( {signal} ) => {
         const err = new Error(error.response?.data?.message || "An error occurred");
         err.code = error.response?.status || 500;
         err.info = error.response?.data || ['Error saving data'];
+        throw err;
+    }
+}
+
+
+export const rejectStore = async ({data}) => {
+    try {
+        console.log(data)
+        const response = await axios.patch(`/reject-store`, data, {
+            headers: {
+                'Content-Type': 'application/json', // Specify multipart/form-data
+            },
+        });
+
+        return response.data.message;
+    } catch (error) {
+        const err = new Error(error.response?.data?.message || "An error occurred");
+        err.code = error.response?.status || 500;
+        err.info = error.response?.data || ['Error fetching data'];
         throw err;
     }
 }
