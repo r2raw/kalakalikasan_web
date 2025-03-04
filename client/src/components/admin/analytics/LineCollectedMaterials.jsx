@@ -96,7 +96,7 @@ function LineCollectedMaterials() {
     return (
         <>
             <h4 className="bg-dark_font w-full py-2 px-4 rounded-md shadow-md hover:shadow-none text-center text-white">
-                Growth rate expense
+                Total collected materials
             </h4>
             <div className='card flex flex-col gap-4'>
                 <div className='flex gap-4 justify-end w-full'>
