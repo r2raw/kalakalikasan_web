@@ -3,7 +3,7 @@ import { Link, useNavigate, useOutletContext, useParams } from 'react-router-dom
 import Modal from '../../models/ui/Modal';
 import CustomTextArea from '../../models/CustomTextArea';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { approveStore, fetchStoreInfo, queryClient } from '../../../util/http';
+import { approveStore, fetchStoreInfo, queryClient, rejectStore } from '../../../util/http';
 import ErrorBlock from '../../models/ErrorBlock';
 import DoneSharpIcon from '@mui/icons-material/DoneSharp';
 import { titleCase } from 'title-case';
@@ -14,9 +14,9 @@ function ViewStoreApplication() {
     const successDialog = useRef(null);
     const data = useOutletContext();
     const { id } = useParams();
-
+    const [reason, setReason] = useState('')
     const [isRejecting, setIsRejecting] = useState(false);
-    const [isSuccessful, setIsSuccessful] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
 
 
     const { mutate, isPending: approvalPending, isError: isApprovalError, error: approvalError } = useMutation(
@@ -31,6 +31,25 @@ function ViewStoreApplication() {
             },
         },
     )
+
+
+
+    const { mutate: rejectMutate, isPending: rejectPending, isError: isRejecingError, error: rejectingError } = useMutation(
+        {
+            mutationFn: rejectStore,
+            onSuccess: () => {
+                setReason('')
+                setErrorMessage('')
+                dialog.current.close()
+
+                queryClient.invalidateQueries({ queryKey: ['stores'] });
+                successDialog.current.open();
+
+            },
+        },
+    )
+
+    console.log(isRejecingError)
     const handleReject = () => {
         setIsRejecting(true)
         dialog.current.open();
@@ -61,13 +80,36 @@ function ViewStoreApplication() {
     }
 
     const handleSuccessModal = () => {
-        navigate('../../list')
+        navigate('../..')
     }
 
+
+    const handleRejection = () => {
+
+        if (reason.trim() == '') {
+            setErrorMessage('Please state your reason!')
+            return
+        }
+
+        const rejectData = {
+            store_id: id,
+            owner_id: data.owner_id,
+            rejected_by: localStorage.getItem('id'),
+            reason: reason,
+        }
+        rejectMutate({ data: rejectData });
+    }
+
+    const handleTextChange = (e) => {
+        const { value } = e.target
+
+        setReason(value)
+
+    }
     const address = `${titleCase(data.street)}, ${titleCase(data.barangay)}, ${data.city}`
     let formAction = <>
         <button className='hover:bg-slate-200 px-4 py-1 rounded-lg text-light_font' onClick={handleCloseRejectModal}>Cancel</button>
-        <button onClick={() => { }} className='bg-red-400 px-4 py-1 rounded-lg text-white hover:bg-red-500 ' >Reject</button>
+        <button onClick={handleRejection} className='bg-red-400 px-4 py-1 rounded-lg text-white hover:bg-red-500 ' disabled={rejectPending} >{rejectPending ? 'Rejecting...' : 'Reject'}</button>
     </>
 
 
@@ -92,7 +134,7 @@ function ViewStoreApplication() {
         modal = <Modal ref={dialog} onClose={handleCloseRejectModal}>
             <div className='w-96'>
                 <h3 className=' text-dark_font my-4'>State your reason</h3>
-                <CustomTextArea />
+                <CustomTextArea val={reason} onChange={handleTextChange} error={errorMessage} />
             </div>
             <div className='mt-8 flex gap-2 justify-end'>
                 {formAction}
@@ -107,10 +149,10 @@ function ViewStoreApplication() {
             <Modal ref={successDialog} onClose={handleSuccessModal}>
                 <div className='flex mb-8 items-center gap-2'>
                     <DoneSharpIcon fontSize='large' sx={{ color: '#204d2c' }} />
-                    <h2 className='text-dark_font'>Approval Success</h2>
+                    <h2 className='text-dark_font'>{isRejecting ? 'Store Rejected' : 'Approval Success'}</h2>
                 </div>
                 <p className=' max-w-[36rem] w-96 text-lg'>
-                    Store &apos;{titleCase(data.store_name)}&apos; approved successfully!
+                    Store &apos;{titleCase(data.store_name)}&apos; {isRejecting ? 'Rejected' : 'Accepted'} successfully!
                 </p>
                 <div className='mt-8 flex gap-2 justify-end'>
                     <button onClick={handleSuccessModal} className='bg-dark_font hover:bg-light_font rounded-md px-4 py-1 text-white' >Ok</button>

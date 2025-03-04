@@ -108,6 +108,12 @@ router.post("/register-store", upload, async (req, res) => {
     const { user_id, store_name, street, barangay, city, province, zip } =
       req.body;
     // let storenameExist = false;
+    const storenameExist = await storeExisting(store_name);
+    if (storenameExist) {
+      return res.status(409).json({
+        message: "Store name already exists. Please choose another name.",
+      });
+    }
     console.log("Uploaded files:", req.files);
 
     
@@ -342,6 +348,52 @@ router.patch("/approve-store", async (req, res, next) => {
       send_type: "direct",
       notif_type: "store",
       redirect_type: "approval",
+      redirect_id: store_id,
+      userId: owner_id,
+      readBy: [],
+      notif_date: admin.firestore.FieldValue.serverTimestamp(),
+    };
+
+    await notificationRef.set(notificationData, {merge: true})
+
+    res.status(200).send({ message: "success" });
+  } catch (error) {
+    console.log(error.message);
+    errors.push("Internal server error");
+    return res.status(501).json({ message: error.message, errors: errors });
+  }
+});
+
+
+router.patch("/reject-store", async (req, res, next) => {
+  const { store_id, owner_id, rejected_by, reason } = req.body;
+  const errors = [];
+  try {
+
+    console.log(req.body)
+    const storeRef = db.collection("stores");
+    const storeDoc = storeRef.doc(store_id);
+
+
+
+    const response = await storeDoc.set(
+      {
+        status: "rejected",
+        date_rejection: admin.firestore.FieldValue.serverTimestamp(),
+        rejected_by,
+        rejection_reason: reason,
+      },
+      { merge: true }
+    );
+
+
+    const notificationRef = db.collection('notifications').doc()
+    const notificationData = {
+      title: "Your Store Was Rejected!",
+      message: "We regret to inform you that your store request has been rejected. You can find the specific reason for rejection on your Shop Registration page. We encourage you to review the details, make any necessary updates, and reapply. Thank you for your interest in our platform.",
+      send_type: "direct",
+      notif_type: "store",
+      redirect_type: "reject",
       redirect_id: store_id,
       userId: owner_id,
       readBy: [],
