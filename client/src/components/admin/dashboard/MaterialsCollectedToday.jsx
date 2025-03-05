@@ -2,6 +2,7 @@ import React from 'react'
 import CustomLoader from '../../models/CustomLoader'
 import { fetchMaterialsToday } from '../../../util/http'
 import { useQuery } from '@tanstack/react-query'
+import { titleCase } from 'title-case'
 
 function MaterialsCollectedToday() {
     const { data, isPending, isError, error } = useQuery({
@@ -29,14 +30,14 @@ function MaterialsCollectedToday() {
                 <thead>
                     <tr className="text-secondary_color">
                         <th>Material</th>
-                        <th>Weight (grams)</th>
+                        <th className='text-right'>Weight (grams)</th>
                     </tr>
                 </thead>
                 <tbody>
                     {Object.entries(data.materials).map(([materialName, totalCollected], index) => (
                         <tr key={index}>
-                            <td>{materialName}</td>
-                            <td>{totalCollected}</td>
+                            <td><strong>{titleCase(materialName)}</strong></td>
+                            <td className='text-right'>{totalCollected}</td>
                         </tr>
                     ))}
                 </tbody>
@@ -47,7 +48,7 @@ function MaterialsCollectedToday() {
     return (
         <>
             <h4 className="bg-dark_font py-2 px-4 rounded-md shadow-md hover:shadow-none text-center text-white">
-                Recyclable materials collected
+                Recyclable materials collected (Today)
             </h4>
             <div className="card">
                 {content}

@@ -11,7 +11,7 @@ import { useSelector } from 'react-redux'
 function ManageContents() {
 
   const { data, isPending, isError, error } = useQuery({
-    queryKey: ['posts'],
+    queryKey: ['contents'],
     queryFn: ({ signal }) => fetchContent({ signal }),
     staleTime: 30000
   })
@@ -88,7 +88,7 @@ function ManageContents() {
   return (
     <div className='flex flex-col gap-4 relative'>
       <div className='flex justify-end'>
-        <Link to='../add' className='bg-accent_color hover:bg-dark_font text-white px-4 py-2 rounded-xl'>Create posts</Link>
+        <Link to='./add' className='bg-accent_color hover:bg-dark_font text-white px-4 py-2 rounded-xl'>Create posts</Link>
       </div>
       <div className='my-card bg-white py-8 px-4'>
         {selector && <SuccessBlock message={selector} />}

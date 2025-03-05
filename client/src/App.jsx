@@ -42,6 +42,8 @@ import PaymentRequest from "./components/admin/payments/PaymentRequest";
 import ViewBarangayPermit from "./components/admin/stores/ViewBarangayPermit";
 import ErrorPage from "./components/ErrorPage";
 import ViewStore from "./components/admin/stores/ViewStore";
+import ViewContent from "./components/admin/contents/ViewContent";
+import EditContent from "./components/admin/contents/EditContent";
 const router = createBrowserRouter([
   {
     path: "/",
@@ -65,9 +67,9 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <Dashboard /> },
       {
-          path: 'stores', element: <StoresLayout />, children: [
-          { index:true, element: <RegisteredStore /> },
-          {path: ':id', element: <ViewStore/>},
+        path: 'stores', element: <StoresLayout />, children: [
+          { index: true, element: <RegisteredStore /> },
+          { path: ':id', element: <ViewStore /> },
           {
             path: 'application-request', element: <StoreApplicationLayout />, children: [
               { index: true, element: <StoreApplication /> },
@@ -94,7 +96,9 @@ const router = createBrowserRouter([
       { path: 'archived-accounts', element: <ArchivedAccounts /> },
       {
         path: 'contents', element: <ManageContentLayout />, children: [
-          { path: 'list', element: <ManageContents /> },
+          { index: true, element: <ManageContents /> },
+          { path: ':id', element: <ViewContent /> },
+          { path: 'edit/:id', element: <EditContent /> },
           { path: 'add', element: <CreatePosts /> },
           { path: 'archived', element: <ArchivedContents /> },
         ]

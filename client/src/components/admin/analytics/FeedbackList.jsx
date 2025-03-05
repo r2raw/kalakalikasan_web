@@ -30,10 +30,11 @@ function FeedbackList() {
     }
     return (
         <>
-            <h4 className="bg-dark_font py-2 px-4 rounded-md shadow-md hover:shadow-none text-center text-white custom-scrollbar">
+            <h4 className="bg-dark_font py-2 px-4 rounded-md shadow-md hover:shadow-none text-center text-white">
                 User feedbacks
             </h4>
-            {content}
+            <div className='flex flex-col gap-4 h-[95dvh] overflow-y-auto custom-scrollbar'>
+            {content}</div>
         </>
     )
 }

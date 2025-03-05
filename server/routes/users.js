@@ -752,7 +752,12 @@ router.post('/request-payment', async (req, res, next) => {
             store_id,
             amount,
             status: 'pending',
-            acceptance_image: null
+            date_requested: admin.firestore.FieldValue.serverTimestamp(),
+            acceptance_image: null,
+            approved_by: null,
+            rejected_date: null,
+            rejected_reason: null,
+            date_approved: null,
         }
 
         batch.set(requestPaymentRef, requestPaymentData, { merge: true })
@@ -838,19 +843,19 @@ router.get('/total-users', async (req, res, next) => {
 
 
 
-router.post('/feedback', async (req, res, next) => {
-    try {
-        const { message, email, name } = req.body;
+// router.post('/feedback', async (req, res, next) => {
+//     try {
+//         const { message, email, name } = req.body;
 
-        const feedbackRef = db.collection('feedbacks').doc()
-        await feedbackRef.set({ message, email, name: lowerCaseTrim(name), date_submitted: admin.firestore.FieldValue.serverTimestamp(), }, { merge: true })
-        return res.status(200).json({ message: 'success' })
-    } catch (error) {
+//         const feedbackRef = db.collection('feedbacks').doc()
+//         await feedbackRef.set({ message, email, name: lowerCaseTrim(name), date_submitted: admin.firestore.FieldValue.serverTimestamp(), }, { merge: true })
+//         return res.status(200).json({ message: 'success' })
+//     } catch (error) {
 
-        console.error(error.message)
-        return res.status(500).json({ error: error.message });
-    }
-})
+//         console.error(error.message)
+//         return res.status(500).json({ error: error.message });
+//     }
+// })
 
 router.get('/feedback', async (req, res, next) => {
     try {
@@ -864,8 +869,8 @@ router.get('/feedback', async (req, res, next) => {
             return res.status(200).json({ message: 'success', feedbacks })
         }
 
-        feedBackSnapshot.forEach((feedback)=> feedbacks.push({id: feedback.id, ...feedback.data()}))
-        
+        feedBackSnapshot.forEach((feedback) => feedbacks.push({ id: feedback.id, ...feedback.data() }))
+
         return res.status(200).json({ message: 'success', feedbacks })
     } catch (error) {
 
@@ -873,6 +878,52 @@ router.get('/feedback', async (req, res, next) => {
         return res.status(500).json({ error: error.message });
     }
 })
+
+
+router.get('/pending-payments', async (req, res, next) => {
+    try {
+        const paymentRef = db.collection('payment_request')
+            .where('status', '==', 'pending')
+            .orderBy('date_requested', 'desc');
+        const paymentSnapshot = await paymentRef.get();
+
+        const paymentPromises = [];
+
+        if (paymentSnapshot.empty) {
+            return res.status(200).json({ paymentPromises });
+        }
+
+
+        paymentSnapshot.forEach((payment) => {
+            const paymentData = payment.data();
+            const { store_id } = paymentData;
+            const storeRef = db.collection('stores').doc(store_id);
+
+            paymentPromises.push(
+                storeRef.get().then((storeSnapshot) => {
+                    if (!storeSnapshot.exists) {
+                        return { error: `Store with an id of ${store_id} does not exist` };
+                    }
+
+                    const { store_name } = storeSnapshot.data();
+                    return { id: payment.id, ...paymentData, store_name };
+                })
+            );
+        });
+
+        const resolvedPayments = await Promise.all(paymentPromises);
+
+        // Filter out any errors
+        const validPayments = resolvedPayments.filter(payment => !payment.error);
+
+        return res.status(200).json({ payments: validPayments });
+
+    } catch (error) {
+        console.error(error.message);
+        return res.status(500).json({ error: error.message });
+    }
+});
+
 
 
 

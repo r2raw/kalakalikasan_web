@@ -25,7 +25,7 @@ function CreatePosts() {
     {
       mutationFn: createPost,
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['posts'] });
+        queryClient.invalidateQueries({ queryKey: ['contents'] });
         dialog.current.open()
       },
     },
@@ -159,7 +159,7 @@ function CreatePosts() {
 
   }
   const handleModalClose = () => {
-    navigate('../list');
+    navigate('..');
 
   }
 

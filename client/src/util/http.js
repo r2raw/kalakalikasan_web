@@ -183,7 +183,7 @@ export const fetchDeactivatedContent = async ({ signal }) => {
 
 export const deactivateContent = async ({ data }) => {
     try {
-        const response = await axios.patch(`/deactivate-content`, { id: data });
+        const response = await axios.patch(`/deactivate-content`,  data );
 
         return response.data.message;
     } catch (error) {
@@ -193,6 +193,19 @@ export const deactivateContent = async ({ data }) => {
         throw err;
     }
 }
+export const restoreContent = async ({ data }) => {
+    try {
+        const response = await axios.patch(`/restore-content`, { id: data });
+
+        return response.data.message;
+    } catch (error) {
+        const err = new Error(error.response?.data?.message || "An error occurred");
+        err.code = error.response?.status || 500;
+        err.info = error.response?.data || 'Error fetching data';
+        throw err;
+    }
+}
+
 
 
 
@@ -337,6 +350,68 @@ export const fetchMostReactedContents = async ({ signal }) => {
 }
 
 
+export const fetchMostCommentedContents = async ({ signal }) => {
+    try {
+        const response = await axios.get(`/top-commented-contents`, { signal });
+        return response.data.top_contents;
+    } catch (error) {
+
+        const err = new Error(error.response?.data?.message || "An error occurred");
+        err.code = error.response?.status || 500;
+        err.info = error.response?.data || 'Error fetching data';
+        throw err;
+    }
+}
+export const fetchContentId = async ({ signal, id }) => {
+    try {
+        const response = await axios.get(`/fetch-content/${id}`, { signal });
+        return response.data;
+    } catch (error) {
+
+        const err = new Error(error.response?.data?.message || "An error occurred");
+        err.code = error.response?.status || 500;
+        err.info = error.response?.data || 'Error fetching data';
+        throw err;
+    }
+}
+export const fetchContentComment = async ({ signal, id }) => {
+    try {
+        const response = await axios.get(`/fetch-content-comments/${id}`, { signal });
+        return response.data;
+    } catch (error) {
+
+        const err = new Error(error.response?.data?.message || "An error occurred");
+        err.code = error.response?.status || 500;
+        err.info = error.response?.data || 'Error fetching data';
+        throw err;
+    }
+}
+export const fetchRecentReactor = async ({ signal }) => {
+    try {
+        const response = await axios.get(`/recent-reactors`, { signal });
+        return response.data;
+    } catch (error) {
+
+        const err = new Error(error.response?.data?.message || "An error occurred");
+        err.code = error.response?.status || 500;
+        err.info = error.response?.data || 'Error fetching data';
+        throw err;
+    }
+}
+export const fetchRecentCommentor = async ({ signal }) => {
+    try {
+        const response = await axios.get(`/recent-commentors`, { signal });
+        return response.data;
+    } catch (error) {
+
+        const err = new Error(error.response?.data?.message || "An error occurred");
+        err.code = error.response?.status || 500;
+        err.info = error.response?.data || 'Error fetching data';
+        throw err;
+    }
+}
+
+
 
 
 // Fetch total collected materials
@@ -413,5 +488,20 @@ export const rejectStore = async ({data}) => {
         err.code = error.response?.status || 500;
         err.info = error.response?.data || ['Error fetching data'];
         throw err;
+    }
+}
+
+
+export const fetchPendingPayments = async ({ signal }) => {
+    try {
+        const response = await axios.get('/pending-payments', { signal });
+
+        return response.data.payments;
+    } catch (error) {
+        const err = new Error(error.response?.data?.message || "An error occurred");
+        err.code = error.response?.status || 500;
+        err.info = error.response?.data || ['Error saving data'];
+        throw err;
+
     }
 }

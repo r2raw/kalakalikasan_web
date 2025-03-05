@@ -1,13 +1,13 @@
-import { useQuery } from "@tanstack/react-query"
-import { fetchMostReactedContents } from "../../../util/http"
-import CustomLoader from "../../models/CustomLoader"
-import { titleCase } from "title-case"
-import { truncateText } from "../../../util/formatter"
+import React from 'react'
+import CustomLoader from '../../models/CustomLoader'
+import { useQuery } from '@tanstack/react-query'
+import { fetchRecentReactor } from '../../../util/http'
+import { dbDateFormatterShort } from '../../../util/formatter'
 
-function TopReactedContents() {
+function RecentReactor() {
     const { data, isPending, isError, error } = useQuery({
-        queryKey: ['contents', 'reaects', 'most'],
-        queryFn: ({ signal }) => fetchMostReactedContents({ signal }),
+        queryKey: ['reacts', 'recent'],
+        queryFn: ({ signal }) => fetchRecentReactor({ signal }),
         staleTime: 5000,
         gcTime: 30000,
         refetchInterval: 5000,
@@ -28,21 +28,22 @@ function TopReactedContents() {
 
     if (data && data.length > 0) {
 
+        console.log(data)
         content =
             <table className="w-full">
                 <thead>
                     <tr className="text-secondary_color">
-                        <th>Title</th>
-                        <th className=" text-right">React counts</th>
+                        <th>User Reaction</th>
+                        <th className=" text-right">Date</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {data.map((content, index) => {
+                    {data.map((react) => {
 
                         return (
-                            <tr key={index}>
-                                <td><strong>{truncateText(titleCase(content.title), 25)}</strong></td>
-                                <td className=" text-right">{content.count}</td>
+                            <tr key={react.info}>
+                                <td><strong>{react.info.split(" reacted to ")[0]}</strong> reacted to <strong>{react.info.split(" reacted to ")[1]}</strong></td>
+                                <td className=" text-right">{dbDateFormatterShort(react.date_reacted)}</td>
                             </tr>
                         );
                     })}
@@ -52,7 +53,7 @@ function TopReactedContents() {
     return (
         <>
             <h4 className="bg-dark_font py-2 px-4 rounded-md shadow-md hover:shadow-none text-center text-white">
-                Most reacted contents
+                Recent user reaction
             </h4>
             <div className="card">
                 {content}
@@ -61,4 +62,4 @@ function TopReactedContents() {
     )
 }
 
-export default TopReactedContents
+export default RecentReactor

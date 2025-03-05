@@ -10,7 +10,7 @@ function Analytics() {
         <ExpenseForecast />
         <LineCollectedMaterials />
       </div>
-      <div className='lg:w-2/5 flex flex-col gap-4 h-[1000px] overflow-y-auto'>
+      <div className='lg:w-2/5 flex flex-col gap-4'>
         <FeedbackList />
       </div>
     </div>

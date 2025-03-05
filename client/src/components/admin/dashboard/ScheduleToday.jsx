@@ -31,16 +31,16 @@ function ScheduleToday() {
         <thead>
           <tr className="text-secondary_color">
             <th>Name</th>
-            <th>Date created</th>
+            <th className="text-right">Date created</th>
           </tr>
         </thead>
         <tbody>
           {data.map(user => {
-            const fullname= `${user.firstname} ${user.lastname}`
+            const fullname = `${user.firstname} ${user.lastname}`
             return (
               <tr key={user.id}>
-                <td>{truncateText(fullname, 25)}</td>
-                <td>{dbDateFormatterShort(user.date_created)}</td>
+                <td><strong>{truncateText(fullname, 25)}</strong></td>
+                <td className="text-right">{dbDateFormatterShort(user.date_created)}</td>
               </tr>
             );
           })}

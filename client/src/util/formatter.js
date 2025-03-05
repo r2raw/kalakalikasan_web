@@ -49,3 +49,8 @@ export const capitalizeFirstLetters = (text) => {
 export const truncateText = (text, maxLength) => {
     return text.length > maxLength ? text.slice(0, maxLength) + "..." : text;
 };
+
+
+export const currencyFormatter = (amount)=>{
+    return Intl.NumberFormat('en-PH', {style: 'currency', currency:'PHP'}).format(amount);
+}

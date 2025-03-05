@@ -30,25 +30,25 @@ function UpcomingSchedule() {
         <thead>
           <tr className=" text-secondary_color">
             <th>Store name</th>
-            <th>Date Approved</th>
+            <th className="text-right">Date Approved</th>
           </tr>
         </thead>
         <tbody>
-        {data.map(store =>{
-          return(
-            <tr key={store.id}>
-              <td>{truncateText(titleCase(store.store_name), 20)}</td>
-              <td>{dbDateFormatterShort(store.approval_date)}</td>
-            </tr>
-          )
-        })}
+          {data.map(store => {
+            return (
+              <tr key={store.id}>
+                <td><strong>{truncateText(titleCase(store.store_name), 20)}</strong></td>
+                <td className="text-right">{dbDateFormatterShort(store.approval_date)}</td>
+              </tr>
+            )
+          })}
         </tbody>
       </table>
   }
   return (
     <>
       <h4 className="bg-dark_font py-2 px-4 rounded-md shadow-md hover:shadow-none text-center text-white">
-        Upcoming Collection Schedule
+        Newly approved stores
       </h4>
       <div className="card">
         {content}
