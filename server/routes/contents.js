@@ -102,6 +102,23 @@ router.post('/create-post', multi_upload.array('uploadedFiles', 10), async (req,
             modified_by: null,
             status: 'visible'
         }
+
+        const notifRef = db.collection('notifications').doc()
+
+        const notifData = {
+            title: `New ${type} available!`,
+            message: `Check out the latest ${type} just posted!`,
+            notif_date: admin.firestore.FieldValue.serverTimestamp(),
+            notif_type: 'postings',
+            readBy: [],
+            redirect_id: contentId,
+            redirect_type: 'contents',
+            send_type: 'global',
+            userId: null,
+        }
+
+        batch.set(notifRef, notifData, { merge: true })
+
         batch.set(contentRef, contentData, { merge: true });
 
         //
@@ -128,12 +145,76 @@ router.post('/create-post', multi_upload.array('uploadedFiles', 10), async (req,
 
 
     } catch (error) {
+        console.log(error.message)
         errors.push('Internal server error')
         return res.status(501).json({ message: error.message, errors: errors })
     }
 
 })
 
+
+router.get('/fetch-content/:id', async (req, res, next) => {
+    try {
+        const {id} = req.params;
+
+        const contentRef = db.collection('contents').doc(id)
+        const contentSnapshot = await contentRef.get()
+
+        const images = [];
+
+        if(!contentSnapshot.exists){
+            return res.status(404).json({message: 'error', error: `Cannot find content with an id of ${id}`})
+        }
+
+        const contentData = {
+            ...contentSnapshot.data()
+        }
+
+        const imagesRef = contentRef.collection('media')
+        const imagesDoc = await imagesRef.get()
+
+        if(imagesDoc.empty){
+            return res.status(200).json({contentData, images})
+        }
+
+        imagesDoc.forEach(image => images.push({imageId: image.id, ...image.data()}))
+
+        const commentSnapshot = await contentRef.collection('comments').count().get();
+        const commentCount = commentSnapshot.data().count;
+        const reactSnapshot = await contentRef.collection('reacts').count().get();
+        const reactCount = reactSnapshot.data().count;
+        return res.status(200).json({contentData, images, reactCount, commentCount})
+
+
+    } catch (error) {
+        console.error(error.message)
+        return res.status(501).json({ message: error.message, error: 'Internal server error' })
+    }
+})
+router.get('/fetch-content-comments/:id', async (req, res, next) => {
+    try {
+        const {id} = req.params;
+
+        const contentRef = db.collection('contents').doc(id)
+        const commentRef = contentRef.collection('comments').orderBy('date_commented')
+        const commentSnapshot  =  await commentRef.get()
+
+        const comments = [];
+
+        if(commentSnapshot.empty){
+            return res.status(200).json(comments)
+        }
+
+        commentSnapshot.forEach(comment => comments.push({id: comment.id, ...comment.data()}))
+
+        return res.status(200).json(comments)
+
+
+    } catch (error) {
+        console.error(error.message)
+        return res.status(501).json({ message: error.message, error: 'Internal server error' })
+    }
+})
 router.get('/fetch-contents', async (req, res, next) => {
     const errors = [];
     const groupedData = {}
@@ -162,7 +243,6 @@ router.get('/fetch-contents', async (req, res, next) => {
                 });
             }
 
-            console.log(images)
             groupedData[type].push({ id: doc.id, ...data, images });
 
 
@@ -242,7 +322,7 @@ router.get('/fetch-archived-contents', async (req, res, next) => {
     const contents = [];
 
     try {
-        const contentDoc = db.collection('contents').orderBy('type', 'asc').orderBy('date_created', 'desc').where('status', '==', 'deactivated')
+        const contentDoc = db.collection('contents').orderBy('date_deactivated', 'desc').where('status', '==', 'deactivated')
         const contentSnapshot = await contentDoc.get()
 
         contentSnapshot.forEach(doc => {
@@ -260,14 +340,17 @@ router.get('/fetch-archived-contents', async (req, res, next) => {
 
 // PATCH REQUEST
 router.patch('/deactivate-content', async (req, res, next) => {
-    const { id } = req.body;
+    const { id, deactivatedBy } = req.body;
     const errors = [];
     try {
 
+        // console.log(deactivatedBy)
         const contentDoc = db.collection('contents').doc(id)
 
         const response = await contentDoc.set({
-            status: 'deactivated'
+            status: 'deactivated',
+            date_deactivated: admin.firestore.FieldValue.serverTimestamp(),
+            deactivatedBy
         }, { merge: true })
 
         res.status(200).send({ message: 'success' })
@@ -275,6 +358,21 @@ router.patch('/deactivate-content', async (req, res, next) => {
         console.log(error.message)
         errors.push('Internal server error')
         return res.status(501).json({ message: error.message, errors: errors })
+    }
+})
+router.patch('/restore-content', async (req, res, next) => {
+    const { id } = req.body;
+    try {
+
+        const contentDoc = db.collection('contents').doc(id)
+
+        const response = await contentDoc.set({
+            status: 'visible'
+        }, { merge: true })
+
+        res.status(200).send({ message: 'success' })
+    } catch (error) {
+        return res.status(501).json({ message: error.message, error: 'Internal server error' })
     }
 })
 
@@ -358,7 +456,7 @@ router.post('/add-comment', async (req, res, next) => {
             return res.status(401).json({ error: `Cannot find a user id ${userId}` })
         }
 
-        const {username} = userSnapshot.data()
+        const { username } = userSnapshot.data()
         const commentRef = contentRef.collection('comments').doc(commentId)
 
         const commentData = {
@@ -404,7 +502,7 @@ router.get('/top-reacted-contents', async (req, res) => {
             const contentTitle = contentDoc.data().title || "Unknown Title";
 
             if (!contentReactionCount[contentId]) {
-                contentReactionCount[contentId] = {contentId, title: contentTitle, count: 0 };
+                contentReactionCount[contentId] = { contentId, title: contentTitle, count: 0 };
             }
 
             contentReactionCount[contentId].count += 1;
@@ -427,5 +525,151 @@ router.get('/top-reacted-contents', async (req, res) => {
 });
 
 
+router.get('/top-commented-contents', async (req, res) => {
+    try {
+        // Step 1: Query all reactions using collectionGroup to get reactions from all contents
+        const commentSnapshot = await db.collectionGroup('comments').get();
+
+        if (commentSnapshot.empty) {
+            return res.status(200).json({ message: "No reactions found", top_contents: [] });
+        }
+
+        // Step 2: Count reactions per content
+        const contentCommentCount = {};
+
+        const countPromises = commentSnapshot.docs.map(async (commentDoc) => {
+            const contentDocRef = commentDoc.ref.parent.parent;
+
+            if (!contentDocRef) return;
+
+            const contentDoc = await contentDocRef.get();
+
+            if (!contentDoc.exists) return;
+
+            const contentId = contentDoc.id;
+            const contentTitle = contentDoc.data().title || "Unknown Title";
+
+            if (!contentCommentCount[contentId]) {
+                contentCommentCount[contentId] = { contentId, title: contentTitle, count: 0 };
+            }
+
+            contentCommentCount[contentId].count += 1;
+        });
+
+        await Promise.all(countPromises);
+
+        // Step 3: Sort contents by reaction count in descending order
+        const sortedContents = Object.values(contentCommentCount)
+            .sort((a, b) => b.count - a.count)
+            .slice(0, 5); // Get the top 5
+
+        // Step 4: Return response
+        return res.status(200).json({ top_contents: sortedContents });
+
+    } catch (error) {
+        console.error("Error fetching top contents by reactions:", error);
+        return res.status(500).json({ error: error.message });
+    }
+});
+
+// router.get('/recent-reactors', async (req, res, next) => {
+//     try {
+//         const reactRef = db.collectionGroup('reacts')
+//         const reactSnapshot = await reactRef.get()
+
+//         const reactors = []
+
+//         reactSnapshot.forEach((doc)=>{
+//             const docRef = doc.ref;
+//             const userRef = db.collection('users').doc(doc.id)
+//             const parentRef = docRef.parent;
+//             const contentDocRef = parentRef.parent;
+
+//             console.log(contentDocRef.id)
+//         })
+
+
+//         const resolvedReactors = await Promise.all
+//     } catch (error) {
+//         console.error("Error fetching top contents by reactions:", error);
+//         return res.status(500).json({ error: error.message });
+
+//     }
+// })
+
+
+router.get('/recent-reactors', async (req, res, next) => {
+    try {
+        const reactRef = db.collectionGroup('reacts');
+        const reactSnapshot = await reactRef.orderBy('date_reacted', 'desc').limit(5).get();
+
+        const reactors = [];
+
+        for (const doc of reactSnapshot.docs) {
+            const reactionData = doc.data();
+            const docRef = doc.ref;
+            const userRef = db.collection('users').doc(doc.id)
+            const parentRef = docRef.parent;
+            const parentDocRef = parentRef.parent; // This gets the parent content document reference
+
+            if (parentDocRef) {
+                const parentDocSnapshot = await parentDocRef.get();
+                const userSnapshot = await userRef.get();
+                if (parentDocSnapshot.exists) {
+                    const contentData = parentDocSnapshot.data();
+                    const username = userSnapshot.data().username || 'Unkown user';
+                    reactors.push({
+                        contentId: parentDocRef.id,
+                        user_id: doc.id || 'Unknown User',
+                        info: `${username} reacted to ${contentData.title || 'Unknown Title'}`,
+                        date_reacted: reactionData.date_reacted
+                    });
+                }
+            }
+        }
+
+        return res.json(reactors);
+    } catch (error) {
+        console.error("Error fetching top recent reactors:", error);
+        return res.status(500).json({ error: error.message });
+    }
+});
+
+router.get('/recent-commentors', async (req, res, next) => {
+    try {
+        const reactRef = db.collectionGroup('comments');
+        const reactSnapshot = await reactRef.orderBy('date_commented', 'desc').limit(5).get();
+
+        const commentors = [];
+
+        for (const doc of reactSnapshot.docs) {
+            const commentData = doc.data();
+            const docRef = doc.ref;
+            const userRef = db.collection('users').doc(commentData.userId)
+            const parentRef = docRef.parent;
+            const parentDocRef = parentRef.parent; // This gets the parent content document reference
+
+            if (parentDocRef) {
+                const parentDocSnapshot = await parentDocRef.get();
+                const userSnapshot = await userRef.get();
+                if (parentDocSnapshot.exists) {
+                    const contentData = parentDocSnapshot.data();
+                    const username = userSnapshot.data().username || 'Unkown user';
+                    commentors.push({
+                        contentId: parentDocRef.id,
+                        user_id: doc.id || 'Unknown User',
+                        info: `${username} commented to ${contentData.title || 'Unknown Title'}`,
+                        date_commented: commentData.date_commented
+                    });
+                }
+            }
+        }
+
+        return res.json(commentors);
+    } catch (error) {
+        console.error("Error fetching top recent reactors:", error);
+        return res.status(500).json({ error: error.message });
+    }
+});
 
 module.exports = router;

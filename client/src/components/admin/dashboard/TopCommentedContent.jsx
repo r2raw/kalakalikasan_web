@@ -1,13 +1,14 @@
-import { useQuery } from "@tanstack/react-query"
-import { fetchMostReactedContents } from "../../../util/http"
-import CustomLoader from "../../models/CustomLoader"
-import { titleCase } from "title-case"
-import { truncateText } from "../../../util/formatter"
+import React from 'react'
+import { fetchMostCommentedContents } from '../../../util/http'
+import { useQuery } from '@tanstack/react-query'
+import CustomLoader from '../../models/CustomLoader'
+import { truncate } from 'lodash'
+import { titleCase } from 'title-case'
 
-function TopReactedContents() {
+function TopCommentedContent() {
     const { data, isPending, isError, error } = useQuery({
-        queryKey: ['contents', 'reaects', 'most'],
-        queryFn: ({ signal }) => fetchMostReactedContents({ signal }),
+        queryKey: ['contents', 'comments','most'],
+        queryFn: ({ signal }) => fetchMostCommentedContents({ signal }),
         staleTime: 5000,
         gcTime: 30000,
         refetchInterval: 5000,
@@ -33,15 +34,15 @@ function TopReactedContents() {
                 <thead>
                     <tr className="text-secondary_color">
                         <th>Title</th>
-                        <th className=" text-right">React counts</th>
+                        <th className=" text-right">Comment counts</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {data.map((content, index) => {
-
+                    {data.map(content => {
+                        
                         return (
-                            <tr key={index}>
-                                <td><strong>{truncateText(titleCase(content.title), 25)}</strong></td>
+                            <tr key={content.contentId}>
+                                <td><strong>{truncate(titleCase(content.title), 25)}</strong></td>
                                 <td className=" text-right">{content.count}</td>
                             </tr>
                         );
@@ -52,7 +53,7 @@ function TopReactedContents() {
     return (
         <>
             <h4 className="bg-dark_font py-2 px-4 rounded-md shadow-md hover:shadow-none text-center text-white">
-                Most reacted contents
+                Most commented contents
             </h4>
             <div className="card">
                 {content}
@@ -61,4 +62,4 @@ function TopReactedContents() {
     )
 }
 
-export default TopReactedContents
+export default TopCommentedContent

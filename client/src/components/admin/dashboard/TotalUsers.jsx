@@ -8,7 +8,7 @@ import { fetchTotalUsers } from "../../../util/http";
 import CustomLoader from "../../models/CustomLoader";
 function TotalUsers() {
   const { data, isPending, isError, error } = useQuery({
-    queryKey: ["analytics", "forecast"],
+    queryKey: ["users", "total"],
     queryFn: ({ signal }) => fetchTotalUsers({ signal }),
     staleTime: 5000,
     gcTime: 30000,

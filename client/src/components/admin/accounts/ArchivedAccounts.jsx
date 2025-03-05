@@ -10,6 +10,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { usersAction } from '../../../store/slices/usersSlice';
 import { uiActions } from '../../../store/slices/uiSlice';
 import RestoreFromTrashSharpIcon from '@mui/icons-material/RestoreFromTrashSharp';
+import CustomLoader from '../../models/CustomLoader';
 
 const collapsible_col = ['mobile_num', 'email']
 function ArchivedAccounts() {
@@ -62,7 +63,7 @@ function ArchivedAccounts() {
   let content = <></>
 
   if (isPending) {
-    content = <p>Fetching data...</p>
+    content = <CustomLoader />
   }
 
   if (isError) {
@@ -103,7 +104,7 @@ function ArchivedAccounts() {
           <h2 className='text-dark_font'>Restore</h2>
         </div>
         <p className=' max-w-[36rem] text-lg'>
-          Are you sure you want to delete this user?
+          Are you sure you want to restore this user?
         </p>
         <div className='mt-8 flex gap-2 justify-end'>
           {formAction}

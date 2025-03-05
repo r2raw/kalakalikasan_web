@@ -141,13 +141,13 @@ function AdminNavList() {
             <ArrowForwardIosSharpIcon />
             {selectedNav == 'contents' && <ul className=" flex flex-col gap-2 top-0 bg-secondary_color shadow-lg rounded-md ml-10 absolute left-full">
 
-              <NavLink to='contents/list' className={({ isActive }) => isActive ? "flex justify-between items-center py-2 w-full px-4 text-base_color bg-accent_color rounded-t-md" : "flex justify-between items-center py-2 w-full px-4 text-base_color rounded-t-md"} >
+              <NavLink to='contents' className={({ isActive }) => isActive ? "flex justify-between items-center py-2 w-full px-4 text-base_color bg-accent_color rounded-t-md" : "flex justify-between items-center py-2 w-full px-4 text-base_color rounded-t-md"} end >
                 <div className="flex gap-2 items-center">
                   <div className="nav-icon"><SettingsSharpIcon /></div>
                   <h3 className=" text-sm">Manage</h3>
                 </div>
               </NavLink>
-              <NavLink to='contents/archived' className={({ isActive }) => isActive ? "flex justify-between items-center py-2 w-full px-4 text-base_color bg-accent_color rounded-b-md" : "flex justify-between items-center py-2 w-full px-4 text-base_color rounded-b-md"} >
+              <NavLink to='contents/archived' className={({ isActive }) => isActive ? "flex justify-between items-center py-2 w-full px-4 text-base_color bg-accent_color rounded-b-md" : "flex justify-between items-center py-2 w-full px-4 text-base_color rounded-b-md"}  end >
                 <div className="flex gap-2 items-center">
                   <div className="nav-icon"><ArchiveSharpIcon /></div>
                   <h3 className=" text-sm">Archived Contents</h3>

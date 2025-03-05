@@ -5,39 +5,37 @@ import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { fetchPendingStores } from '../../../util/http'
 import ErrorBlock from '../../models/ErrorBlock'
+import CustomLoader from '../../models/CustomLoader'
 function StoreApplication() {
 
   const navigate = useNavigate();
 
-  const handleViewClick = (id)=>{
+  const handleViewClick = (id) => {
     navigate('./' + id)
   }
 
-  const {data, isPending, isError, error} = useQuery({
+  const { data, isPending, isError, error } = useQuery({
     queryKey: ['stores', 'application'],
-    queryFn: ({signal})=> fetchPendingStores({signal}),
+    queryFn: ({ signal }) => fetchPendingStores({ signal }),
     staleTime: 3000,
     gcTime: 30000,
     refetchInterval: 3000,
   })
 
-  
-  let content = <></>
+
+  let content = <div className=' my-auto w-full h-[75dvh] flex justify-center items-center text-secondary_color'><h1>No store application found!</h1></div>
 
   if (isPending) {
-    content = <p>Fetching data...</p>
+    content = <div className=' h-[75dvh]'><CustomLoader /></div>
   }
 
   if (isError) {
     content = <ErrorBlock message={error.info?.errors || ['Failed to load data.']} />
   }
 
-  
+
   if (data) {
 
-    if (data.length == 0) {
-      content = <div className=' my-auto w-full flex justify-center items-center text-light_font'><h1>No store found!</h1></div>
-    }
 
     if (data.length > 0) {
       content = <CustomTable

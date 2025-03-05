@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import { titleCase } from 'title-case';
-import {dbDateFormatter} from '../../../util/formatter'
+import { currencyFormatter, dbDateFormatter } from '../../../util/formatter'
 export const schedColumns = [
     { Header: 'Id', accessor: 'id', },
     { Header: 'Barangay', accessor: 'barangay', },
@@ -45,12 +45,19 @@ export const accountColumns = [
 
 export const contentColumn = [
     { Header: 'Id', accessor: 'id', },
-    { Header: 'Title', accessor: 'title',  Cell: ({ value }) => titleCase(value),},
-    { Header: 'Type', accessor: 'type', Cell: ({ value }) => titleCase(value),},
+    { Header: 'Title', accessor: 'title', Cell: ({ value }) => titleCase(value), },
+    { Header: 'Type', accessor: 'type', Cell: ({ value }) => titleCase(value), },
     // { Header: 'Created on', accessor: 'date_created', },
 ]
 export const storeColumns = [
     { Header: 'Id', accessor: 'id', },
     { Header: 'Store Name', accessor: 'store_name', },
-    { Header: 'Application date', accessor: 'application_date', Cell: ({value}) => dbDateFormatter(value) },
+    { Header: 'Application date', accessor: 'application_date', Cell: ({ value }) => dbDateFormatter(value) },
+]
+
+export const paymentColumns = [
+    { Header: 'Id', accessor: 'id', },
+    { Header: 'Store Name', accessor: 'store_name', Cell:({value})=> titleCase(value)},
+    { Header: 'Amount', accessor: 'amount', Cell:({value})=> currencyFormatter(value)},
+    { Header: 'Request date', accessor: 'date_requested', Cell: ({ value }) => dbDateFormatter(value) },
 ]
