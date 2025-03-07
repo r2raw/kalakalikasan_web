@@ -14,6 +14,7 @@ import { usersAction } from '../../../store/slices/usersSlice';
 import DoneSharpIcon from '@mui/icons-material/DoneSharp';
 import { titleCase } from 'title-case';
 import { accountFormValidation, isObjEmpty } from '../../../util/validations';
+import { maxDate } from '../../../util/formatter';
 function CrreateOfficer() {
 
     const dispatch = useDispatch();
@@ -150,8 +151,8 @@ function CrreateOfficer() {
                     </div>
                 </div>
                 <div className='flex flex-col gap-4'>
-                    <FormInput placeholderName={'Username'} name='username' type='text' value={formSelector.username || ''} onChange={handleInputChange} error={formErrors.username} />
-                    <FormInput placeholderName={'Birthdate'} name='birthdate' type='date' value={formSelector.birthdate} onChange={handleInputChange} error={formErrors.birthdate} />
+                    <FormInput placeholderName={'Username'} name='username' type='text' value={formSelector.username.replace(' ', '') || ''} onChange={handleInputChange} error={formErrors.username} />
+                    <FormInput placeholderName={'Birthdate'} max={maxDate()} name='birthdate' type='date' value={formSelector.birthdate} onChange={handleInputChange} error={formErrors.birthdate} />
                     <FormInput placeholderName={'Mobile No.'} name='mobile_num' type='number' value={formSelector.mobile_num || ''} onChange={handleInputChange} error={formErrors.mobile_num}  />
                     <FormInput placeholderName={'Email Address.'} name='email' type='email' value={formSelector.email || ''} onChange={handleInputChange} error={formErrors.email}  />
                 </div>

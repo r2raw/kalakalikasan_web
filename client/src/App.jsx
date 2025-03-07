@@ -44,6 +44,8 @@ import ErrorPage from "./components/ErrorPage";
 import ViewStore from "./components/admin/stores/ViewStore";
 import ViewContent from "./components/admin/contents/ViewContent";
 import EditContent from "./components/admin/contents/EditContent";
+import ViewPaymentRequest from "./components/admin/payments/ViewPaymentRequest";
+import PaymentLayout from "./layout/sub_layout/PaymentLayout";
 const router = createBrowserRouter([
   {
     path: "/",
@@ -103,7 +105,12 @@ const router = createBrowserRouter([
           { path: 'archived', element: <ArchivedContents /> },
         ]
       },
-      { path: 'payments', element: <PaymentRequest /> },
+      {
+        path: 'payments', element: <PaymentLayout />, children: [
+          {index: true, element:<PaymentRequest/>},
+          {path:':id', element:<ViewPaymentRequest/>},
+        ]
+      },
       {
         path: 'materials', element: <MaterialLayout />, children: [
           { index: true, element: <ManageMaterials /> },

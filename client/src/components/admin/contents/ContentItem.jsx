@@ -2,8 +2,6 @@ import React, { useState } from 'react'
 
 import brand_logo from '../../../assets/images/brand_logo.png'
 import MoreVertSharpIcon from '@mui/icons-material/MoreVertSharp';
-import FavoriteSharpIcon from '@mui/icons-material/FavoriteSharp';
-import CommentSharpIcon from '@mui/icons-material/CommentSharp';
 import { titleCase } from 'title-case';
 import { dbDateFormatter } from '../../../util/formatter';
 import { IconButton, nativeSelectClasses } from '@mui/material';
@@ -12,6 +10,8 @@ import { deactivateContent, queryClient } from '../../../util/http';
 import { uiActions } from '../../../store/slices/uiSlice';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
+import ReactCount from './ReactCount';
+import CommentCount from '../profile/CommentCount';
 function ContentItem({ data }) {
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -61,14 +61,8 @@ function ContentItem({ data }) {
             </div>
             <h4>{titleCase(data.title)}</h4>
             <div className='flex gap-4 w-full text-sm justify-between'>
-                <div className='flex gap-2 items-center'>
-                    <FavoriteSharpIcon sx={{ color: '#ff0000' }} />
-                    <p>123,222</p>
-                </div>
-                <div className='flex gap-2 items-center'>
-                    <CommentSharpIcon />
-                    <p>123,22</p>
-                </div>
+                <ReactCount id={data.id} />
+                <CommentCount id={data.id}/>
             </div>
             <div className='flex justify-between w-full text-sm'>
                 <p>Created: {dbDateFormatter(data.date_created)}</p>
@@ -77,7 +71,6 @@ function ContentItem({ data }) {
             {!isPending && openMenu &&
                 <div className='absolute shadow-md bg-white rounded-md bottom-4 right-10'>
                     <ul>
-                        <li className='hover:bg-neutral-200 px-2 rounded-t-md cursor-pointer'>Hide</li>
                         <li className='hover:bg-neutral-200 px-2 cursor-pointer' onClick={handleClick}>View</li>
                         <li className='hover:bg-neutral-200 px-2 cursor-pointer' onClick={handleEdit}>Edit</li>
                         <li className='hover:bg-neutral-200 px-2 rounded-b-md cursor-pointer'>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-
+import ArrowBackIosNewSharpIcon from '@mui/icons-material/ArrowBackIosNewSharp';
+import ArrowForwardIosSharpIcon from '@mui/icons-material/ArrowForwardIosSharp';
 function ImagesCarousel({ images }) {
     const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -38,16 +38,16 @@ function ImagesCarousel({ images }) {
                     </AnimatePresence>
                     {images.length > 1 && <>
                         <button
-                            className="absolute left-4 bg-accent_color/50 p-2 rounded-full text-white"
+                            className="absolute left-4 flex items-center justify-center bg-accent_color/50 p-2 rounded-full text-white"
                             onClick={prevImage}
                         >
-                            <ChevronLeft size={24} />
+                            <ArrowBackIosNewSharpIcon />
                         </button>
                         <button
-                            className="absolute right-4 bg-accent_color/50 p-2 rounded-full text-white"
+                            className="absolute right-4 flex items-center justify-center bg-accent_color/50 p-2 rounded-full text-white"
                             onClick={nextImage}
                         >
-                            <ChevronRight size={24} />
+                            <ArrowForwardIosSharpIcon  />
                         </button>
                     </>}
                 </div>

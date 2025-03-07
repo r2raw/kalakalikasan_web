@@ -1,25 +1,53 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import ArrowBackIosNewSharpIcon from '@mui/icons-material/ArrowBackIosNewSharp';
+import ArrowForwardIosSharpIcon from '@mui/icons-material/ArrowForwardIosSharp';
 import CloseSharpIcon from '@mui/icons-material/CloseSharp';
 import { IconButton } from "@mui/material";
-function EditableImageContent({ images }) {
+import Modal from "../../models/ui/Modal";
+import DeleteForeverSharpIcon from '@mui/icons-material/DeleteForeverSharp';
+import { useMutation } from "@tanstack/react-query";
+import { deleteImage, queryClient } from "../../../util/http";
+import SmallDeletableImage from "./SmallDeletableImage";
+function EditableImageContent({ images, removeImage }) {
+
     const [currentIndex, setCurrentIndex] = useState(0);
 
     const nextImage = () => {
-        setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length);
+        if (images.length > 0) {
+            setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length);
+        }
     };
 
     const prevImage = () => {
-        setCurrentIndex((prevIndex) =>
-            prevIndex === 0 ? images.length - 1 : prevIndex - 1
-        );
+        if (images.length > 0) {
+            setCurrentIndex((prevIndex) =>
+                prevIndex === 0 ? images.length - 1 : prevIndex - 1
+            );
+        }
     };
 
     useEffect(() => {
-        const interval = setInterval(nextImage, 3000);
-        return () => clearInterval(interval);
-    }, [currentIndex]);
+        if (images.length > 1) {
+            const interval = setInterval(nextImage, 3000);
+            return () => clearInterval(interval);
+        }
+    }, [currentIndex, images.length]);
+
+    // ✅ Fix: Ensure `currentIndex` is valid when removing an image
+    const handleRemoveImage = (imageId) => {
+        const newImages = images.filter((img) => img.imageId !== imageId);
+
+        // Ensure `currentIndex` does not go out of bounds
+        setCurrentIndex((prevIndex) =>
+            prevIndex >= newImages.length ? Math.max(0, newImages.length - 1) : prevIndex
+        );
+
+        removeImage(imageId); // Call parent function to update state
+    };
+
+
+
 
     return (
         <>
@@ -39,37 +67,29 @@ function EditableImageContent({ images }) {
                     </AnimatePresence>
                     {images.length > 1 && <>
                         <button
-                            className="absolute left-4 bg-accent_color/50 p-2 rounded-full text-white"
+                            className="absolute left-4 flex items-center justify-center bg-accent_color/50 p-2 rounded-full text-white"
                             onClick={prevImage}
                         >
-                            <ChevronLeft size={24} />
+                            <ArrowBackIosNewSharpIcon />
                         </button>
                         <button
-                            className="absolute right-4 bg-accent_color/50 p-2 rounded-full text-white"
+                            className="absolute right-4 flex items-center justify-center bg-accent_color/50 p-2 rounded-full text-white"
                             onClick={nextImage}
                         >
-                            <ChevronRight size={24} />
+                            <ArrowForwardIosSharpIcon />
                         </button>
                     </>}
                 </div>
             </div>
             {images.length > 0 && <div className="mt-4 flex gap-2">
                 {images.map((image, index) => (
-                    <div
-                        className=" relative"
-                        key={image.imageId}>
-                        <img
-                            src={`${import.meta.env.VITE_BASE_URL}/media-content/${image.imgUrl}`}
-                            alt="thumbnail"
-                            className={`w-16 h-16 object-cover cursor-pointer rounded-md ${index === currentIndex ? 'border-2 border-blue-500' : 'opacity-50'}`}
-                            onClick={() => setCurrentIndex(index)}
-                        />
-                        <div className="absolute -top-2 right-0">
-                            <IconButton style={{ fontSize: "10px", padding: "2px" }}>
-                                <CloseSharpIcon sx={{ fontSize: "12px" }} className="fill-white text-white" />
-                            </IconButton>
-                        </div>
-                    </div>
+                    <SmallDeletableImage
+                        key={image.imageId}
+                        removeImage={handleRemoveImage}
+                        setCurrentIndex={setCurrentIndex}
+                        image={image}
+                        index={index}
+                        currentIndex={currentIndex} />
                 ))}
             </div>}
         </>

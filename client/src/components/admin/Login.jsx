@@ -50,8 +50,8 @@ function Login() {
           <input className="border border-dark_font rounded-2xl px-4" placeholder="Password" name="password" type="password" />
           <button className="bg-dark_font rounded-2xl py-2 text-lg text-white" type="submit" disabled={isPending}>{isPending ? 'Logging in...' : 'Login'}</button>
         </form>
-        <h6 className="text-light_font">Forgot Password?</h6>
-        {isError && <div className="bg-red-200 w-full px-4 py-4">{error.response?.data.errors.map((error) => <p key={error} className="text-red-700">{error}</p>) || <p key={error} className="text-red-700">An error occured</p>}
+        {/* <h6 className="text-light_font">Forgot Password?</h6> */}
+        {isError && <div className="bg-red-200 w-full px-4 py-4">{error.info?.errors.map((error) => <p key={error} className="text-red-700">{error}</p>) || <p key={error} className="text-red-700">An error occured</p>}
         </div>}
       </div>
     </div>

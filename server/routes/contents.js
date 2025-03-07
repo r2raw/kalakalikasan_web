@@ -9,7 +9,9 @@ const path = require("path");
 const _ = require('lodash');
 const { lowerCaseTrim } = require("../util/myFunctions.js");
 const { isEmptyData } = require("../util/validations.js");
-const { error } = require("console");
+const { error, count } = require("console");
+const { consumers } = require("stream");
+const { devNull, userInfo } = require("os");
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -38,6 +40,7 @@ const uploadFilter = (req, file, cb) => {
         cb(new Error("Unsupported file type!"), false);
     }
 };
+const upload = multer({ storage: storage });
 
 const multi_upload = multer({
     storage,
@@ -45,34 +48,97 @@ const multi_upload = multer({
     limits: { fileSize: 10 * 1024 * 1024 }, // Adjust size limit as needed
 });
 
+router.patch('/delete-content-image', async (req, res, next) => {
+    try {
+        const { id, contentId, userId } = req.body
 
+        const contentRef = db.collection('contents').doc(contentId)
+        const contentSnapshot = await contentRef.get()
+
+        if (!contentSnapshot.exists) {
+            return res.status(404).json({ error: 'Content id not found!' })
+        }
+
+
+        const imagesRef = contentRef.collection('media').doc(id)
+        const imageSnapshot = await imagesRef.get()
+
+        if (!imageSnapshot.exists) {
+            return res.status(404).json({ error: 'Image id not found!' })
+        }
+
+        const contentData = {
+            date_modified: admin.firestore.FieldValue.serverTimestamp(),
+            modified_by: userId
+        }
+
+        const saveContent = await contentRef.set(contentData, { merge: true })
+        const saveImage = await imagesRef.delete()
+
+        return res.status(200).json({ message: 'success' })
+
+    } catch (error) {
+        return res.status(501).json({ error: error.message })
+    }
+})
+router.post('/add-content-image', upload.single('image'), async (req, res, next) => {
+    try {
+        const { id, contentId } = req.body
+
+        const imgId = uid()
+        const contentRef = db.collection('contents').doc(contentId)
+
+        const imageRef = contentRef.collection('media').doc(imgId)
+
+        const dataContent = {
+            date_modified: admin.firestore.FieldValue.serverTimestamp(),
+            modified_by: id
+        }
+
+        const mediaContent = {
+            imgUrl: req.file.filename,
+            type: req.file.mimetype,
+            dateCreated: admin.firestore.FieldValue.serverTimestamp(),
+        }
+
+        const updateContent = await contentRef.set(dataContent, { merge: true })
+        const saveImage = await imageRef.set(mediaContent, { merge: true })
+
+        return res.status(200).json({ message: 'success' })
+
+    } catch (error) {
+        return res.status(501).json({ error: error.message })
+    }
+})
+
+
+router.post('/edit-content', upload.single('image'), async (req, res, next) => {
+    try {
+        const { userId, contentId, title, description, type } = req.body
+
+
+        const contentRef = db.collection('contents').doc(contentId)
+        const dataContent = {
+            title,
+            description,
+            type,
+            modified_by: userId,
+            date_modified: admin.firestore.FieldValue.serverTimestamp(),
+        }
+
+        const saveImage = await contentRef.set(dataContent, { merge: true })
+
+        return res.status(200).json({ message: 'success' })
+
+    } catch (error) {
+        return res.status(501).json({ error: error.message })
+    }
+})
 router.post('/create-post', multi_upload.array('uploadedFiles', 10), async (req, res, next) => {
     const contentId = uid()
     const errors = [];
     const batch = db.batch()
     const { description, type, title, created_by } = req.body;
-    // multi_upload(req, res, function (err) {
-    //     if (err instanceof multer.MulterError) {
-    //         // A Multer error occurred when uploading.
-    //         res.status(500).send({ error: { message: `Multer uploading error: ${err.message}` } }).end();
-    //         return;
-    //     } else if (err) {
-    //         // An unknown error occurred when uploading.
-    //         if (err.name == 'ExtensionError') {
-    //             res.status(413).send({ error: { message: err.message } }).end();
-    //         } else {
-    //             res.status(500).send({ error: { message: `unknown uploading error: ${err.message}` } }).end();
-    //         }
-    //         return;
-    //     }
-
-    //     // Everything went fine.
-    //     // show file `req.files`
-
-    //     console.log(req)
-    //     // show body `req.body`
-    //     res.status(200).end('Your files uploaded.');
-    // })
 
     try {
         if (isEmptyData(title)) {
@@ -155,15 +221,15 @@ router.post('/create-post', multi_upload.array('uploadedFiles', 10), async (req,
 
 router.get('/fetch-content/:id', async (req, res, next) => {
     try {
-        const {id} = req.params;
+        const { id } = req.params;
 
         const contentRef = db.collection('contents').doc(id)
         const contentSnapshot = await contentRef.get()
 
         const images = [];
 
-        if(!contentSnapshot.exists){
-            return res.status(404).json({message: 'error', error: `Cannot find content with an id of ${id}`})
+        if (!contentSnapshot.exists) {
+            return res.status(404).json({ message: 'error', error: `Cannot find content with an id of ${id}` })
         }
 
         const contentData = {
@@ -173,17 +239,17 @@ router.get('/fetch-content/:id', async (req, res, next) => {
         const imagesRef = contentRef.collection('media')
         const imagesDoc = await imagesRef.get()
 
-        if(imagesDoc.empty){
-            return res.status(200).json({contentData, images})
+        if (imagesDoc.empty) {
+            return res.status(200).json({ contentData, images })
         }
 
-        imagesDoc.forEach(image => images.push({imageId: image.id, ...image.data()}))
+        imagesDoc.forEach(image => images.push({ imageId: image.id, ...image.data() }))
 
         const commentSnapshot = await contentRef.collection('comments').count().get();
         const commentCount = commentSnapshot.data().count;
         const reactSnapshot = await contentRef.collection('reacts').count().get();
         const reactCount = reactSnapshot.data().count;
-        return res.status(200).json({contentData, images, reactCount, commentCount})
+        return res.status(200).json({ contentData, images, reactCount, commentCount })
 
 
     } catch (error) {
@@ -193,25 +259,70 @@ router.get('/fetch-content/:id', async (req, res, next) => {
 })
 router.get('/fetch-content-comments/:id', async (req, res, next) => {
     try {
-        const {id} = req.params;
+        const { id } = req.params;
 
         const contentRef = db.collection('contents').doc(id)
-        const commentRef = contentRef.collection('comments').orderBy('date_commented')
-        const commentSnapshot  =  await commentRef.get()
+        const commentRef = contentRef.collection('comments').orderBy('date_commented', 'desc')
+        const commentSnapshot = await commentRef.get()
 
         const comments = [];
 
-        if(commentSnapshot.empty){
+        if (commentSnapshot.empty) {
             return res.status(200).json(comments)
         }
 
-        commentSnapshot.forEach(comment => comments.push({id: comment.id, ...comment.data()}))
+        commentSnapshot.forEach(comment => comments.push({ id: comment.id, ...comment.data() }))
 
         return res.status(200).json(comments)
 
 
     } catch (error) {
         console.error(error.message)
+        return res.status(501).json({ message: error.message, error: 'Internal server error' })
+    }
+})
+
+
+router.get('/view-payment/:id', async (req, res, next) => {
+    try {
+        const {id} = req.params
+
+        const paymentRef = db.collection('payment_request').doc(id)
+        const paymentSnapshot = await paymentRef.get()
+
+        if(!paymentSnapshot.exists){
+            return res.status(404).json({error: 'Payment not found!'})
+        }
+
+        const {store_id} = paymentSnapshot.data()
+        const storeRef = db.collection('stores').doc(store_id)
+        const storeSnapshot =  await storeRef.get()
+
+        if(!storeSnapshot.exists){
+            return res.status(404).json({error: 'Store not found!'})
+        }
+
+        const {owner_id} = storeSnapshot.data()
+
+        const userRef = db.collection('users').doc(owner_id)
+        const userSnapshot = await userRef.get()
+
+        if(!userSnapshot.exists){
+            return res.status(404).json({error: 'User not found'})
+        }
+
+
+
+
+        const paymentInfo = {
+            storeInfo: {id: storeSnapshot.id, ...storeSnapshot.data()},
+            paymentInfo: {id: paymentSnapshot.id, ...paymentSnapshot.data()},
+            userInfo: {id: userSnapshot.id, ...userSnapshot.data()}
+        }
+
+        return res.status(200).json(paymentInfo)
+    } catch (error) {
+
         return res.status(501).json({ message: error.message, error: 'Internal server error' })
     }
 })
@@ -360,14 +471,16 @@ router.patch('/deactivate-content', async (req, res, next) => {
         return res.status(501).json({ message: error.message, errors: errors })
     }
 })
-router.patch('/restore-content', async (req, res, next) => {
-    const { id } = req.body;
+router.patch('/restore-content/', async (req, res, next) => {
+    const { id, userId } = req.body;
     try {
 
         const contentDoc = db.collection('contents').doc(id)
 
         const response = await contentDoc.set({
-            status: 'visible'
+            status: 'visible',
+            date_restored: admin.firestore.FieldValue.serverTimestamp(),
+            restoredby: userId
         }, { merge: true })
 
         res.status(200).send({ message: 'success' })
@@ -527,14 +640,12 @@ router.get('/top-reacted-contents', async (req, res) => {
 
 router.get('/top-commented-contents', async (req, res) => {
     try {
-        // Step 1: Query all reactions using collectionGroup to get reactions from all contents
         const commentSnapshot = await db.collectionGroup('comments').get();
 
         if (commentSnapshot.empty) {
             return res.status(200).json({ message: "No reactions found", top_contents: [] });
         }
 
-        // Step 2: Count reactions per content
         const contentCommentCount = {};
 
         const countPromises = commentSnapshot.docs.map(async (commentDoc) => {
@@ -571,31 +682,38 @@ router.get('/top-commented-contents', async (req, res) => {
         return res.status(500).json({ error: error.message });
     }
 });
+router.get('/reacts-count/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
 
-// router.get('/recent-reactors', async (req, res, next) => {
-//     try {
-//         const reactRef = db.collectionGroup('reacts')
-//         const reactSnapshot = await reactRef.get()
+        const contentRef = db.collection('contents').doc(id)
 
-//         const reactors = []
+        const reactSnapshot = await contentRef.collection('reacts').count().get();
+        const reactCount = reactSnapshot.data().count;
+        return res.status(200).json(reactCount);
 
-//         reactSnapshot.forEach((doc)=>{
-//             const docRef = doc.ref;
-//             const userRef = db.collection('users').doc(doc.id)
-//             const parentRef = docRef.parent;
-//             const contentDocRef = parentRef.parent;
+    } catch (error) {
+        console.error("Error fetching top contents by reactions:", error);
+        return res.status(500).json({ error: error.message });
+    }
+});
 
-//             console.log(contentDocRef.id)
-//         })
+router.get('/commentCounts-count/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
 
+        const contentRef = db.collection('contents').doc(id)
 
-//         const resolvedReactors = await Promise.all
-//     } catch (error) {
-//         console.error("Error fetching top contents by reactions:", error);
-//         return res.status(500).json({ error: error.message });
+        const contentSnapshot = await contentRef.collection('comments').count().get();
+        const commentCount = contentSnapshot.data().count;
+        return res.status(200).json(commentCount);
 
-//     }
-// })
+    } catch (error) {
+        console.error("Error fetching top contents by reactions:", error);
+        return res.status(500).json({ error: error.message });
+    }
+});
+
 
 
 router.get('/recent-reactors', async (req, res, next) => {
@@ -671,5 +789,82 @@ router.get('/recent-commentors', async (req, res, next) => {
         return res.status(500).json({ error: error.message });
     }
 });
+
+router.get('/content-admin-activity/:id', async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const activities = [];
+
+        // Get stores where the admin has approved or rejected
+        const contentCreateSnapshot = await db.collection("contents")
+            .where("created_by", "==", id).orderBy('date_created', 'desc').limit(5)
+            .get();
+
+        contentCreateSnapshot.forEach(doc => {
+            const data = doc.data();
+            if (data.date_created) {
+                activities.push({
+                    id: doc.id,
+                    info: `You created ${data.title}`,
+                    date: data.date_created
+                });
+            }
+        });
+
+        const deactivatedContentSnapshot = await db.collection("contents")
+            .where("deactivatedBy", "==", id).orderBy('date_deactivated', 'desc').limit(5)
+            .get();
+
+        deactivatedContentSnapshot.forEach(doc => {
+            const data = doc.data();
+            if (data.date_deactivated) {
+                activities.push({
+                    id: doc.id,
+                    info: `You deactivated ${data.title}`,
+                    date: data.date_deactivated
+                });
+            }
+        });
+
+
+        const restoredContentSnapshot = await db.collection("contents")
+            .where("restoredby", "==", id).orderBy('date_restored', 'desc').limit(5)
+            .get();
+
+        restoredContentSnapshot.forEach(doc => {
+            const data = doc.data();
+            if (data.date_restored) {
+                activities.push({
+                    id: doc.id,
+                    info: `You restore ${data.title}`,
+                    date: data.date_restored
+                });
+            }
+        });
+
+
+        const modifiedContentSnapshot = await db.collection("contents")
+            .where("modified_by", "==", id).orderBy('date_modified', 'desc').limit(5)
+            .get();
+
+        modifiedContentSnapshot.forEach(doc => {
+            const data = doc.data();
+            if (data.date_modified) {
+                activities.push({
+                    id: doc.id,
+                    info: `You edited ${data.title}`,
+                    date: data.date_modified
+                });
+            }
+        });
+        // Sort by date (latest first)
+        const latestActs = activities.sort((a, b) => b.date - a.date).slice(0, 5);
+
+        return res.status(200).json(latestActs);
+    } catch (error) {
+        console.log(error.message)
+        return res.status(500).json({ error: error.message });
+    }
+})
 
 module.exports = router;

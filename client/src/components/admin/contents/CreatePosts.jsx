@@ -200,7 +200,7 @@ function CreatePosts() {
       <form className='my-card bg-white grid gap-4 px-8 py-8' onSubmit={handleSubmit}>
         <h2 className='text-dark_font'>Create post</h2>
         <div className='grid gap-8'>
-          <FormInput type='text' placeholderName='Title' onChange={handleChange} name='title' val={postData.title} error={formError.title} />
+          <FormInput type='text' placeholderName='Title' onChange={handleChange} name='title' maxLength='50' val={postData.title} error={formError.title} />
           <CustomTextArea placeholderName='Description' onChange={handleChange} name='description' val={postData.description} error={formError.description} />
           <div>
             <div className='relative  shadow-md h-10 text-light_font'>
