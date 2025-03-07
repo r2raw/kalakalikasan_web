@@ -1,6 +1,6 @@
 import React from 'react'
 
-import brand_logo from '../../../assets/images/brand_logo_no_circle_fit.png'
+import brand_logo from '../../../assets/logo/logo_only_transparent.png'
 import { titleCase } from 'title-case'
 import { dbDateFormatter, truncateText } from '../../../util/formatter'
 import { useNavigate } from 'react-router-dom'
