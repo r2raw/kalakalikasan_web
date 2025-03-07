@@ -61,7 +61,7 @@ function ContentAdminActivities() {
     return (
         <div className='flex flex-col gap-4'>
             <h4 className="bg-dark_font py-2 px-4 rounded-md shadow-md hover:shadow-none text-center text-white">
-                Your recent activities
+            Recent Content Change
             </h4>
             <div className='card'>
                 {content}

@@ -94,7 +94,7 @@ function ContentEditForm({ data }) {
             </Modal>
 
             <h4 className="bg-dark_font py-2 px-4 rounded-md shadow-md hover:shadow-none text-center text-white">
-                Most reacted contents
+                Update content
             </h4>
             <div className='card px-2'>
                 <form onSubmit={handleSubmit} className='w-full flex flex-col gap-6'>
