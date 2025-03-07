@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import brand_logo from "../../assets/images/new_brand_logo.png";
+import brand_logo from "../../assets/logo/logo_transparent.png";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { authActions } from "../../store/slices/authSlice";
