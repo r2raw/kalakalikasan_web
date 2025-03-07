@@ -18,15 +18,21 @@ const uploadDir = path.join(__dirname, "./public/media-content");
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
 }
-
-
+const UPLOAD_DIR = "/server/public";
+if (!fs.existsSync(UPLOAD_DIR)) {
+  fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+}
 app.use(cors({
   // origin:'*',
   methods: ['GET, POST, PATCH, DELETE'],
   allowedHeaders:['Content-Type,Authorization']
 }));
 
-
+app.use("/media-content", express.static("/server/public/media-content"));
+app.use("/products", express.static("/server/public/products"));
+app.use("/userQr", express.static("/server/public/userQr"));
+app.use("/userImg", express.static("/server/public/userImg"));
+app.use("/store-cred", express.static("/server/public/store-cred"));
 
 // app.use((req, res, next) => {
 //   console.log('asssss')
@@ -59,3 +65,6 @@ app.use(storesRoutes);
 app.listen(PORT, ()=>{
   console.log(`Running on port ${PORT}...`)
 });
+
+
+module.exports = {UPLOAD_DIR}
