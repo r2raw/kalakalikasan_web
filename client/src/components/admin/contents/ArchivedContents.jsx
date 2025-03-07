@@ -44,7 +44,7 @@ function ArchivedContents() {
   })
 
   const handleRestore = () => {
-    mutate({ data: restoringId })
+    mutate({ id: restoringId, userId: localStorage.getItem('id') })
   }
   const handleOpenRestoreModal = (id) => {
     dispatch(usersAction.handleRestore(id))

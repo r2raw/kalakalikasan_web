@@ -38,6 +38,27 @@ const upload = multer({ storage: storage });
 
 const saltRounds = 10;
 
+router.post('/change-image', upload.single('image'), async (req, res, next) => {
+    try {
+        const { id } = req.body;
+        const userRef = db.collection('users').doc(id)
+        const userSnapshot = await userRef.get()
+
+        if(!userSnapshot.exists){
+            return res.status(404).json({error: 'User not found!'})
+        }
+
+        const image = req.file.filename
+
+
+        const saveData = await userRef.set({image}, {merge: true})
+
+
+        return res.status(200).json({message: 'success'})
+    } catch (error) {
+        return res.status(501).json({ error: error.message })
+    }
+})
 
 router.post("/register", upload.single('image'), async (req, res, next) => {
     const id = uid(16)
@@ -59,13 +80,13 @@ router.post("/register", upload.single('image'), async (req, res, next) => {
             image = req.file.filename
         }
 
-        const usersRef = db.collection('users').doc(id)
+        const usersRef = db.collection('users').doc()
         const userAddressRef = usersRef.collection("user_address").doc();
         const fullnameRef = usersRef.collection('fullname').doc();
 
-        const existingUsername = await usersRef.where('username', '==', lowerCaseTrim(username).replaceAll(' ', '')).get();
-        const existingEmail = await usersRef.where('email', '==', lowerCaseTrim(email)).get();
-        const existingMobile = await usersRef.where('mobile_num', '==', lowerCaseTrim(mobile_num)).get();
+        const existingUsername = await db.collection('users').where('username', '==', lowerCaseTrim(username).replaceAll(' ', '')).get();
+        const existingEmail = await db.collection('users').where('email', '==', lowerCaseTrim(email)).get();
+        const existingMobile = await db.collection('users').where('mobile_num', '==', lowerCaseTrim(mobile_num)).get();
 
         if (!existingUsername.empty) {
             errors.push('Username already exist!');
@@ -114,6 +135,7 @@ router.post("/register", upload.single('image'), async (req, res, next) => {
 
         res.status(200).send({ message: 'success' })
     } catch (error) {
+        console.error(error.message)
         errors.push('Internal server error')
         return res.status(501).json({ message: error.message, errors: errors })
     }
@@ -198,10 +220,9 @@ router.post('/login', async (req, res, next) => {
     const errors = [];
 
     try {
-        const userRef = db.collection('users').where('username', '==', username);
+        const userRef = db.collection('users').where('username', '==', username).where('role', '==', 'admin').where('status', '==', 'activated');
         const doc = await userRef.get();
         const responseArr = [];
-
 
         if (username == '' || password == '') {
             errors.push('All fields must not be empty')
@@ -212,8 +233,6 @@ router.post('/login', async (req, res, next) => {
             return res.status(401).json({ message: 'internal server error', errors: errors });
 
         }
-
-
 
         doc.forEach(doc => {
             responseArr.push({ id: doc.id, data: doc.data() })
@@ -228,15 +247,65 @@ router.post('/login', async (req, res, next) => {
         }
 
         if (errors.length > 0) {
-            return res.status(401).json({ message: 'Imvalid login', errors: errors })
+            return res.status(401).json({ message: 'Invalid login', errors: errors })
         }
         return res.status(200).json({ message: 'success', id: responseArr[0].id });
     } catch (error) {
         errors.push('Internal server error')
-        console.log(error.message)
         return res.status(501).json({ message: error.message, errors: errors })
     }
 })
+
+router.post('/confirm-password', async (req, res, next) => {
+    try {
+        const { id, password } = req.body;
+
+        const userRef = db.collection('users').doc(id)
+        const userSnapshot = await userRef.get()
+
+        if (!userSnapshot.exists) {
+            return res.status(404).json({ error: 'User not found' })
+        }
+
+        const dbPass = userSnapshot.data().password
+        const match = await bcrypt.compare(password, dbPass);
+
+        if (!match) {
+            return res.status(409).json({ error: 'Invalid password' })
+        }
+
+        return res.status(200).json(true);
+    } catch (error) {
+        return res.status(501).json({ error: error.message })
+    }
+})
+
+router.post('/change-password', async (req, res, next) => {
+    try {
+        const { id, password } = req.body;
+        const userRef = db.collection('users').doc(id)
+        const userSnapshot = await userRef.get()
+
+        if (!userSnapshot.exists) {
+            return res.status(404).json({ error: 'User not found' })
+        }
+        const salt = await bcrypt.genSalt(saltRounds);
+        const hash = await bcrypt.hash(password, salt);
+
+        const saveData = await userRef.set({
+            password: hash,
+            date_modified: admin.firestore.FieldValue.serverTimestamp(),
+            modified_by: id,
+        }, { merge: true })
+
+
+
+        return res.status(200).json(true);
+    } catch (error) {
+        return res.status(501).json({ error: error.message })
+    }
+})
+
 
 
 router.post('/login-mobile', async (req, res, next) => {
@@ -314,7 +383,7 @@ router.get('/activeUsers', async (req, res, next) => {
 
         const usersDoc = await usersRef.where('role', '!=', 'admin')
             .where('status', '==', 'activated')
-            .select('mobile_num', 'email', 'image', 'firstname', 'lastname', 'middlename', 'date_created')
+            .select('mobile_num', 'email', 'image', 'firstname', 'lastname', 'middlename', 'date_created', 'role')
             .orderBy('date_created', 'desc')
             .get();
 
@@ -598,9 +667,6 @@ router.patch("/edit-user", upload.single('image'), async (req, res, next) => {
     try {
         let image = null
 
-        if (errors.length > 0) {
-            return res.status(401).json({ errors: errors });
-        }
 
 
         if (req.file) {
@@ -608,7 +674,49 @@ router.patch("/edit-user", upload.single('image'), async (req, res, next) => {
         }
 
         const usersRef = db.collection('users').doc(id)
+        const userSnapshot = await usersRef.get()
 
+        if (!userSnapshot.exists) {
+
+            return res.status(404).json({ errors: ['User not found'] })
+        }
+
+        const sanitizedUsername = lowerCaseTrim(username).replaceAll(' ', '');
+        const sanitizedEmail = lowerCaseTrim(email);
+        const sanitizedMobile = lowerCaseTrim(mobile_num);
+
+        const existingUsernameSnapshot = await db.collection('users')
+            .where('username', '==', sanitizedUsername)
+            .get();
+
+        const usernameExists = existingUsernameSnapshot.docs.some(doc => doc.id !== id);
+
+        if (usernameExists) {
+            errors.push('Username already exists!');
+        }
+
+        const existingEmailSnapshot = await db.collection('users')
+            .where('email', '==', sanitizedEmail)
+            .get();
+
+        const emailExists = existingEmailSnapshot.docs.some(doc => doc.id !== id);
+
+        if (emailExists) {
+            errors.push('Email already exists!');
+        }
+
+        const existingMobileSnapshot = await db.collection('users')
+            .where('mobile_num', '==', sanitizedMobile)
+            .get();
+
+        const mobileExists = existingMobileSnapshot.docs.some(doc => doc.id !== id);
+
+        if (mobileExists) {
+            errors.push('Mobile number already exists!');
+        }
+        if (errors.length > 0) {
+            return res.status(401).json({ errors: errors });
+        }
 
         let primaryData = {
             username: lowerCaseTrim(username).replaceAll(' ', ''),
@@ -924,8 +1032,37 @@ router.get('/pending-payments', async (req, res, next) => {
     }
 });
 
+router.get('/user-info/:id', async (req, res, next) => {
+    try {
+        const { id } = req.params
+        const userRef = db.collection('users').doc()
+        const userSnapshot = await userRef.get()
+
+        if (!userSnapshot.exists) {
+            return res.status(404).json({ error: 'Cannot find user with an id of ' + id })
+        }
+
+        const userInfo = {
+            id: userSnapshot.id,
+            ...userSnapshot.data()
+        }
+
+        return res.status(200).json({ userInfo })
+    } catch (error) {
+        console.error(error.message);
+        return res.status(501).json({ error: error.message });
+
+    }
+})
 
 
+router.patch('/update-user', async (req, res, next) => {
+    try {
+        console.log(req.body)
+    } catch (error) {
+        return res.status(501).json({ error: error.message })
+    }
+})
 
 // const vonage = new Vonage({
 //     apiKey: "2a3677c5",

@@ -116,7 +116,7 @@ router.post("/register-store", upload, async (req, res) => {
     }
     console.log("Uploaded files:", req.files);
 
-    
+
     let store_logo = null;
 
     if (req.files["store_logo"]) {
@@ -354,7 +354,7 @@ router.patch("/approve-store", async (req, res, next) => {
       notif_date: admin.firestore.FieldValue.serverTimestamp(),
     };
 
-    await notificationRef.set(notificationData, {merge: true})
+    await notificationRef.set(notificationData, { merge: true })
 
     res.status(200).send({ message: "success" });
   } catch (error) {
@@ -400,7 +400,7 @@ router.patch("/reject-store", async (req, res, next) => {
       notif_date: admin.firestore.FieldValue.serverTimestamp(),
     };
 
-    await notificationRef.set(notificationData, {merge: true})
+    await notificationRef.set(notificationData, { merge: true })
 
     res.status(200).send({ message: "success" });
   } catch (error) {
@@ -573,6 +573,7 @@ const getProduct = async (productRef) => {
   const productDoc = await productRef.get();
   return productDoc;
 };
+
 router.post("/checkout-products", async (req, res, next) => {
   try {
     const errors = [];
@@ -1175,4 +1176,317 @@ router.get('/linked-wallet/:storeId', async (req, res, next) => {
     return res.status(501).json({ error: error.message })
   }
 })
+
+
+
+
+router.get('/fetch-store/:id', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const storeRef = db.collection('stores').doc(id)
+    const storeSnapshot = await storeRef.get();
+
+    if (!storeSnapshot.exists) {
+      return res.status(404).json({ message: 'Not found', error: `Cannot find store with an id of ${id}` })
+    }
+
+    const { owner_id } = storeSnapshot.data()
+    const userRef = db.collection('users').doc(owner_id)
+    const userSnapshot = await userRef.get()
+    if (!userSnapshot.exists) {
+      return res.status(404).json({ message: 'Not found', error: `Cannot find user with an id of ${id}` })
+    }
+
+    const storeInfo = {
+      store: { id: storeSnapshot.id, ...storeSnapshot.data() },
+      owner: { id: userSnapshot.id, ...userSnapshot.data() }
+    }
+
+    return res.status(200).json(storeInfo)
+
+
+  } catch (error) {
+    return res.status(501).json({ message: error.message, error: 'Internal server error' })
+  }
+})
+
+
+router.get("/fetch-store-top-purchases/:storeId", async (req, res) => {
+  try {
+    const { storeId } = req.params;
+
+    // Step 1: Get all orders for the given storeId
+    const ordersSnapshot = await db.collection("orders")
+      .where("store_id", "==", storeId).where('status', '==', 'accepted')
+      .get();
+
+    if (ordersSnapshot.empty) {
+      return res.status(200).json({ message: "No purchases found", products: [] });
+    }
+
+    // Step 2: Collect product purchase counts
+    let productCounts = {};
+
+    for (const orderDoc of ordersSnapshot.docs) {
+      // Get products_ordered subcollection
+      const productsOrderedSnapshot = await db.collection("orders")
+        .doc(orderDoc.id)
+        .collection("products_ordered")
+        .get();
+
+      productsOrderedSnapshot.forEach((productDoc) => {
+        const productData = productDoc.data();
+        const productId = productData.product_id;
+
+        if (!productCounts[productId]) {
+          productCounts[productId] = {
+            product_id: productId,
+            product_name: productData.product_name,
+            product_image: productData.product_image,
+            total_quantity: 0,
+          };
+        }
+        productCounts[productId].total_quantity += productData.quantity;
+      });
+    }
+
+    // Step 3: Convert object to array and sort by most purchased
+    const sortedProducts = Object.values(productCounts)
+      .sort((a, b) => b.total_quantity - a.total_quantity)
+      .slice(0, 5); // Get top 5
+
+    return res.status(200).json({ products: sortedProducts });
+
+  } catch (error) {
+    console.error("Error fetching top purchases:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+
+
+router.get("/fetch-store-total-points/:storeId", async (req, res) => {
+  try {
+    const { storeId } = req.params;
+
+    // Step 1: Get all "accepted" orders for the store
+    const ordersSnapshot = await db.collection("orders")
+      .where("store_id", "==", storeId)
+      .where("status", "==", "accepted") // ✅ Only count accepted orders
+      .get();
+
+    if (ordersSnapshot.empty) {
+      return res.status(200).json({ storeId, total_points: 0 });
+    }
+
+    let totalPoints = 0;
+
+    // Step 2: Loop through each order and calculate total points
+    for (const orderDoc of ordersSnapshot.docs) {
+      const productsOrderedSnapshot = await db.collection("orders")
+        .doc(orderDoc.id)
+        .collection("products_ordered")
+        .get();
+
+      productsOrderedSnapshot.forEach((productDoc) => {
+        const productData = productDoc.data();
+        const quantity = productData.quantity;
+        const productPoints = productData.price; // Assuming price represents points earned
+
+        totalPoints += quantity * productPoints; // Accumulate total points
+      });
+    }
+
+    return res.status(200).json({ storeId, total_points: totalPoints });
+
+  } catch (error) {
+    console.error("Error fetching store points:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+
+// router.get("/fetch-store-sales-trend/:storeId", async (req, res) => {
+//   try {
+//     const { storeId } = req.params;
+
+//     // Fetch all "accepted" orders for the store
+//     const ordersSnapshot = await db.collection("orders")
+//       .where("store_id", "==", storeId)
+//       .where("status", "==", "accepted") // Only accepted orders
+//       .orderBy("order_date") // Order by date for correct sorting
+//       .get();
+
+//     if (ordersSnapshot.empty) {
+//       return res.status(200).json({ storeId, salesTrend: [] });
+//     }
+
+//     let salesByDate = {};
+
+//     ordersSnapshot.forEach((doc) => {
+//       const data = doc.data();
+//       const date = new Date(data.order_date.toDate()).toISOString().split("T")[0]; // Format: YYYY-MM-DD
+//       const totalAmount = data.total_price || 0; // Ensure total_price is present
+
+//       if (!salesByDate[date]) {
+//         salesByDate[date] = 0;
+//       }
+//       salesByDate[date] += totalAmount;
+//     });
+
+//     // Convert data into sorted array
+//     const sortedSalesTrend = Object.keys(salesByDate)
+//       .sort((a, b) => new Date(a) - new Date(b))
+//       .map(date => ({ date, sales: salesByDate[date] }));
+
+//     return res.status(200).json({ storeId, salesTrend: sortedSalesTrend });
+
+//   } catch (error) {
+//     console.error("Error fetching sales trend:", error);
+//     return res.status(500).json({ message: "Internal Server Error" });
+//   }
+// });
+
+router.get("/fetch-store-sales-trend/:storeId", async (req, res) => {
+  try {
+    const { storeId } = req.params;
+
+    // Fetch all "accepted" orders for the store
+    const ordersSnapshot = await db.collection("orders")
+      .where("store_id", "==", storeId)
+      .where("status", "==", "accepted") // ✅ Only accepted orders
+      .get();
+
+    if (ordersSnapshot.empty) {
+      return res.status(200).json({ storeId, salesTrend: [] });
+    }
+
+    let salesByDate = {};
+
+    // Step 1: Loop through each order
+    for (const orderDoc of ordersSnapshot.docs) {
+      const orderData = orderDoc.data();
+      const orderDate = new Date(orderData.order_date.toDate()).toISOString().split("T")[0]; // Format: YYYY-MM-DD
+
+      // Fetch all products in the "products_ordered" subcollection
+      const productsOrderedSnapshot = await db.collection("orders")
+        .doc(orderDoc.id)
+        .collection("products_ordered")
+        .get();
+
+      let orderTotal = 0; // Total sales for this order
+
+      productsOrderedSnapshot.forEach((productDoc) => {
+        const productData = productDoc.data();
+        const quantity = productData.quantity || 0;
+        const price = productData.price || 0;
+
+        orderTotal += quantity * price; // Compute sales amount
+      });
+
+      // Store total sales grouped by date
+      if (!salesByDate[orderDate]) {
+        salesByDate[orderDate] = 0;
+      }
+      salesByDate[orderDate] += orderTotal;
+    }
+
+    // Convert object to sorted array
+    const sortedSalesTrend = Object.keys(salesByDate)
+      .sort((a, b) => new Date(a) - new Date(b))
+      .map(date => ({ date, sales: salesByDate[date] }));
+
+    return res.status(200).json({ storeId, salesTrend: sortedSalesTrend });
+
+  } catch (error) {
+    console.error("Error fetching sales trend:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+
+router.get("/fetch-available-sales-years/:storeId", async (req, res) => {
+  try {
+    const { storeId } = req.params;
+
+    // Fetch all accepted orders for the store
+    const ordersSnapshot = await db.collection("orders")
+      .where("store_id", "==", storeId)
+      .where("status", "==", "accepted") // ✅ Only count accepted orders
+      .get();
+
+    if (ordersSnapshot.empty) {
+      return res.status(200).json({ storeId, availableYears: [] });
+    }
+
+    let yearsSet = new Set();
+
+    // Extract unique years
+    for (const orderDoc of ordersSnapshot.docs) {
+      const orderData = orderDoc.data();
+      const orderYear = new Date(orderData.order_date.toDate()).getFullYear();
+      yearsSet.add(orderYear);
+    }
+
+    // Convert Set to sorted Array (descending order)
+    const sortedYears = [...yearsSet].sort((a, b) => b - a);
+
+    return res.status(200).json({ storeId, availableYears: sortedYears });
+
+  } catch (error) {
+    console.error("Error fetching available sales years:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+router.get('/store-admin-activity/:id', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const activities = [];
+
+    // Get stores where the admin has approved or rejected
+    const storesSnapshot = await db.collection("stores")
+      .where("approved_by", "==", id).orderBy('approval_date').limit(5)
+      .get();
+
+    storesSnapshot.forEach(doc => {
+      const data = doc.data();
+      if (data.approval_date) {
+        activities.push({
+          id: doc.id,
+          info: `You approved ${data.store_name}`,
+          date: data.approval_date
+        });
+      }
+    });
+
+    const rejectedStoresSnapshot = await db.collection("stores")
+      .where("rejected_by", "==", id).orderBy('date_rejection').limit(5)
+      .get();
+
+    rejectedStoresSnapshot.forEach(doc => {
+      const data = doc.data();
+      if (data.date_rejection) {
+        activities.push({
+          id: doc.id,
+          info: `You rejected ${data.store_name}`,
+          date: data.date_rejection
+        });
+      }
+    });
+
+    // Sort by date (latest first)
+    const latestActs = activities.sort((a, b) => b.date -  a.date).slice(0, 5);
+
+    return res.status(200).json(latestActs);
+  } catch (error) {
+    console.error(error.message)
+    return res.status(501).json({ error: error.message })
+  }
+})
+
+
+
+
 module.exports = router;

@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 import CloseSharpIcon from '@mui/icons-material/CloseSharp';
 
 
-const Modal = forwardRef(function Modal({ children, onClose, ...props }, ref) {
+const Modal = forwardRef(function Modal({ children, onClose, deleting, ...props }, ref) {
 
     const dialogRef = useRef(null);
     useImperativeHandle(ref, () => {
@@ -41,7 +41,7 @@ const Modal = forwardRef(function Modal({ children, onClose, ...props }, ref) {
 
         createPortal(
             <dialog className=' px-4 py-8 rounded-md shadow-xl' ref={dialogRef} onClose={onClose}>
-                <button className='absolute text-dark_font top-2 right-2 rounded-full p-1 hover:bg-slate-200' onClick={onClose}><CloseSharpIcon fontSize='large' /></button>
+                <button className={`absolute ${deleting ? 'text-red_highlight' : 'text-dark_font'} top-2 right-2 rounded-full p-1 hover:bg-slate-200`} onClick={onClose}><CloseSharpIcon fontSize='large' /></button>
                 {children}
             </dialog>, document.getElementById('modal')
         )

@@ -85,12 +85,12 @@ function AdminNavList() {
                   <h3 className=" text-sm">Application Request</h3>
                 </div>
               </NavLink>
-              <NavLink to='stores/archived' className={({ isActive }) => isActive ? "flex justify-between items-center py-2 w-full px-4 text-base_color bg-accent_color rounded-b-md" : "flex justify-between items-center py-2 w-full px-4 text-base_color rounded-b-md"}  >
+              {/* <NavLink to='stores/archived' className={({ isActive }) => isActive ? "flex justify-between items-center py-2 w-full px-4 text-base_color bg-accent_color rounded-b-md" : "flex justify-between items-center py-2 w-full px-4 text-base_color rounded-b-md"}  >
                 <div className="flex gap-2 items-center">
                   <div className="nav-icon"><ArchiveSharpIcon /></div>
                   <h3 className=" text-sm">Archived Stores</h3>
                 </div>
-              </NavLink>
+              </NavLink> */}
 
             </ul>}
           </div>

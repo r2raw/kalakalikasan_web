@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import { titleCase } from 'title-case';
-import { currencyFormatter, dbDateFormatter } from '../../../util/formatter'
+import { currencyFormatter, dbDateFormatter, truncateText } from '../../../util/formatter'
 export const schedColumns = [
     { Header: 'Id', accessor: 'id', },
     { Header: 'Barangay', accessor: 'barangay', },
@@ -33,11 +33,12 @@ export const accountColumns = [
             return (
                 <div className="flex items-center space-x-4">
                     {imageContent}
-                    <span>{fullname}</span>
+                    <span>{truncateText(fullname, 20)}</span>
                 </div>
             )
         }
     },
+    {Header: 'Role', accessor: 'role', Cell: ({value}) =>titleCase(value)},
     { Header: 'Contact', accessor: 'mobile_num', },
     { Header: 'Email', accessor: 'email', },
 ]

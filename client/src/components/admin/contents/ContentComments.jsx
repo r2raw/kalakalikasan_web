@@ -4,6 +4,7 @@ import { useParams } from 'react-router-dom';
 import { fetchContentComment } from '../../../util/http';
 import CustomLoader from '../../models/CustomLoader';
 import ErrorSingle from '../../models/ErrorSingle';
+import { dbDateFormatterShort } from '../../../util/formatter';
 
 function ContentComments() {
     const { id } = useParams()
@@ -27,8 +28,11 @@ function ContentComments() {
 
     if (data && data.length) {
         content = <div className='flex flex-col gap-4'>
-            {data.map(content => <div key={data.id} className='w-full card'>
-                <p>{content.comment}</p>
+            {data.map(content => <div key={data.id} className='w-full card flex flex-col'>
+                <div className='flex justify-between w-full'>
+                    <strong><p>{content.commentedBy}</p></strong>
+                    <p>{dbDateFormatterShort(content.date_commented)}</p></div>
+                <p className='text-left w-full'>{content.comment}</p>
             </div>
             )
             }

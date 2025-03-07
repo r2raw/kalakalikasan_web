@@ -84,6 +84,36 @@ export const createUser = async ({ data }) => {
         throw err;
     }
 }
+export const changeImage = async ({ data }) => {
+    try {
+        const response = await axios.post(`/change-image`, data, {
+            headers: {
+                'Content-Type': 'multipart/form-data', // Specify multipart/form-data
+            },
+        });
+        return response.data;
+    } catch (error) {
+        const err = new Error(error.response?.data?.message || "An error occurred");
+        err.code = error.response?.status || 500;
+        err.info = error.response?.data || 'Error saving data';
+        throw err;
+    }
+}
+export const addImage = async ({ data }) => {
+    try {
+        const response = await axios.post(`/add-content-image`, data, {
+            headers: {
+                'Content-Type': 'multipart/form-data', // Specify multipart/form-data
+            },
+        });
+        return response.data;
+    } catch (error) {
+        const err = new Error(error.response?.data?.message || "An error occurred");
+        err.code = error.response?.status || 500;
+        err.info = error.response?.data || 'Error saving data';
+        throw err;
+    }
+}
 
 export const userLogin = async ({ data }) => {
     try {
@@ -127,8 +157,42 @@ export const editUser = async ({ data }) => {
     }
 }
 
+export const confirmPassword = async ( data ) => {
+    try {
+
+        const response = await axios.post(`/confirm-password`, data, {
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+        return response.data;
+    } catch (error) {
+        const err = new Error(error.response?.data?.message || "An error occurred");
+        err.code = error.response?.status || 500;
+        err.info = error.response?.data || 'Error saving data';
+        throw err;
+    }
+}
 
 
+
+
+export const changePassword = async ( data ) => {
+    try {
+
+        const response = await axios.post(`/change-password`, data, {
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+        return response.data;
+    } catch (error) {
+        const err = new Error(error.response?.data?.message || "An error occurred");
+        err.code = error.response?.status || 500;
+        err.info = error.response?.data || 'Error saving data';
+        throw err;
+    }
+}
 
 
 
@@ -152,7 +216,37 @@ export const createPost = async ({ data }) => {
         throw err;
     }
 }
+export const editPost = async ({ data }) => {
+    try {
+        const response = await axios.post(`/edit-content`, data, {
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+        return response.data;
+    } catch (error) {
+        const err = new Error(error.response?.data?.message || "An error occurred");
+        err.code = error.response?.status || 500;
+        err.info = error.response?.data || 'Error saving data';
+        throw err;
+    }
+}
 
+export const deleteImage = async ( data ) => {
+    try {
+        const response = await axios.patch(`/delete-content-image`,data,{
+            headers: {
+                'Content-Type': 'application/json', 
+            },
+        });
+        return response.data;
+    } catch (error) {
+        const err = new Error(error.response?.data?.message || "An error occurred");
+        err.code = error.response?.status || 500;
+        err.info = error.response?.data || 'Error saving data';
+        throw err;
+    }
+}
 export const fetchContent = async ({ signal }) => {
     try {
         const response = await axios.get('/fetch-contents', { signal });
@@ -166,7 +260,33 @@ export const fetchContent = async ({ signal }) => {
 
     }
 }
+export const fetchReactCount = async ({ signal,id }) => {
+    try {
+        const response = await axios.get(`/reacts-count/${id}`, { signal });
 
+        return response.data;
+    } catch (error) {
+        const err = new Error(error.response?.data?.message || "An error occurred");
+        err.code = error.response?.status || 500;
+        err.info = error.response?.data || ['Error saving data'];
+        throw err;
+
+    }
+}
+
+export const fetchCommentCount = async ({ signal,id }) => {
+    try {
+        const response = await axios.get(`/commentCounts-count/${id}`, { signal });
+
+        return response.data;
+    } catch (error) {
+        const err = new Error(error.response?.data?.message || "An error occurred");
+        err.code = error.response?.status || 500;
+        err.info = error.response?.data || ['Error saving data'];
+        throw err;
+
+    }
+}
 export const fetchDeactivatedContent = async ({ signal }) => {
     try {
         const response = await axios.get('/fetch-archived-contents', { signal });
@@ -183,7 +303,7 @@ export const fetchDeactivatedContent = async ({ signal }) => {
 
 export const deactivateContent = async ({ data }) => {
     try {
-        const response = await axios.patch(`/deactivate-content`,  data );
+        const response = await axios.patch(`/deactivate-content`, data);
 
         return response.data.message;
     } catch (error) {
@@ -193,9 +313,9 @@ export const deactivateContent = async ({ data }) => {
         throw err;
     }
 }
-export const restoreContent = async ({ data }) => {
+export const restoreContent = async ( data ) => {
     try {
-        const response = await axios.patch(`/restore-content`, { id: data });
+        const response = await axios.patch(`/restore-content`,  data );
 
         return response.data.message;
     } catch (error) {
@@ -473,7 +593,7 @@ export const fetchFeedback = async ({ signal }) => {
 }
 
 
-export const rejectStore = async ({data}) => {
+export const rejectStore = async ({ data }) => {
     try {
         console.log(data)
         const response = await axios.patch(`/reject-store`, data, {
@@ -505,3 +625,112 @@ export const fetchPendingPayments = async ({ signal }) => {
 
     }
 }
+
+
+
+
+export const fetchStoreData = async ({ signal, id }) => {
+    try {
+        const response = await axios.get(`/fetch-store/${id}`, { signal });
+
+        return response.data;
+    } catch (error) {
+        const err = new Error(error.response?.data?.message || "An error occurred");
+        err.code = error.response?.status || 500;
+        err.info = error.response?.data || ['Error saving data'];
+        throw err;
+
+    }
+}
+export const fetchTopPurchase = async ({ signal, id }) => {
+    try {
+        const response = await axios.get(`/fetch-store-top-purchases/${id}`, { signal });
+
+        return response.data.products;
+    } catch (error) {
+        const err = new Error(error.response?.data?.message || "An error occurred");
+        err.code = error.response?.status || 500;
+        err.info = error.response?.data || ['Error saving data'];
+        throw err;
+
+    }
+}
+
+
+
+export const fetchAccumulatedPoints = async ({ signal, id }) => {
+    try {
+        const response = await axios.get(`/fetch-store-total-points/${id}`, { signal });
+
+        return response.data.total_points;
+    } catch (error) {
+        const err = new Error(error.response?.data?.message || "An error occurred");
+        err.code = error.response?.status || 500;
+        err.info = error.response?.data || ['Error saving data'];
+        throw err;
+
+    }
+}
+
+
+export const fetchSalesTrend = async ({ signal, id }) => {
+    try {
+        const response = await axios.get(`/fetch-store-sales-trend/${id}`, { signal });
+        return response.data.salesTrend; // Returns an array of sales trends
+    } catch (error) {
+        const err = new Error(error.response?.data?.message || "An error occurred");
+        err.code = error.response?.status || 500;
+        err.info = error.response?.data || ['Error fetching data'];
+        throw err;
+    }
+};
+
+export const fetchAvailableSalesYears = async ({ signal, id }) => {
+    try {
+        const response = await axios.get(`/fetch-available-sales-years/${id}`, { signal });
+        return response.data.availableYears; // Returns array of available years
+    } catch (error) {
+        const err = new Error(error.response?.data?.message || "An error occurred");
+        err.code = error.response?.status || 500;
+        err.info = error.response?.data || ['Error fetching available years'];
+        throw err;
+    }
+};
+
+
+export const resentContentActivties = async ({ signal, id }) => {
+    try {
+        const response = await axios.get(`/content-admin-activity/${id}`, { signal });
+        return response.data; // Returns array of available years
+    } catch (error) {
+        const err = new Error(error.response?.data?.message || "An error occurred");
+        err.code = error.response?.status || 500;
+        err.info = error.response?.data || ['Error fetching available years'];
+        throw err;
+    }
+};
+export const resentStoreActivties = async ({ signal, id }) => {
+    try {
+        const response = await axios.get(`/store-admin-activity/${id}`, { signal });
+        return response.data; // Returns array of available years
+    } catch (error) {
+        const err = new Error(error.response?.data?.message || "An error occurred");
+        err.code = error.response?.status || 500;
+        err.info = error.response?.data || ['Error fetching available years'];
+        throw err;
+    }
+};
+export const fetchPaymentReq = async ({ signal, id }) => {
+    try {
+        const response = await axios.get(`/view-payment/${id}`, { signal });
+        return response.data; // Returns array of available years
+    } catch (error) {
+        const err = new Error(error.response?.data?.message || "An error occurred");
+        err.code = error.response?.status || 500;
+        err.info = error.response?.data || ['Error fetching available years'];
+        throw err;
+    }
+};
+
+
+

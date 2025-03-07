@@ -22,7 +22,7 @@ if (!fs.existsSync(uploadDir)) {
 
 app.use(cors({
   // origin:'*',
-  methods: ['GET, POST, PATCH'],
+  methods: ['GET, POST, PATCH, DELETE'],
   allowedHeaders:['Content-Type,Authorization']
 }));
 

@@ -2,7 +2,7 @@ import React from 'react'
 
 import brand_logo from '../../../assets/images/brand_logo_no_circle_fit.png'
 import { titleCase } from 'title-case'
-import { dbDateFormatter } from '../../../util/formatter'
+import { dbDateFormatter, truncateText } from '../../../util/formatter'
 import { useNavigate } from 'react-router-dom'
 function StoreCard({ data }) {
     const navigate = useNavigate();
@@ -21,7 +21,7 @@ function StoreCard({ data }) {
             {storeLogo}
             {/* </div> */}
             {/* <div className='bg-base_color w-full flex flex-col items-center justify-between py-2 rounded-md h-40 px-2'> */}
-                <h3 className='text-secondary_color'>{titleCase(data.store_name)}</h3>
+                <h3 className='text-secondary_color'>{truncateText(titleCase(data.store_name), 20)}</h3>
                 <div className='flex justify-between  w-full items-center'>
                     <p className='text-secondary_color'>Date approved:</p>
                     <p className='text-secondary_color'>{dbDateFormatter(data.approval_date)}</p>
