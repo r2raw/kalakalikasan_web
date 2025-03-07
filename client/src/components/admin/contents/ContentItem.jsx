@@ -1,9 +1,9 @@
 import React, { useState } from 'react'
 
-import brand_logo from '../../../assets/images/brand_logo.png'
+import brand_logo from '../../../assets/logo/logo_only_transparent.png'
 import MoreVertSharpIcon from '@mui/icons-material/MoreVertSharp';
 import { titleCase } from 'title-case';
-import { dbDateFormatter } from '../../../util/formatter';
+import { dbDateFormatter, truncateText } from '../../../util/formatter';
 import { IconButton, nativeSelectClasses } from '@mui/material';
 import { useMutation } from '@tanstack/react-query';
 import { deactivateContent, queryClient } from '../../../util/http';
@@ -46,7 +46,7 @@ function ContentItem({ data }) {
         const id = data.id;
         navigate(`edit/${id}`)
     }
-    let contentImage = <img src={brand_logo} alt='brand_logo' />
+    let contentImage = <img src={brand_logo} alt='brand_logo' className='h-full w-full object-fit rounded-md ' />
     if (data.images.length > 0) {
         const imageUrl = data.images[0].imgUrl;
         contentImage = <img src={`${import.meta.env.VITE_BASE_URL}/media-content/${imageUrl}`} className='h-full w-full object-cover rounded-md ' alt={imageUrl} />
@@ -59,7 +59,7 @@ function ContentItem({ data }) {
             <div className='h-48 w-full flex justify-center items-center'>
                 {contentImage}
             </div>
-            <h4>{titleCase(data.title)}</h4>
+            <h4>{truncateText(titleCase(data.title), 20)}</h4>
             <div className='flex gap-4 w-full text-sm justify-between'>
                 <ReactCount id={data.id} />
                 <CommentCount id={data.id}/>
