@@ -44,17 +44,17 @@ router.post('/change-image', upload.single('image'), async (req, res, next) => {
         const userRef = db.collection('users').doc(id)
         const userSnapshot = await userRef.get()
 
-        if(!userSnapshot.exists){
-            return res.status(404).json({error: 'User not found!'})
+        if (!userSnapshot.exists) {
+            return res.status(404).json({ error: 'User not found!' })
         }
 
         const image = req.file.filename
 
 
-        const saveData = await userRef.set({image}, {merge: true})
+        const saveData = await userRef.set({ image }, { merge: true })
 
 
-        return res.status(200).json({message: 'success'})
+        return res.status(200).json({ message: 'success' })
     } catch (error) {
         return res.status(501).json({ error: error.message })
     }
@@ -140,6 +140,22 @@ router.post("/register", upload.single('image'), async (req, res, next) => {
         return res.status(501).json({ message: error.message, errors: errors })
     }
 });
+
+router.post('/regen-qr', async (req, res, next) => {
+    try {
+        const { id } = req.body
+
+
+        const url = id;
+        var qr_svg = qr.image(url);
+        const qrFilePath = userQrDir + id + ".png";
+        qr_svg.pipe(fs.createWriteStream(qrFilePath));
+
+        return res.status(200).json('success')
+    } catch (error) {
+
+    }
+})
 
 router.post('/register-actor', async (req, res, next) => {
     const { username, password, email, role, mobileNum, birthdate, zip, city, barangay, street, firstname, lastname, middlename, sex } = req.body;
