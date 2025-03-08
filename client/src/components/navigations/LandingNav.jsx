@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { NavLink } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { NavLink, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import brand_logo from '../../assets/logo/logo_transparent.png';
 import MenuSharpIcon from '@mui/icons-material/MenuSharp';
@@ -18,6 +18,12 @@ function LandingNav({ currRoute }) {
   }
 
   const [openMenu, setOpenMenu] = useState(false)
+
+  const location = useLocation()
+
+  useEffect(()=>{
+    setOpenMenu(false)
+  },[location])
   return (
     <>
       <AnimatePresence>
@@ -78,29 +84,29 @@ function LandingNav({ currRoute }) {
             <h1 className=" font-mono text-dark_font text-lg">KalaKalikasan</h1>
           </div>
           <nav className="mt-16">
-            <ul className=" py-10">
+            <ul className=" py-10 flex flex-col items-center">
               <li>
-                <NavLink to={"/"} className="hover:text-yellow_highlight px-10">
+                <NavLink to={"/"} className={({isActive})=> !isActive ? 'hover:text-yellow_highlight px-10' : 'hover:text-yellow_highlight px-10 text-yellow_highlight' }>
                   HOME
                 </NavLink>
               </li>
               <li>
-                <NavLink to="about" className="hover:text-yellow_highlight px-10">
+                <NavLink to="about"  className={({isActive})=> !isActive ? 'hover:text-yellow_highlight px-10' : 'hover:text-yellow_highlight px-10 text-yellow_highlight' }>
                   ABOUT US
                 </NavLink>
               </li>
               <li>
-                <NavLink to="services" className="hover:text-yellow_highlight px-10">
+                <NavLink to="services"  className={({isActive})=> !isActive ? 'hover:text-yellow_highlight px-10' : 'hover:text-yellow_highlight px-10 text-yellow_highlight' }>
                   SERVICES
                 </NavLink>
               </li>
               <li>
-                <NavLink to="features" className="hover:text-yellow_highlight px-10">
+                <NavLink to="features"  className={({isActive})=> !isActive ? 'hover:text-yellow_highlight px-10' : 'hover:text-yellow_highlight px-10 text-yellow_highlight' }>
                   FEATURES
                 </NavLink>
               </li>
               <li>
-                <NavLink to="support" className="hover:text-yellow_highlight px-10">
+                <NavLink to="support"  className={({isActive})=> !isActive ? 'hover:text-yellow_highlight px-10' : 'hover:text-yellow_highlight px-10 text-yellow_highlight' }>
                   SUPPORT US
                 </NavLink>
               </li>

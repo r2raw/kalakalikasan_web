@@ -444,7 +444,7 @@ router.get('/inactiveUsers', async (req, res, next) => {
 
         const usersDoc = await usersRef.where('role', '!=', 'admin')
             .where('status', '==', 'deactivated')
-            .select('mobile_num', 'email', 'image', 'firstname', 'lastname', 'middlename')
+            .select('mobile_num', 'email', 'image', 'firstname', 'lastname', 'middlename', 'role')
             .get();
 
 

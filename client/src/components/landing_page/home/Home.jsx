@@ -7,7 +7,7 @@ function Home() {
     <>
       <div className="grid lg:grid-cols-2 z-10  min-h-full px-8  pt-20 lg:px-10 lg:pt-44">
         <div className=" h-full">
-          <img className="absolute left-32 bottom-0 w-[40%]" src={phone_hold} />
+          <img className="absolute left-32 -bottom-10 w-[40%]" src={phone_hold} />
         </div>
         <div className="lg:grid-cols-1 px-4 lg:px-24">
             <h1 className=" text-neutral-50 text-3xl lg:text-biggest lg:leading-extra-loose">

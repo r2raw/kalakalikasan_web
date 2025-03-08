@@ -283,49 +283,7 @@ router.get('/fetch-content-comments/:id', async (req, res, next) => {
 })
 
 
-router.get('/view-payment/:id', async (req, res, next) => {
-    try {
-        const {id} = req.params
 
-        const paymentRef = db.collection('payment_request').doc(id)
-        const paymentSnapshot = await paymentRef.get()
-
-        if(!paymentSnapshot.exists){
-            return res.status(404).json({error: 'Payment not found!'})
-        }
-
-        const {store_id} = paymentSnapshot.data()
-        const storeRef = db.collection('stores').doc(store_id)
-        const storeSnapshot =  await storeRef.get()
-
-        if(!storeSnapshot.exists){
-            return res.status(404).json({error: 'Store not found!'})
-        }
-
-        const {owner_id} = storeSnapshot.data()
-
-        const userRef = db.collection('users').doc(owner_id)
-        const userSnapshot = await userRef.get()
-
-        if(!userSnapshot.exists){
-            return res.status(404).json({error: 'User not found'})
-        }
-
-
-
-
-        const paymentInfo = {
-            storeInfo: {id: storeSnapshot.id, ...storeSnapshot.data()},
-            paymentInfo: {id: paymentSnapshot.id, ...paymentSnapshot.data()},
-            userInfo: {id: userSnapshot.id, ...userSnapshot.data()}
-        }
-
-        return res.status(200).json(paymentInfo)
-    } catch (error) {
-
-        return res.status(501).json({ message: error.message, error: 'Internal server error' })
-    }
-})
 router.get('/fetch-contents', async (req, res, next) => {
     const errors = [];
     const groupedData = {}

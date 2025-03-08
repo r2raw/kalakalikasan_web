@@ -29,15 +29,15 @@ function MaterialsCollectedToday() {
             <table>
                 <thead>
                     <tr className="text-secondary_color">
-                        <th>Material</th>
-                        <th className='text-right'>Weight (grams)</th>
+                        <th className=' text-smm md:text-base'>Material</th>
+                        <th className='text-right text-smm md:text-base'>Weight (grams)</th>
                     </tr>
                 </thead>
                 <tbody>
                     {Object.entries(data.materials).map(([materialName, totalCollected], index) => (
                         <tr key={index}>
-                            <td><strong>{titleCase(materialName)}</strong></td>
-                            <td className='text-right'>{totalCollected}</td>
+                            <td className=' text-smm md:text-base'><strong>{titleCase(materialName)}</strong></td>
+                            <td className='text-right text-smm md:text-base'>{totalCollected}</td>
                         </tr>
                     ))}
                 </tbody>
@@ -47,7 +47,7 @@ function MaterialsCollectedToday() {
     
     return (
         <>
-            <h4 className="bg-dark_font py-2 px-4 rounded-md shadow-md hover:shadow-none text-center text-white">
+            <h4 className="bg-dark_font py-2 px-4 rounded-md shadow-md hover:shadow-none text-center text-white text-sm md:text-xl">
                 Recyclable materials collected (Today)
             </h4>
             <div className="card">

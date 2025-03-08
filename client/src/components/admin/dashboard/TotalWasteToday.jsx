@@ -36,7 +36,7 @@ function TotalWasteToday() {
     }
     return (
         <>
-            <h4 className="bg-dark_font py-2 px-4 rounded-md shadow-md hover:shadow-none text-center text-white">
+            <h4 className="bg-dark_font py-2 px-4 rounded-md shadow-md hover:shadow-none text-center text-white text-sm md:text-xl">
                 Recyclable waste collected today
             </h4>
             <div className="card">

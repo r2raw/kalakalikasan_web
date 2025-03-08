@@ -86,8 +86,8 @@ function ViewContent() {
             <IconButton onClick={handleBack} className='text-accent_color fill-accent_color'>
                 <ArrowBackSharpIcon className="text-accent_color fill-current" />
             </IconButton>
-            <div className='flex gap-4 mt-4'>
-                <div className='w-3/5'>
+            <div className='flex flex-col lg:flex-row gap-4 mt-4'>
+                <div className='lg:w-3/5'>
                     <div className=' flex flex-col gap-4 w-full'>
                         {content}
                         <div className='flex gap-2'>
@@ -102,7 +102,7 @@ function ViewContent() {
                         </div>
                     </div>
                 </div>
-                <div className='w-2/5 '>
+                <div className='lg:w-2/5 '>
                     <h4 className="bg-dark_font w-full py-2 px-4 rounded-md shadow-md hover:shadow-none text-center text-white custom-scrollbar">
                         Comments
                     </h4>

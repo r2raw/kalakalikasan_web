@@ -32,8 +32,8 @@ function TopReactedContents() {
             <table className="w-full">
                 <thead>
                     <tr className="text-secondary_color">
-                        <th>Title</th>
-                        <th className=" text-right">React counts</th>
+                        <th className=" text-smm md:text-base">Title</th>
+                        <th className=" text-right text-smm md:text-base">React counts</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -41,8 +41,8 @@ function TopReactedContents() {
 
                         return (
                             <tr key={index}>
-                                <td><strong>{truncateText(titleCase(content.title), 25)}</strong></td>
-                                <td className=" text-right">{content.count}</td>
+                                <td className=" text-smm md:text-base"><strong>{truncateText(titleCase(content.title), 25)}</strong></td>
+                                <td className=" text-right text-smm md:text-base">{content.count}</td>
                             </tr>
                         );
                     })}
@@ -51,7 +51,7 @@ function TopReactedContents() {
     }
     return (
         <>
-            <h4 className="bg-dark_font py-2 px-4 rounded-md shadow-md hover:shadow-none text-center text-white">
+            <h4 className="bg-dark_font py-2 px-4 rounded-md shadow-md hover:shadow-none text-center text-white text-sm md:text-xl">
                 Most reacted contents
             </h4>
             <div className="card">

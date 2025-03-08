@@ -12,7 +12,7 @@ import DeleteSharpIcon from '@mui/icons-material/DeleteSharp';
 import { usersAction } from '../../../store/slices/usersSlice';
 import { uiActions } from '../../../store/slices/uiSlice';
 import { useDispatch, useSelector } from "react-redux";
-const collapsible_col = ['mobile_num', 'email']
+const collapsible_col = ['mobile_num', 'email', 'role']
 function ManageAccounts() {
 
   const dialog = useRef(null);

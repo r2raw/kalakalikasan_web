@@ -65,9 +65,9 @@ function LineCollectedMaterials() {
     }, [allData, selectedCollectionType, selectedYear]);
 
     const labels = useMemo(() => {
-        if (selectedCollectionType === "daily") return ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        if (selectedCollectionType === "daily") return ["Sun", "Mon", "Tue", "Wed", "Thurs", "Fri", "Sat"];
         if (selectedCollectionType === "weekly") return Array.from({ length: 5 }, (_, i) => `Week ${i + 1}`);
-        return ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        return ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec"];
     }, [selectedCollectionType]);
 
     const materialNames = [...new Set(filteredData.map(({ material_name }) => material_name))];
@@ -93,9 +93,33 @@ function LineCollectedMaterials() {
         fill: false,
     }));
 
+    const chartOptions = {
+        responsive: true,
+        // maintainAspectRatio: false,
+        scales: {
+            y: {
+                ticks: {
+                    font: {
+                        size: window.innerWidth < 768 ? 8 : 14, // Adjust based on screen width
+                    }
+                },
+    
+                beginAtZero: true,
+            },
+            x: {
+                ticks: {
+                    font: {
+                        size: window.innerWidth < 768 ? 8 : 14, // Adjust based on screen width
+                    }
+                },
+    
+            },
+        },
+    };
+
     return (
         <>
-            <h4 className="bg-dark_font w-full py-2 px-4 rounded-md shadow-md hover:shadow-none text-center text-white">
+            <h4 className="bg-dark_font w-full py-2 px-4 rounded-md shadow-md hover:shadow-none text-center text-white  text-sm md:text-xl">
                 Total collected materials
             </h4>
             <div className='card flex flex-col gap-4'>
@@ -119,14 +143,15 @@ function LineCollectedMaterials() {
                                 checked={selectedCollectionType === type}
                                 onChange={(e) => setSelectedCollectionType(e.target.value)}
                             />
-                            <label htmlFor={type} className='peer-checked:bg-accent_color border peer-checked:text-base_color border-accent_color rounded-full px-4 py-2 cursor-pointer capitalize'>
+                            <label htmlFor={type} className='peer-checked:bg-accent_color border peer-checked:text-base_color text-smm md:text-base border-accent_color rounded-full px-4 py-2 cursor-pointer capitalize'>
                                 {type}
                             </label>
                         </div>
                     ))}
                 </div>
 
-                {isLoading ? <CustomLoader /> : error ? <p className="text-red-500">⚠️ {error.message}</p> : <Line data={{ labels, datasets }} />}
+                {isLoading ? <CustomLoader /> : error ? <p className="text-red-500">⚠️ {error.message}</p> : <Line data={{ labels, datasets }}
+                    options={chartOptions} />}
             </div>
         </>
     );

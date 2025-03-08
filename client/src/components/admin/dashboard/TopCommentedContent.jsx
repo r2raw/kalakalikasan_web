@@ -33,8 +33,8 @@ function TopCommentedContent() {
             <table className="w-full">
                 <thead>
                     <tr className="text-secondary_color">
-                        <th>Title</th>
-                        <th className=" text-right">Comment counts</th>
+                        <th className=' text-smm md:text-base'>Title</th>
+                        <th className=" text-right text-smm md:text-base">Comment counts</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -42,8 +42,8 @@ function TopCommentedContent() {
                         
                         return (
                             <tr key={content.contentId}>
-                                <td><strong>{truncate(titleCase(content.title), 25)}</strong></td>
-                                <td className=" text-right">{content.count}</td>
+                                <td className=' text-smm md:text-base'><strong>{truncate(titleCase(content.title), 25)}</strong></td>
+                                <td className=" text-right text-smm md:text-base">{content.count}</td>
                             </tr>
                         );
                     })}
@@ -52,7 +52,7 @@ function TopCommentedContent() {
     }
     return (
         <>
-            <h4 className="bg-dark_font py-2 px-4 rounded-md shadow-md hover:shadow-none text-center text-white">
+            <h4 className="bg-dark_font py-2 px-4 rounded-md shadow-md hover:shadow-none text-center text-white text-sm md:text-xl">
                 Most commented contents
             </h4>
             <div className="card">

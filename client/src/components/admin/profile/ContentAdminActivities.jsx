@@ -38,18 +38,18 @@ function ContentAdminActivities() {
             content = <table>
                 <thead>
                     <tr>
-                        <th>Activity</th>
-                        <th className='text-right'>Date</th>
+                        <th className='text-smm md:text-base'>Activity</th>
+                        <th className='text-right text-smm md:text-base'>Date</th>
                     </tr>
                 </thead>
                 <tbody>
                     {data.map((content,index) => {
 
                         return (<tr key={content.id + index} >
-                            <td>
+                            <td className='text-smm md:text-base'>
                                 <p>{content.info.split(' ').slice(0, 2).join(' ')} <strong className='cursor-pointer' onClick={()=>{handleClick(content.id)}}>{content.info.split(' ').slice(2).join(' ')}</strong></p>
                             </td>
-                            <td className='text-right'>
+                            <td className='text-right text-smm md:text-base'>
                                 {dbDateFormatterShort(content.date)}
                             </td>
                         </tr>)
@@ -60,7 +60,7 @@ function ContentAdminActivities() {
     }
     return (
         <div className='flex flex-col gap-4'>
-            <h4 className="bg-dark_font py-2 px-4 rounded-md shadow-md hover:shadow-none text-center text-white">
+            <h4 className="bg-dark_font py-2 px-4 rounded-md shadow-md hover:shadow-none text-center text-white text-sm md:text-xl">
             Recent Content Change
             </h4>
             <div className='card'>

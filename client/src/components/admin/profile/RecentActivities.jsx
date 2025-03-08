@@ -5,7 +5,7 @@ import AdminStoreActivities from './AdminStoreActivities'
 function RecentActivities() {
     return (
         <div className=' flex flex-col gap-4 xl:col-span-2'>
-            <h4 className="bg-dark_font py-2 px-4 rounded-md shadow-md hover:shadow-none text-center text-white">
+            <h4 className="bg-dark_font py-2 px-4 rounded-md shadow-md hover:shadow-none text-center text-white text-sm md:text-xl">
                 Your Latest Actions
             </h4>
             <div className='grid lg:grid-cols-2 gap-4'>

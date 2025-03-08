@@ -36,17 +36,17 @@ function AdminStoreActivities() {
             content = <table>
                 <thead >
                     <tr className=''>
-                        <th>Activity</th>
-                        <th className='text-right'>Date</th>
+                        <th className='text-smm md:text-base'>Activity</th>
+                        <th className='text-right text-smm md:text-base'>Date</th>
                     </tr>
                 </thead>
                 <tbody>
                     {data.map((store, index) => {
                         return (<tr key={store.id} >
-                            <td>
+                            <td className='text-smm md:text-base'>
                                 <p>{store.info.split(' ').slice(0, 2).join(' ')} <strong className='cursor-pointer' onClick={() => { handleClick(store.id) }}>{store.info.split(' ').slice(2).join(' ')}</strong></p>
                             </td>
-                            <td className='text-right'>
+                            <td className='text-right text-smm md:text-base'>
                                 {dbDateFormatterShort(store.date)}
                             </td>
                         </tr>)
@@ -58,7 +58,7 @@ function AdminStoreActivities() {
 
     return (
         <div className='flex flex-col gap-4'>
-            <h4 className="bg-dark_font py-2 px-4 rounded-md shadow-md hover:shadow-none text-center text-white">
+            <h4 className="bg-dark_font py-2 px-4 rounded-md shadow-md hover:shadow-none text-center text-white text-sm md:text-xl">
                 Store Approval & Rejections
             </h4>
             <div className='card'>

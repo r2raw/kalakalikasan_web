@@ -5,9 +5,10 @@ import ArrowForwardIosSharpIcon from "@mui/icons-material/ArrowForwardIosSharp";
 import ArrowDropDownSharpIcon from "@mui/icons-material/ArrowDropDownSharp";
 function CustomPagination({pageSize, setPageSize, previousPage,nextPage, canNextPage, canPreviousPage, pageIndex, pageOptions}) {
     return (
-        <div className="flex w-full justify-end">
+        <div className="flex w-full justify-between md:justify-end">
             <div className='flex'>
                 <select
+                className='text-smm md:text-base'
                     value={pageSize}
                     onChange={(e) => setPageSize(Number(e.target.value))}
                 >
@@ -17,23 +18,23 @@ function CustomPagination({pageSize, setPageSize, previousPage,nextPage, canNext
                         </option>
                     ))}
                 </select>
-                <span className="dropdown">
+                {/* <span className="dropdown text-ssm">
                     <ArrowDropDownSharpIcon />
-                </span>
+                </span> */}
             </div>
             <div className='flex items-center justify-center'>
                 <div
-                    className="pagination-arrow"
+                    className="pagination-arrow text-smm  md:text-base"
                     onClick={() => previousPage()}
                     disabled={!canPreviousPage}
                 >
                     <ArrowBackIosNewSharpIcon sx={{ fontSize: 20 }} />
                 </div>
-                <p>
+                <p className='text-smm md:text-base'>
                     Page: {pageIndex + 1} of {pageOptions.length}
                 </p>
                 <div
-                    className="pagination-arrow"
+                    className="pagination-arrow text-ssm md:text-base"
                     onClick={() => nextPage()}
                     disabled={!canNextPage}
                 >

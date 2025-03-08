@@ -78,11 +78,11 @@ function FeedbackForm() {
                     <button onClick={handleModalClose} className='bg-dark_font hover:bg-light_font rounded-md px-4 py-1 text-white'>Ok</button>
                 </div>
             </Modal>
-            <form onSubmit={handleSubmit} className='mx-10 lg:ml-20 relative z-40 bottom-8 lg:w-1/3 bg-slate-100/10 rounded-md my-card px-4 py-8 backdrop-blur-md flex flex-col gap-6'>
+            <form onSubmit={handleSubmit} className='mx-4 lg:ml-20 relative z-40 bottom-8 lg:w-1/3 bg-slate-100/10 rounded-md my-card px-4 py-8 backdrop-blur-md flex flex-col gap-6'>
                 <FormInput placeholderName={'Name'} value={formData.name} name='name' onChange={handleChange} error={errorForm.name} />
                 <FormInput placeholderName={'Email'} value={formData.email} type='email' name='email' onChange={handleChange} error={errorForm.email} />
                 <CustomTextArea placeholderName='Share your thoughts' value={formData.message} name='message' val={formData.message} error={errorForm.message} onChange={handleChange} />
-                <button type='submit' className='bg-accent_color hover:bg-dark_font text-white rounded-md text-4xl py-2' disabled={isPending}>{isPending ? 'Submitting...' : 'Submit'}</button>
+                <button type='submit' className='bg-accent_color hover:bg-dark_font text-white rounded-md text-lg md:text-2xl lg:text-4xl py-2' disabled={isPending}>{isPending ? 'Submitting...' : 'Submit'}</button>
             </form></>
     )
 }

@@ -29,16 +29,16 @@ function UpcomingSchedule() {
       <table>
         <thead>
           <tr className=" text-secondary_color">
-            <th>Store name</th>
-            <th className="text-right">Date Approved</th>
+            <th className=" text-smm md:text-base">Store name</th>
+            <th className="text-right text-smm md:text-base">Date Approved</th>
           </tr>
         </thead>
         <tbody>
           {data.map(store => {
             return (
               <tr key={store.id}>
-                <td><strong>{truncateText(titleCase(store.store_name), 20)}</strong></td>
-                <td className="text-right">{dbDateFormatterShort(store.approval_date)}</td>
+                <td className=" text-smm md:text-base"><strong>{truncateText(titleCase(store.store_name), 20)}</strong></td>
+                <td className="text-right text-smm md:text-base">{dbDateFormatterShort(store.approval_date)}</td>
               </tr>
             )
           })}
@@ -47,7 +47,7 @@ function UpcomingSchedule() {
   }
   return (
     <>
-      <h4 className="bg-dark_font py-2 px-4 rounded-md shadow-md hover:shadow-none text-center text-white">
+      <h4 className="bg-dark_font py-2 px-4 rounded-md shadow-md hover:shadow-none text-center text-white text-sm md:text-xl">
         Newly approved stores
       </h4>
       <div className="card">

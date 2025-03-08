@@ -869,127 +869,6 @@ router.patch("/reject-product-request", async (req, res, next) => {
 })
 
 
-// router.patch('/accept-product-request', async (req, res, next) => {
-//     try {
-//         const { orderId, owner_id } = req.body;
-
-//         const ownerRef = db.collection('users').doc(owner_id)
-//         const ownerDoc = await ownerRef.get()
-//         const orderRef = db.collection('orders').doc(orderId)
-//         const orderDoc = await orderRef.get()
-//         const transactionRef = ownerRef.collection('transactions').doc()
-//         if (!ownerDoc.exists) {
-//             return res.status(401).json({ message: 'error', error: `Cannot find an owner with an id of ${owner_id}` })
-//         }
-
-//         if (!orderDoc.exists) {
-//             return res.status(401).json({ message: 'error', error: `Cannot find an order with an id of ${orderId}` })
-//         }
-
-//         const { ordered_by, store_id } = orderDoc.data();
-
-
-//         const productRef = orderRef.collection('products_ordered');
-//         const productDoc = await productRef.get()
-
-//         if (productDoc.empty) {
-//             if (!orderRef.exists) {
-//                 return res.status(401).json({ message: 'error', error: 'No product found' })
-//             }
-//         }
-
-//         const storeProductRef = db.collection('stores').doc(store_id).collection('products')
-//         const storeProductDoc = await storeProductRef.get()
-
-//         if(storeProductDoc.empty){
-//             return res.status(401).json({message: 'error', error: 'No store product found!'})
-//         }
-
-//         //VALIDATE EACH PRODUCT STOCS
-//         const newStoreProducts = [];
-//         storeProductDoc.forEach((storeProduct)=>{
-//             const storeProductInfo = storeProduct.data()
-//             productDoc.forEach((cartProducts)=>{
-//                 if(cartProducts.product_id == storeProduct.id){
-//                     if(cartProducts.quantity > storeProductInfo.quantity){
-//                         return res.status(409).json({message: 'error', error: 'Insufficient stocks'});
-//                     }
-
-//                     const newStoreProductQty =  storeProductInfo.quantity - cartProducts.quantity
-
-//                     newStoreProductQty.push({prodId: storeProduct.id, quantity: newStoreProductQty})
-//                 }
-//             })
-//         })
-
-//         //UPDATE STOCKS
-//         const batch = db.batch();
-//         newStoreProducts.forEach((item)=>{
-
-//             batch.set(storeProductRef.doc(item.prodId), { quantity: item.quantity }, { merge: true });
-//         })
-
-//         await batch.commit()
-
-
-
-
-//         const { points } = ownerDoc.data()
-
-//         let currentPoints = points;
-//         const products = [];
-//         productDoc.forEach(item => products.push({ ...item.data() }))
-//         const totalPoints = products.reduce((sum, product) => sum + (product.price * product.quantity), 0);
-
-//         currentPoints += totalPoints
-//         const ownerNotifData = {
-//             title: 'Product sold',
-//             message: `You recieved ${totalPoints} Eco-coins from selling a product`,
-//             send_type: 'direct',
-//             notif_type: 'transactions',
-//             redirect_type: 'selling',
-//             redirect_id: orderId,
-//             userId: owner_id,
-//             readBy: [],
-//             notif_date: admin.firestore.FieldValue.serverTimestamp(),
-//         }
-//         const buyerNotifData = {
-//             title: 'Product request accepted',
-//             message: `Your product request has been accepted`,
-//             send_type: 'direct',
-//             notif_type: 'transactions',
-//             redirect_type: 'bought',
-//             redirect_id: orderId,
-//             userId: ordered_by,
-//             readBy: [],
-//             notif_date: admin.firestore.FieldValue.serverTimestamp(),
-//         }
-
-
-//         const transactionData = {
-//             transactionId: orderId,
-//             type: 'sold',
-//             transactionDate: admin.firestore.FieldValue.serverTimestamp(),
-//         }
-//         const ownerNotifRef = db.collection('notifications').doc()
-//         const buyerNotifRef = db.collection('notifications').doc()
-
-//         const saveOrder = await orderRef.set({status: 'accepted'}, {merge: true})
-//         const saveOwnerTransaction = await transactionRef.set(transactionData, {merge: true})
-//         const saveOwnerNotif = await ownerNotifRef.set(ownerNotifData, {merge: true})
-//         const savePoints = await ownerRef.set({points: currentPoints}, {merge: true})
-//         const saveBuyerNotif = await buyerNotifRef.set(buyerNotifData, {merge: true})
-
-//         return res.status(200).json({ message: 'success' })
-
-
-
-//     } catch (error) {
-//         console.error(error.message)
-//         res.status(501).json({ message: 'error', error: error.message })
-//     }
-// })
-
 
 router.patch('/accept-product-request', async (req, res) => {
   try {
@@ -1307,47 +1186,6 @@ router.get("/fetch-store-total-points/:storeId", async (req, res) => {
 });
 
 
-// router.get("/fetch-store-sales-trend/:storeId", async (req, res) => {
-//   try {
-//     const { storeId } = req.params;
-
-//     // Fetch all "accepted" orders for the store
-//     const ordersSnapshot = await db.collection("orders")
-//       .where("store_id", "==", storeId)
-//       .where("status", "==", "accepted") // Only accepted orders
-//       .orderBy("order_date") // Order by date for correct sorting
-//       .get();
-
-//     if (ordersSnapshot.empty) {
-//       return res.status(200).json({ storeId, salesTrend: [] });
-//     }
-
-//     let salesByDate = {};
-
-//     ordersSnapshot.forEach((doc) => {
-//       const data = doc.data();
-//       const date = new Date(data.order_date.toDate()).toISOString().split("T")[0]; // Format: YYYY-MM-DD
-//       const totalAmount = data.total_price || 0; // Ensure total_price is present
-
-//       if (!salesByDate[date]) {
-//         salesByDate[date] = 0;
-//       }
-//       salesByDate[date] += totalAmount;
-//     });
-
-//     // Convert data into sorted array
-//     const sortedSalesTrend = Object.keys(salesByDate)
-//       .sort((a, b) => new Date(a) - new Date(b))
-//       .map(date => ({ date, sales: salesByDate[date] }));
-
-//     return res.status(200).json({ storeId, salesTrend: sortedSalesTrend });
-
-//   } catch (error) {
-//     console.error("Error fetching sales trend:", error);
-//     return res.status(500).json({ message: "Internal Server Error" });
-//   }
-// });
-
 router.get("/fetch-store-sales-trend/:storeId", async (req, res) => {
   try {
     const { storeId } = req.params;
@@ -1477,7 +1315,7 @@ router.get('/store-admin-activity/:id', async (req, res, next) => {
     });
 
     // Sort by date (latest first)
-    const latestActs = activities.sort((a, b) => b.date -  a.date).slice(0, 5);
+    const latestActs = activities.sort((a, b) => b.date - a.date).slice(0, 5);
 
     return res.status(200).json(latestActs);
   } catch (error) {
@@ -1486,7 +1324,57 @@ router.get('/store-admin-activity/:id', async (req, res, next) => {
   }
 })
 
+router.get('/view-payment/:id', async (req, res, next) => {
+  try {
+    const { id } = req.params
 
+    const paymentRef = db.collection('payment_request').doc(id)
+    const paymentSnapshot = await paymentRef.get()
+
+    if (!paymentSnapshot.exists) {
+      return res.status(404).json({ error: 'Payment not found!' })
+    }
+
+    const { store_id } = paymentSnapshot.data()
+    const storeRef = db.collection('stores').doc(store_id)
+    const storeSnapshot = await storeRef.get()
+
+    if (!storeSnapshot.exists) {
+      return res.status(404).json({ error: 'Store not found!' })
+    }
+
+    const walletRef = storeRef.collection('eWallet')
+    const walletSnapshot = await walletRef.get()
+    if (walletSnapshot.empty) {
+      return res.status(404).json('No registered wallet found')
+    }
+    let walletInfo = {}
+    walletSnapshot.forEach(wallet => (walletInfo = { id: wallet.id, ...wallet.data() }))
+
+    const { owner_id } = storeSnapshot.data()
+
+    const userRef = db.collection('users').doc(owner_id)
+    const userSnapshot = await userRef.get()
+
+    if (!userSnapshot.exists) {
+      return res.status(404).json({ error: 'User not found' })
+    }
+
+
+
+
+    const paymentInfo = {
+      storeInfo: { id: storeSnapshot.id, ...storeSnapshot.data() },
+      paymentInfo: { id: paymentSnapshot.id, ...paymentSnapshot.data() },
+      userInfo: { id: userSnapshot.id, ...userSnapshot.data() }, walletInfo
+    }
+
+    return res.status(200).json(paymentInfo)
+  } catch (error) {
+
+    return res.status(501).json({ message: error.message, error: 'Internal server error' })
+  }
+})
 
 
 module.exports = router;
