@@ -30,8 +30,8 @@ function ScheduleToday() {
       <table>
         <thead>
           <tr className="text-secondary_color">
-            <th>Name</th>
-            <th className="text-right">Date created</th>
+            <th className=" text-smm md:text-base">Name</th>
+            <th className="text-right text-smm md:text-base">Date created</th>
           </tr>
         </thead>
         <tbody>
@@ -39,8 +39,8 @@ function ScheduleToday() {
             const fullname = `${user.firstname} ${user.lastname}`
             return (
               <tr key={user.id}>
-                <td><strong>{truncateText(fullname, 25)}</strong></td>
-                <td className="text-right">{dbDateFormatterShort(user.date_created)}</td>
+                <td className=" text-smm md:text-base"><strong>{truncateText(fullname, 25)}</strong></td>
+                <td className="text-right text-smm md:text-base">{dbDateFormatterShort(user.date_created)}</td>
               </tr>
             );
           })}
@@ -49,7 +49,7 @@ function ScheduleToday() {
   }
   return (
     <>
-      <h4 className="bg-dark_font py-2 px-4 rounded-md shadow-md hover:shadow-none text-center text-white">
+      <h4 className="bg-dark_font py-2 px-4 rounded-md shadow-md hover:shadow-none text-center text-white text-sm md:text-xl">
         New users
       </h4>
       <div className="card">

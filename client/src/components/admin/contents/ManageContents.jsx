@@ -90,7 +90,7 @@ function ManageContents() {
       <div className='flex justify-end'>
         <Link to='./add' className='bg-accent_color hover:bg-dark_font text-white px-4 py-2 rounded-xl'>Create posts</Link>
       </div>
-      <div className='my-card bg-white py-8 px-4'>
+      <div className='my-card bg-white py-8 md:px-4'>
         {selector && <SuccessBlock message={selector} />}
         <div className='px-2 lg:px-8 flex-col w-full '>
 

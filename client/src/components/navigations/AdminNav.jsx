@@ -16,7 +16,7 @@ function AdminNav({ list_nav }) {
     // dispatch(authActions.logout());
   }
   return (
-    <aside className="w-1/5 flex flex-col gap-8 py-8 px-4 fixed h-dvh z-50">
+    <aside className="w-1/5 flex flex-col gap-8 py-8 px-2 md:px-4 fixed h-dvh z-50">
       <NavLink to={'./'} className="flex flex-col justify-center items-center gap-2">
         <img
           className="w-24 h-24 lg:w-32 md:h-32 xl:w-56 lg:h-56"
@@ -27,9 +27,9 @@ function AdminNav({ list_nav }) {
           KalaKalikasan
         </h2> */}
       </NavLink>
-      <nav className="flex flex-col justify-between bg-secondary_color h-full rounded-2xl py-6 pr-2 md:pr-4 shadow-2xl relative">
+      <nav className="flex flex-col justify-between bg-secondary_color h-full rounded-2xl py-6 pr-1 md:pr-4 shadow-2xl relative">
         <AdminNavList list_nav={list_nav} />
-        <button onClick={handleLogout} className="text-red_highlight flex gap-2 items-center py-2 px-4">
+        <button onClick={handleLogout} className="text-red_highlight flex gap-2 items-center py-2 px-2 md:px-4">
           <div className="nav-icon">
             <LogoutSharpIcon />
           </div>

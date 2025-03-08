@@ -122,11 +122,11 @@ function EditContent() {
     return (
         <>
             {isError && <ErrorSingle message={error.info?.error || 'An error occured'} />}
-            <div className='flex gap-4'>
-                <div className='w-3/5'>
+            <div className='flex flex-col lg:flex-row gap-4'>
+                <div className='lg:w-3/5'>
                     {imageContent}
                 </div>
-                <div className='w-2/5 flex flex-col gap-4'>
+                <div className='lg:w-2/5 flex flex-col gap-4'>
                     {content}
                 </div>
             </div>

@@ -32,8 +32,8 @@ if (data && data.length > 0) {
         <table className="w-full">
             <thead>
                 <tr className="text-secondary_color">
-                    <th>User Reaction</th>
-                    <th className=" text-right">Date</th>
+                    <th className=' text-smm md:text-base'>User Reaction</th>
+                    <th className=" text-right text-smm md:text-base">Date</th>
                 </tr>
             </thead>
             <tbody>
@@ -41,8 +41,8 @@ if (data && data.length > 0) {
 
                     return (
                         <tr key={index}>
-                            <td><strong>{comment.info.split(" commented to ")[0]}</strong> commented to <strong>{comment.info.split(" commented to ")[1]}</strong></td>
-                            <td className=" text-right">{dbDateFormatterShort(comment.date_commented)}</td>
+                            <td className=' text-smm md:text-base'><strong>{comment.info.split(" commented to ")[0]}</strong> commented to <strong>{comment.info.split(" commented to ")[1]}</strong></td>
+                            <td className=" text-right text-smm md:text-base">{dbDateFormatterShort(comment.date_commented)}</td>
                         </tr>
                     );
                 })}
@@ -51,7 +51,7 @@ if (data && data.length > 0) {
 }
 return (
     <>
-        <h4 className="bg-dark_font py-2 px-4 rounded-md shadow-md hover:shadow-none text-center text-white">
+        <h4 className="bg-dark_font py-2 px-4 rounded-md shadow-md hover:shadow-none text-center text-white text-sm md:text-xl">
             Recent user comments
         </h4>
         <div className="card">

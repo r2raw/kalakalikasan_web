@@ -59,13 +59,13 @@ function ContentItem({ data }) {
             <div className='h-48 w-full flex justify-center items-center'>
                 {contentImage}
             </div>
-            <h4>{truncateText(titleCase(data.title), 20)}</h4>
+            <h4 className='text-sm md:text-xl'>{truncateText(titleCase(data.title), 20)}</h4>
             <div className='flex gap-4 w-full text-sm justify-between'>
                 <ReactCount id={data.id} />
                 <CommentCount id={data.id}/>
             </div>
-            <div className='flex justify-between w-full text-sm'>
-                <p>Created: {dbDateFormatter(data.date_created)}</p>
+            <div className='flex justify-between items-center w-full text-smm md:text-sm'>
+                <p className=''>Created: {dbDateFormatter(data.date_created)}</p>
                 <IconButton onClick={handleMenu}><MoreVertSharpIcon /></IconButton>
             </div>
             {!isPending && openMenu &&

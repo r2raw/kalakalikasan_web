@@ -12,7 +12,7 @@ import { uiActions } from '../../../store/slices/uiSlice';
 import RestoreFromTrashSharpIcon from '@mui/icons-material/RestoreFromTrashSharp';
 import CustomLoader from '../../models/CustomLoader';
 
-const collapsible_col = ['mobile_num', 'email']
+const collapsible_col = ['mobile_num', 'email', 'role']
 function ArchivedAccounts() {
 
 

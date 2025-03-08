@@ -123,20 +123,20 @@ function ProfileInfo() {
                 {isError &&
                     <ErrorBlock message={error?.info?.errors || ['An error occured']} />}
 
-                <form onSubmit={handleSubmit} className='flex flex-col bg-white px-4 py-8 w-full gap-4 rounded-md'>
+                <form onSubmit={handleSubmit} className='flex flex-col bg-white px-2 md:px-4 py-8 w-full gap-4 rounded-md'>
                     <div className='grid grid-cols-1 gap-4'>
                         <FormInput placeholderName={'First Name'} name='firstname' value={titleCase(values.firstname) || ''} type='text' onChange={handleChange} error={errors.firstname} />
                         <FormInput placeholderName={'Middle Name'} name='middlename' value={titleCase(values.middlename) || ''} type='text' onChange={handleChange} />
                         <FormInput placeholderName={'Last Name'} name='lastname' value={titleCase(values.lastname) || ''} type='text' onChange={handleChange} error={errors.lastname} />
                         <div>
-                            <div className='flex gap-4'>
+                            <div className='flex  gap-2 md:gap-4'>
                                 <p>Sex: </p>
                                 <div>
                                     <input className='peer hidden' type='radio' id='sex-male' name='sex' value='male' checked={values.sex == 'male'} onChange={handleChange} />
-                                    <label htmlFor='sex-male' className='cursor-pointer border border-light_font text-light_font peer-checked:bg-dark_font peer-checked:text-white px-4 py-2 rounded-md'>Male</label></div>
+                                    <label htmlFor='sex-male' className='cursor-pointer border border-light_font text-light_font peer-checked:bg-dark_font peer-checked:text-white px-2 md:px-4 py-2 rounded-md'>Male</label></div>
                                 <div>
                                     <input className='peer hidden' type='radio' id='sex-female' name='sex' value='female' checked={values.sex == 'female'} onChange={handleChange} />
-                                    <label htmlFor='sex-female' className='cursor-pointer border border-light_font text-light_font peer-checked:bg-dark_font peer-checked:text-white px-4 py-2 rounded-md'>Female</label>
+                                    <label htmlFor='sex-female' className='cursor-pointer border border-light_font text-light_font peer-checked:bg-dark_font peer-checked:text-white px-2 md:px-4  py-2 rounded-md'>Female</label>
                                 </div>
 
                             </div>

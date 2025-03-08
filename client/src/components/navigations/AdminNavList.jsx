@@ -51,7 +51,7 @@ function AdminNavList() {
       <li className=" text-base_color">
         <NavLink
           to='.'
-          className={({ isActive }) => !isActive ? "flex justify-between items-center py-2 w-full px-4" : "flex justify-between items-center py-2 w-full px-4 text-base_color bg-accent_color rounded-r-2xl"} end
+          className={({ isActive }) => !isActive ? "flex justify-between items-center py-2 w-full px-2 md:px-4" : "flex justify-between items-center py-2 w-full px-2 md:px-4 text-base_color bg-accent_color rounded-r-2xl"} end
         >
           <div className="flex gap-2 items-center">
             <div className="nav-icon"><DashboardSharpIcon /></div>
@@ -61,7 +61,7 @@ function AdminNavList() {
       </li>
       <li className="  text-base_color">
         <NavLink to='stores' onClick={(e) => handleParentNav(e, 'stores')}
-          className={({ isActive }) => !isActive ? "flex justify-between items-center py-2 w-full px-4" : "flex justify-between items-center py-2 w-full px-4 text-base_color bg-accent_color rounded-r-2xl"}
+          className={({ isActive }) => !isActive ? "flex justify-between items-center py-2 w-full px-2 md:px-4" : "flex justify-between items-center py-2 w-full px-2 md:px-4 text-base_color bg-accent_color rounded-r-2xl"}
         // onClick={handleClick}
         // className={currentRoute != item.title ? "flex justify-between items-center py-2 w-full px-4" : "flex justify-between items-center py-2 w-full px-4 text-white bg-dark_font"}
         >
@@ -71,7 +71,7 @@ function AdminNavList() {
           </div>
           <div className="nav-icon-arrow relative">
             <ArrowForwardIosSharpIcon />
-            {selectedNav == 'stores' && <ul className=" flex flex-col gap-2 top-0 bg-secondary_color shadow-lg rounded-md ml-10 absolute left-full">
+            {selectedNav == 'stores' && <ul className=" flex flex-col gap-2 top-0 bg-secondary_color shadow-lg rounded-md ml-10 absolute md:left-full">
 
               <NavLink to='stores' className={({ isActive }) => isActive ? "flex justify-between items-center py-2 w-full px-4 text-base_color bg-accent_color rounded-t-md" : "flex justify-between items-center py-2 w-full px-4 text-base_color rounded-t-md"} end >
                 <div className="flex gap-2 items-center">
@@ -98,7 +98,7 @@ function AdminNavList() {
       </li>
       <li className="  text-base_color">
         <NavLink to='accounts' onClick={(e) => handleParentNav(e, 'accounts')}
-          className={({ isActive }) => !isActive ? "flex justify-between items-center py-2 w-full px-4" : "flex justify-between items-center py-2 w-full px-4 text-base_color  bg-accent_color rounded-r-2xl"}
+          className={({ isActive }) => !isActive ? "flex justify-between items-center py-2 w-full px-2 md:px-4" : "flex justify-between items-center py-2 w-full px-2 md:px-4 text-base_color  bg-accent_color rounded-r-2xl"}
         // onClick={handleClick}
         // className={currentRoute != item.title ? "flex justify-between items-center py-2 w-full px-4" : "flex justify-between items-center py-2 w-full px-4 text-white bg-dark_font"}
         >
@@ -108,7 +108,7 @@ function AdminNavList() {
           </div>
           <div className="nav-icon-arrow relative">
             <ArrowForwardIosSharpIcon />
-            {selectedNav == 'accounts' && <ul className=" flex flex-col gap-2 top-0 bg-secondary_color shadow-lg rounded-md ml-10 absolute left-full">
+            {selectedNav == 'accounts' && <ul className=" flex flex-col gap-2 top-0 bg-secondary_color shadow-lg rounded-md ml-10 absolute md:left-full">
 
               <NavLink to='accounts' className={({ isActive }) => isActive ? "flex justify-between items-center py-2 w-full px-4 text-base_color bg-accent_color rounded-t-md" : "flex justify-between items-center py-2 w-full px-4 text-base_color rounded-t-md"} end >
                 <div className="flex gap-2 items-center">
@@ -129,7 +129,7 @@ function AdminNavList() {
       </li>
       <li className=" text-base_color">
         <NavLink to='contents' onClick={(e) => handleParentNav(e, 'contents')}
-          className={({ isActive }) => !isActive ? "flex justify-between items-center py-2 w-full px-4" : "flex justify-between items-center py-2 w-full px-4 text-base_color  bg-accent_color rounded-r-2xl"}
+          className={({ isActive }) => !isActive ? "flex justify-between items-center py-2 w-full px-2 md:px-4" : "flex justify-between items-center py-2 w-full px-2 md:px-4 text-base_color  bg-accent_color rounded-r-2xl"}
         // onClick={handleClick}
         // className={currentRoute != item.title ? "flex justify-between items-center py-2 w-full px-4" : "flex justify-between items-center py-2 w-full px-4 text-white bg-dark_font"}
         >
@@ -139,7 +139,7 @@ function AdminNavList() {
           </div>
           <div className="nav-icon-arrow relative">
             <ArrowForwardIosSharpIcon />
-            {selectedNav == 'contents' && <ul className=" flex flex-col gap-2 top-0 bg-secondary_color shadow-lg rounded-md ml-10 absolute left-full">
+            {selectedNav == 'contents' && <ul className=" flex flex-col gap-2 top-0 bg-secondary_color shadow-lg rounded-md ml-10 absolute md:left-full">
 
               <NavLink to='contents' className={({ isActive }) => isActive ? "flex justify-between items-center py-2 w-full px-4 text-base_color bg-accent_color rounded-t-md" : "flex justify-between items-center py-2 w-full px-4 text-base_color rounded-t-md"} end >
                 <div className="flex gap-2 items-center">
@@ -161,7 +161,7 @@ function AdminNavList() {
       <li className=" text-base_color">
         <NavLink
           to='payments'
-          className={({ isActive }) => !isActive ? "flex justify-between items-center py-2 w-full px-4" : "flex justify-between items-center py-2 w-full px-4 text-base_color  bg-accent_color rounded-r-2xl"}
+          className={({ isActive }) => !isActive ? "flex justify-between items-center py-2 w-full px-2 md:px-4" : "flex justify-between items-center py-2 w-full px-2 md:px-4 text-base_color  bg-accent_color rounded-r-2xl"}
         >
           <div className="flex gap-2 items-center">
             <div className="nav-icon"><PaymentsSharpIcon /></div>
@@ -172,7 +172,7 @@ function AdminNavList() {
       <li className=" text-base_color">
         <NavLink
           to='reports'
-          className={({ isActive }) => !isActive ? "flex justify-between items-center py-2 w-full px-4" : "flex justify-between items-center py-2 w-full px-4 text-base_color  bg-accent_color rounded-r-2xl"}
+          className={({ isActive }) => !isActive ? "flex justify-between items-center py-2 w-full px-2 md:px-4" : "flex justify-between items-center py-2 w-full px-2 md:px-4 text-base_color  bg-accent_color rounded-r-2xl"}
         >
           <div className="flex gap-2 items-center">
             <div className="nav-icon"><AnalyticsSharpIcon /></div>

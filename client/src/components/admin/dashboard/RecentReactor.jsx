@@ -33,8 +33,8 @@ function RecentReactor() {
             <table className="w-full">
                 <thead>
                     <tr className="text-secondary_color">
-                        <th>User Reaction</th>
-                        <th className=" text-right">Date</th>
+                        <th className=' text-smm md:text-base'>User Reaction</th>
+                        <th className=" text-right text-smm md:text-base">Date</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -42,8 +42,8 @@ function RecentReactor() {
 
                         return (
                             <tr key={react.info}>
-                                <td><strong>{react.info.split(" reacted to ")[0]}</strong> reacted to <strong>{react.info.split(" reacted to ")[1]}</strong></td>
-                                <td className=" text-right">{dbDateFormatterShort(react.date_reacted)}</td>
+                                <td className=' text-smm md:text-base'><strong>{react.info.split(" reacted to ")[0]}</strong> reacted to <strong>{react.info.split(" reacted to ")[1]}</strong></td>
+                                <td className=" text-right text-smm md:text-base">{dbDateFormatterShort(react.date_reacted)}</td>
                             </tr>
                         );
                     })}
@@ -52,7 +52,7 @@ function RecentReactor() {
     }
     return (
         <>
-            <h4 className="bg-dark_font py-2 px-4 rounded-md shadow-md hover:shadow-none text-center text-white">
+            <h4 className="bg-dark_font py-2 px-4 rounded-md shadow-md hover:shadow-none text-center text-white text-sm md:text-xl">
                 Recent user reaction
             </h4>
             <div className="card">

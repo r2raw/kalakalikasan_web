@@ -117,7 +117,7 @@ function CrreateOfficer() {
 
     let content =
         <div className='card px-4'>
-            <form className='flex flex-col gap-4 w-full px-8 py-8' encType="multipart/form-data" onSubmit={handleSubmit}>
+            <form className='flex flex-col gap-4 w-full md:px-8 py-8' encType="multipart/form-data" onSubmit={handleSubmit}>
                 <div className='flex flex-col md:flex-row gap-4'>
                     <div className='flex flex-col'>
                         {imageContent}
@@ -135,14 +135,14 @@ function CrreateOfficer() {
                         <FormInput placeholderName={'Middle Name'} name='middlename' value={titleCase(formSelector.middlename) || ''} type='text' onChange={handleInputChange} />
                         <FormInput placeholderName={'Last Name'} name='lastname' value={titleCase(formSelector.lastname) || ''} type='text' onChange={handleInputChange} error={formErrors.lastname} />
                         <div>
-                            <div className='flex gap-4'>
+                            <div className='flex gap-2 md:gap-4'>
                                 <p>Sex: </p>
                                 <div>
                                     <input className='peer hidden' type='radio' id='sex-male' name='sex' value='male' checked={formSelector.sex == 'male'} onChange={handleInputChange} />
-                                    <label htmlFor='sex-male' className='cursor-pointer border border-light_font text-light_font peer-checked:bg-dark_font peer-checked:text-white px-4 py-2 rounded-md'>Male</label></div>
+                                    <label htmlFor='sex-male' className='cursor-pointer border border-light_font text-light_font peer-checked:bg-dark_font peer-checked:text-white px-1 md:px-4 py-2 rounded-md'>Male</label></div>
                                 <div>
                                     <input className='peer hidden' type='radio' id='sex-female' name='sex' value='female' checked={formSelector.sex == 'female'} onChange={handleInputChange} />
-                                    <label htmlFor='sex-female' className='cursor-pointer border border-light_font text-light_font peer-checked:bg-dark_font peer-checked:text-white px-4 py-2 rounded-md'>Female</label>
+                                    <label htmlFor='sex-female' className='cursor-pointer border border-light_font text-light_font peer-checked:bg-dark_font peer-checked:text-white px-1 md:px-4 py-2 rounded-md'>Female</label>
                                 </div>
 
                             </div>

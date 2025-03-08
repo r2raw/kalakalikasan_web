@@ -39,7 +39,7 @@ function PaymentRequest() {
     content = <CustomTable
       tableData={data}
       column={paymentColumns}
-      collapsible_col={[]}
+      collapsible_col={['date_requested']}
       canView={false}
         actionType='view'
       onView={handleViewClick} />

@@ -48,12 +48,12 @@ function MyProfileLayout() {
 
     const currLoc = getURLString(location)
 
-    let linkContent = <Link to='update-profile'>
+    let linkContent = <Link to='update-profile' className='text-smm md:text-sm'>
         <p>{"Update profile >>"}</p>
     </Link>
 
     if (currLoc == 'update-profile') {
-        linkContent = <Link to='./'>
+        linkContent = <Link to='./' className='text-smm md:text-sm'>
             <p>{'<< Go back to profile'}</p>
         </Link>
     }
@@ -119,12 +119,12 @@ function MyProfileLayout() {
 
                 <div className={`rounded-md px-4 py-8 relative textured-bg  text-dark_font  mb-12`}>
 
-                    <h1 className='text-2xl md:text-4xl'> Welcome,</h1>
-                    <h3 className='text-lg lg:text-2xl'>{bannerText}</h3>
+                    <h1 className='text-lg md:text-2xl lg:text-4xl'> Welcome,</h1>
+                    <h3 className='text-sm md:text-lg lg:text-2xl'>{bannerText}</h3>
                     <div className='w-60'>
                         {linkContent}
                     </div>
-                    <div className='bg-neutral-400 shadow-cardShadow cursor-pointer w-24 h-24 md:w-40 md:h-40 rounded-full absolute right-4 flex items-center justify-center -bottom-4 md:right-4 md:top-4' onClick={handleClick}>{imageContent}</div>
+                    <div className='bg-neutral-400 shadow-cardShadow cursor-pointer w-20 h-20 md:w-40 md:h-40 rounded-full absolute right-2 flex items-center justify-center -bottom-4 md:right-4 md:top-4' onClick={handleClick}>{imageContent}</div>
                 </div>
                 <Outlet />
             </div>

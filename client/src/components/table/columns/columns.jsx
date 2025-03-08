@@ -38,7 +38,7 @@ export const accountColumns = [
             )
         }
     },
-    {Header: 'Role', accessor: 'role', Cell: ({value}) =>titleCase(value)},
+    {Header: 'Role', accessor: 'role', Cell: ({value}) => titleCase(value)},
     { Header: 'Contact', accessor: 'mobile_num', },
     { Header: 'Email', accessor: 'email', },
 ]
@@ -58,7 +58,7 @@ export const storeColumns = [
 
 export const paymentColumns = [
     { Header: 'Id', accessor: 'id', },
-    { Header: 'Store Name', accessor: 'store_name', Cell:({value})=> titleCase(value)},
+    { Header: 'Store Name', accessor: 'store_name', Cell:({value})=> truncateText(titleCase(value),20)},
     { Header: 'Amount', accessor: 'amount', Cell:({value})=> currencyFormatter(value)},
     { Header: 'Request date', accessor: 'date_requested', Cell: ({ value }) => dbDateFormatter(value) },
 ]
