@@ -164,7 +164,7 @@ router.post('/regen-qr', async (req, res, next) => {
 
         const url = id;
         var qr_svg = qr.image(url);
-        const qrFilePath = userQrDir + id + ".png";
+        const qrFilePath = path.join(userQrDir, id + ".png"); 
         qr_svg.pipe(fs.createWriteStream(qrFilePath));
 
         return res.status(200).json('success')
@@ -208,7 +208,7 @@ router.post('/register-actor', async (req, res, next) => {
 
         const url = id;
         var qr_svg = qr.image(url);
-        const qrFilePath = userQrDir + id + ".png";
+        const qrFilePath = path.join(userQrDir, id + ".png"); 
         qr_svg.pipe(fs.createWriteStream(qrFilePath));
         const primaryData = {
             username: lowerCaseTrim(username).replaceAll(' ', ''),

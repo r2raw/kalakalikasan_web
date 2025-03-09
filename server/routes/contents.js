@@ -15,12 +15,20 @@ const { devNull, userInfo } = require("os");
 
 
 const isProduction = process.env.NODE_ENV === "production";
+
+
+const uploadPath = isProduction
+    ? "/server/public/media-content" // Persistent disk on Render
+    : path.join(__dirname, "../public/media-content"); 
+if (!fs.existsSync(uploadPath)) {
+    fs.mkdirSync(uploadPath, { recursive: true });
+}
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        const uploadPath = isProduction 
-        ? "/server/public/media-content" // Persistent disk on Render
-        : path.join(__dirname, "../public/media-content"); // Local storage
-    
+        // const uploadPath = isProduction
+        //     ? "/server/public/media-content" // Persistent disk on Render
+        //     : path.join(__dirname, "../public/media-content"); // Local storage
+
         cb(null, uploadPath)
     }, filename: (req, file, cb) => {
         const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
@@ -137,6 +145,7 @@ router.post('/edit-content', upload.single('image'), async (req, res, next) => {
         return res.status(200).json({ message: 'success' })
 
     } catch (error) {
+        console.log(error.message)
         return res.status(501).json({ error: error.message })
     }
 })
