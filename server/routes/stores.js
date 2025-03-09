@@ -12,10 +12,21 @@ const { isEmptyData } = require("../util/validations.js");
 const { ADDRGETNETWORKPARAMS } = require("dns");
 const { error } = require("console");
 
-const uploadDir = path.join(__dirname, "../public/store-cred/");
-const uploadProdDir = path.join(__dirname, "../public/products/");
+
+
+const isProduction = process.env.NODE_ENV === "production";
+// const uploadDir = path.join(__dirname, "../public/store-cred/");
+const uploadDir = isProduction 
+? "/server/public/store-cred" 
+: path.join(__dirname, "../public/store-cred"); 
+
+
+// const uploadProdDir = path.join(__dirname, "../public/products/");
+
+const uploadProdDir = isProduction ? '/server/public/products':path.join(__dirname, "../public/products/");
+// Ensure the base upload directory exists
 if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
+    fs.mkdirSync(uploadDir, { recursive: true });
 }
 
 if (!fs.existsSync(uploadProdDir)) {
@@ -24,7 +35,12 @@ if (!fs.existsSync(uploadProdDir)) {
 
 const productStorage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "public/products");
+
+    const uploadPath = isProduction
+      ? "/server/public/products" // Persistent disk on Render
+      : path.join(__dirname, "../public/products");
+    // cb(null, "public/products");
+    cb(null, uploadPath)
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
@@ -485,6 +501,43 @@ router.post(
   }
 );
 
+router.patch(
+  "/edit-product",
+  uploadProduct.single("productImage"),
+  async (req, res, next) => {
+    const { store_id, quantity, price, productName } = req.body;
+    const id = uid(20);
+    const errors = [];
+    try {
+      let productImage = null;
+      if (req.file) {
+        productImage = req.file.filename;
+      }
+
+      const storeRef = db.collection("stores").doc(store_id);
+      const productRef = storeRef.collection("products").doc(id);
+      const productInfo = {
+        productImage,
+        productName: productName.toLowerCase(),
+        quantity: parseInt(quantity),
+        price: parseInt(price),
+        date_created: admin.firestore.FieldValue.serverTimestamp(),
+      };
+
+      const saveProduct = await productRef.set(productInfo, { merge: true });
+
+      res
+        .status(200)
+        .send({ message: "success", productInfo: { id: id, ...productInfo } });
+    } catch (error) {
+      errors.push("Internal server error");
+      console.error(error.message);
+      return res
+        .status(501)
+        .json({ message: error.message, error: error.message });
+    }
+  }
+);
 router.get('/fetch-products/:id', async (req, res, next) => {
 
   const { id } = req.params;

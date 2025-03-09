@@ -14,8 +14,24 @@ const { isConvertibleToInt } = require("../util/validations.js");
 const twilio = require('twilio');
 const { Vonage } = require('@vonage/server-sdk');
 const { error } = require("console");
-const uploadDir = path.join(__dirname, "../public/userImg/");
-const userQrDir = path.join(__dirname, "../public/userQr/");
+
+
+
+const isProduction = process.env.NODE_ENV === "production";
+
+
+// const uploadDir = path.join(__dirname, "../public/userImg/");
+// const userQrDir = path.join(__dirname, "../public/userQr/");
+
+const uploadDir = isProduction 
+    ? "/server/public/userImg"  // Persistent disk on Render
+    : path.join(__dirname, "../public/userImg"); // Local storage for testing
+
+const userQrDir = isProduction 
+    ? "/server/public/userQr"
+    : path.join(__dirname, "../public/userQr");
+
+
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
 }
@@ -27,7 +43,7 @@ if (!fs.existsSync(userQrDir)) {
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, "public/userImg");
+        cb(null, uploadDir);
     },
     filename: (req, file, cb) => {
         const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
