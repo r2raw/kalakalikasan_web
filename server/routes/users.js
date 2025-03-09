@@ -411,20 +411,6 @@ router.get('/activeUsers', async (req, res, next) => {
 
         usersDoc.forEach(doc => users.push({ id: doc.id, ...doc.data() }))
 
-        // for (const doc of usersDoc.docs) {
-        //     const userData = { id: doc.id, ...doc.data() };
-        //     const fullNameRef = usersRef.doc(doc.id).collection('fullname');
-        //     const fullnameDoc = await fullNameRef.get();
-
-        //     if (!fullnameDoc.empty) {
-        //         fullnameDoc.forEach(fullname => {
-        //             {userData.fullname = fullname.data()}; // Assuming there's only one document in the subcollection
-        //         });
-        //     }
-
-        //     users.push(userData);
-        // }
-
 
         return res.status(200).json({ message: 'success', users: users })
     } catch (error) {
@@ -455,20 +441,6 @@ router.get('/inactiveUsers', async (req, res, next) => {
 
 
         usersDoc.forEach(doc => users.push({ id: doc.id, ...doc.data() }))
-
-        // for (const doc of usersDoc.docs) {
-        //     const userData = { id: doc.id, ...doc.data() };
-        //     const fullNameRef = usersRef.doc(doc.id).collection('fullname');
-        //     const fullnameDoc = await fullNameRef.get();
-
-        //     if (!fullnameDoc.empty) {
-        //         fullnameDoc.forEach(fullname => {
-        //             {userData.fullname = fullname.data()}; 
-        //         });
-        //     } 
-
-        //     users.push(userData);
-        // }
 
         return res.status(200).json({ message: 'success', users: users })
     } catch (error) {
@@ -1080,26 +1052,27 @@ router.patch('/update-user', async (req, res, next) => {
     }
 })
 
-// const vonage = new Vonage({
-//     apiKey: "2a3677c5",
-//     apiSecret: "RE090262SpnzSSAD"
-//   })
-// router.post('/send-sms', async (req,res,next) =>{
-//     try {
-//         const {to, text} = req.body;
-//         const from ='Vonage'
-//         const response = await vonage.sms.send({
-//             to: to,
-//             text: 'Hello from Vonage!' // ✅ No 'from' field, Vonage assigns one automatically
-//         });
-//         console.log(JSON.stringify(smsRes, null, 2));
 
-//         res.status(200).json({message: 'message sent successfully'})
+router.get('/transactions/:id', async (req, res, next) => {
+    try {
+        const { id } = req.params;
 
-//     } catch (error) {
-//         console.error(error.message)
-//         return res.status(501).json({message: error.message})
-//     }
-// })
+        const userRef = db.collection('users').doc(id)
+        const userSnapshot = await userRef.get()
+
+        if (!userSnapshot.exists) {
+            return res.status(404).json('User id not found')
+        }
+
+        const transactionRef = userRef.collection('transactions')
+        const transacationSnapshot = await transactionRef.get()
+
+        const transactionsList = []
+        
+        transacationSnapshot.forEach(transaction => transactionsList.push({transId: transaction.id, ...transaction.data()}))
+    } catch (error) {
+        console.error({ error: error.message })
+    }
+})
 
 module.exports = router;
