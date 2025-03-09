@@ -649,7 +649,7 @@ router.post("/checkout-products", async (req, res, next) => {
           products.map(async (product) => {
             const orderedProductRef = orderRef
               .collection("products_ordered")
-              .doc();
+              .doc(id);
             const saveOrderedProducts = await orderedProductRef.set(product, {
               merge: true,
             });
@@ -848,17 +848,17 @@ router.patch("/reject-product-request", async (req, res, next) => {
       notif_date: admin.firestore.FieldValue.serverTimestamp(),
     }
 
-    const transactionRef = userRef.collection('transactions').doc()
-    const transactionData = {
-      transactionId: orderId,
-      type: 'refund',
-      transactionDate: admin.firestore.FieldValue.serverTimestamp(),
-    }
+    // const transactionRef = userRef.collection('transactions').doc()
+    // const transactionData = {
+    //   transactionId: orderId,
+    //   type: 'refund',
+    //   transactionDate: admin.firestore.FieldValue.serverTimestamp(),
+    // }
 
     const updateOrder = await orderRef.set({ status: 'rejected' }, { merge: true })
     const saveCurrentpoints = await userRef.set({ points: currentPoints, }, { merge: true })
     const saveNotification = await notificationRef.set(notificationData, { merge: true })
-    const saveTransaction = await transactionRef.set(transactionData, { merge: true })
+    // const saveTransaction = await transactionRef.set(transactionData, { merge: true })
 
     res.status(200).json({ message: 'success' })
   } catch (error) {

@@ -298,7 +298,7 @@ router.get('/fetch-username/:username', async (req, res, next) => {
     try {
         const { username } = req.params;
         console.log(username)
-        const userRef = db.collection('users').where('username', '==', lowerCaseTrim(username));
+        const userRef = db.collection('users').where('username', '==', lowerCaseTrim(username).replace(' ', ''));
         const userSnapshot = await userRef.get();
 
         if (userSnapshot.empty) {
@@ -438,15 +438,8 @@ router.get('/total-materials-collected', async (req, res, next) => {
         for (const doc of snapshot.docs) {
             const transactionData = doc.data();
 
-            // Convert Firestore timestamp to JavaScript Date
             let transactionDate = transactionData.transaction_date?.toDate ? transactionData.transaction_date.toDate() : new Date(transactionData.transaction_date);
 
-            // if (!transactionDate || isNaN(transactionDate.getTime())) {
-            //     console.log(`⚠️ Skipping ${doc.id}: Invalid transaction_date`);
-            //     continue;
-            // }
-
-            // console.log(`✅ Found transaction_date:`, transactionDate);
 
             const materialsRef = binRef.doc(doc.id).collection('materials');
             const materialsSnapshot = await materialsRef.get();
@@ -468,6 +461,8 @@ router.get('/total-materials-collected', async (req, res, next) => {
         return res.status(500).json({ error: error.message });
     }
 });
+
+
 
 
 
@@ -604,108 +599,6 @@ router.get('/available-years', async (req, res) => {
     }
 });
 
-
-
-
-// router.get('/monthly-expense-forecast', async (req, res) => {
-//     try {
-//         const now = new Date();
-
-//         // Get start and end dates for this, last, and two months ago
-//         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
-//         const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
-
-//         const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1, 0, 0, 0, 0);
-//         const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
-
-//         const startOfTwoMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 2, 1, 0, 0, 0, 0);
-//         const endOfTwoMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 1, 0, 23, 59, 59, 999);
-
-//         // Convert to Firestore Timestamp
-//         const startTimestampThisMonth = Timestamp.fromDate(startOfMonth);
-//         const endTimestampThisMonth = Timestamp.fromDate(endOfMonth);
-
-//         const startTimestampLastMonth = Timestamp.fromDate(startOfLastMonth);
-//         const endTimestampLastMonth = Timestamp.fromDate(endOfLastMonth);
-
-//         const startTimestampTwoMonthsAgo = Timestamp.fromDate(startOfTwoMonthsAgo);
-//         const endTimestampTwoMonthsAgo = Timestamp.fromDate(endOfTwoMonthsAgo);
-
-//         // Function to fetch total expenses for a given period
-//         const fetchMonthlyExpenses = async (startTimestamp, endTimestamp) => {
-//             let totalExpense = 0;
-
-//             const binRef = db.collection('smart_bin')
-//                 .where('transaction_date', '>=', startTimestamp)
-//                 .where('transaction_date', '<=', endTimestamp);
-
-//             const snapshot = await binRef.get();
-
-//             if (!snapshot.empty) {
-//                 const transactionPromises = snapshot.docs.map(async (doc) => {
-//                     const transactionData = doc.data();
-
-//                     if (transactionData.claim_type === "direct_to_bin" || transactionData.claim_type === "cash") {
-//                         totalExpense += transactionData.total_points || 0;
-//                     } else {
-//                         const paymentRef = db.collection('payment_request')
-//                             .where('store_id', '==', doc.id)
-//                             .where('status', '==', 'approved');
-
-//                         const paymentSnapshot = await paymentRef.get();
-//                         paymentSnapshot.forEach((paymentDoc) => {
-//                             totalExpense += paymentDoc.data().amount || 0;
-//                         });
-//                     }
-//                 });
-
-//                 await Promise.all(transactionPromises);
-//             }
-
-//             return totalExpense;
-//         };
-
-//         // Fetch expenses for current, last, and two months ago
-//         const thisMonthExpense = await fetchMonthlyExpenses(startTimestampThisMonth, endTimestampThisMonth);
-//         const lastMonthExpense = await fetchMonthlyExpenses(startTimestampLastMonth, endTimestampLastMonth);
-//         const twoMonthsAgoExpense = await fetchMonthlyExpenses(startTimestampTwoMonthsAgo, endTimestampTwoMonthsAgo);
-
-//         let growthRate;
-//         if (lastMonthExpense === 0) {
-//             growthRate = "N/A"; // No comparison possible
-//         } else if (thisMonthExpense < lastMonthExpense) {
-//             if (twoMonthsAgoExpense > 0) {
-//                 growthRate = ((lastMonthExpense - twoMonthsAgoExpense) / twoMonthsAgoExpense) * 100;
-//                 growthRate = Number(growthRate.toFixed(2));
-//             } else {
-//                 growthRate = 0; // No historical data, assume no growth
-//             }
-//         } else {
-//             growthRate = ((thisMonthExpense - lastMonthExpense) / lastMonthExpense) * 100;
-//             growthRate = Number(growthRate.toFixed(2));
-//         }
-
-//         // Predict next 3 months based on growth rate
-//         let nextMonthExpense = thisMonthExpense * (1 + growthRate / 100);
-//         let secondMonthExpense = nextMonthExpense * (1 + growthRate / 100);
-//         let thirdMonthExpense = secondMonthExpense * (1 + growthRate / 100);
-
-//         return res.status(200).json({
-//             this_month_expense: thisMonthExpense,
-//             last_month_expense: lastMonthExpense,
-//             two_months_ago_expense: twoMonthsAgoExpense,
-//             growth_rate: growthRate + "%",
-//             predicted_expenses: {
-//                 next_month: Math.round(nextMonthExpense),
-//                 second_month: Math.round(secondMonthExpense),
-//                 third_month: Math.round(thirdMonthExpense)
-//             }
-//         });
-//     } catch (error) {
-//         console.error("Error computing monthly expense forecast:", error);
-//         return res.status(500).json({ error: error.message });
-//     }
-// });
 
 
 router.get('/monthly-expense-forecast', async (req, res) => {
