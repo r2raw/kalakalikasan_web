@@ -13,6 +13,8 @@ const { error, count } = require("console");
 const { consumers } = require("stream");
 const { devNull, userInfo } = require("os");
 
+
+const isProduction = process.env.NODE_ENV === "production";
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         const uploadPath = isProduction 
