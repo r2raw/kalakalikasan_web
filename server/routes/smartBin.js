@@ -73,6 +73,67 @@ router.post('/smart-bin', async (req, res, next) => {
 })
 
 
+router.post('/direct-cash', async (req, res, next) => {
+    try {
+        const batch = db.batch();
+        const { transaction_id, materials, total_points, collecting_officer } = req.body;
+
+        if (!transaction_id ||
+            !materials ||
+            materials.length == 0 ||
+            !total_points
+        ) {
+            return res.status(501).json({ message: 'error', error: 'invalid data' })
+        }
+
+        const trans_id = transaction_id.substring(0, 12);
+        const binData = {
+            transaction_id: trans_id,
+            claim_type: 'cash',
+            total_points,
+            claiming_status: 'completed',
+            transaction_date: admin.firestore.FieldValue.serverTimestamp(),
+            claiming_date: admin.firestore.FieldValue.serverTimestamp(),
+            claimed_by: null,
+            transaction_officer: collecting_officer,
+        }
+
+
+
+        const officerRef = db.collection('users').doc(collecting_officer)
+        const officerSnapshot = await officerRef.get()
+
+
+        if (!officerSnapshot.exists) {
+            return res.status(404).json({ message: 'error', error: 'Officer not found' })
+        }
+
+
+        const officerTransactionRef = officerRef.collection('transactions').doc()
+        const officerTransactionData = {
+            transactionId: trans_id,
+            type: "collect",
+            transactionDate: admin.firestore.FieldValue.serverTimestamp(),
+        };
+
+
+        const smartBinRef = db.collection('smart_bin').doc(trans_id);
+
+        batch.set(smartBinRef, binData, { merge: true })
+        materials.forEach(material => {
+            const materialRef = smartBinRef.collection('materials').doc();
+            batch.set(materialRef, material, { merge: true })
+        });
+
+        batch.set(officerTransactionRef, officerTransactionData, {merge: true})
+
+        await batch.commit()
+        return res.status(200).json({ message: 'success' })
+    } catch (error) {
+        console.log(error.message)
+        return res.status(501).json({ message: error.message, error: 'Internal server error' })
+    }
+})
 router.post('/smart-bin-officer', async (req, res, next) => {
     const errors = [];
     const { transaction_id, materials, total_points, collecting_officer, claimed_by } = req.body;
@@ -226,6 +287,7 @@ router.get('/get-receipt/:id', async (req, res, next) => {
             materials
         }
 
+        console.log(responseObj)
 
         // console.log(responseArr)
         return res.status(200).json({ message: 'success', receipt: responseObj })
@@ -571,7 +633,7 @@ router.get('/available-years', async (req, res) => {
 
         snapshot.forEach(doc => {
             const data = doc.data();
-           
+
             if (data.transaction_date) {
                 let transactionDate;
 
