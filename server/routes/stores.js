@@ -16,17 +16,17 @@ const { error } = require("console");
 
 const isProduction = process.env.NODE_ENV === "production";
 // const uploadDir = path.join(__dirname, "../public/store-cred/");
-const uploadDir = isProduction 
-? "/server/public/store-cred" 
-: path.join(__dirname, "../public/store-cred"); 
+const uploadDir = isProduction
+  ? "/server/public/store-cred"
+  : path.join(__dirname, "../public/store-cred");
 
 
 // const uploadProdDir = path.join(__dirname, "../public/products/");
 
-const uploadProdDir = isProduction ? '/server/public/products':path.join(__dirname, "../public/products/");
+const uploadProdDir = isProduction ? '/server/public/products' : path.join(__dirname, "../public/products/");
 // Ensure the base upload directory exists
 if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
+  fs.mkdirSync(uploadDir, { recursive: true });
 }
 
 if (!fs.existsSync(uploadProdDir)) {
@@ -480,7 +480,7 @@ router.post(
       const productRef = storeRef.collection("products").doc(id);
       const productInfo = {
         productImage,
-        productName: productName.toLowerCase(),
+        productName: lowerCaseTrim(productName),
         quantity: parseInt(quantity),
         price: parseInt(price),
         date_created: admin.firestore.FieldValue.serverTimestamp(),
@@ -501,34 +501,65 @@ router.post(
   }
 );
 
+
+router.post('/delete-product', async (req, res, next) => {
+  try {
+    const {store_id, productId} = req.body;
+    const storeRef = db.collection('stores').doc(store_id)
+    const productRef = storeRef.collection('products').doc(productId)
+    
+    const deleteProduct = await productRef.delete()
+
+    return res.status(200).json({message: 'success'})
+  } catch (error) {
+    return res
+      .status(501)
+      .json({ message: error.message, error: error.message });
+
+  }
+})
 router.patch(
   "/edit-product",
   uploadProduct.single("productImage"),
   async (req, res, next) => {
-    const { store_id, quantity, price, productName } = req.body;
-    const id = uid(20);
-    const errors = [];
+    const { store_id, productId, quantity, price, productName } = req.body;
     try {
       let productImage = null;
       if (req.file) {
         productImage = req.file.filename;
       }
 
-      const storeRef = db.collection("stores").doc(store_id);
-      const productRef = storeRef.collection("products").doc(id);
+
+      const storeRef = db.collection('stores').doc(store_id);
+      const existingProductRef = storeRef.collection('products')
+      const existingProductSnapshot = await existingProductRef.get();
+      const products = existingProductSnapshot.docs.filter(doc => doc.id !== productId);
+
+      const productNames = products.map(doc => lowerCaseTrim(doc.data().productName));
+      const newProductName = lowerCaseTrim(productName);
+
+      if (productNames.includes(newProductName)) {
+        console.log('product exist')
+        return res.status(409).json({ error: `The product name "${productName}" is already in use. Please choose a different name.` })
+      }
+
+      const productRef = storeRef.collection("products").doc(productId);
+
+
       const productInfo = {
         productImage,
-        productName: productName.toLowerCase(),
+        productName: lowerCaseTrim(productName),
         quantity: parseInt(quantity),
         price: parseInt(price),
-        date_created: admin.firestore.FieldValue.serverTimestamp(),
+        date_modified: admin.firestore.FieldValue.serverTimestamp(),
       };
 
-      const saveProduct = await productRef.set(productInfo, { merge: true });
+      const updateProduct = await productRef.set(productInfo, { merge: true })
+
 
       res
         .status(200)
-        .send({ message: "success", productInfo: { id: id, ...productInfo } });
+        .send({ message: "success", productInfo: { id: productId, quantity, price, productName } });
     } catch (error) {
       errors.push("Internal server error");
       console.error(error.message);
