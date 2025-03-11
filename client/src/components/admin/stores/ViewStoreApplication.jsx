@@ -166,7 +166,7 @@ function ViewStoreApplication() {
                             <p className='font-bold'>Store Address:</p>
                             <p>{address}</p>
                         </div>
-                        <p><span className='font-bold'>Contact No.:</span> 09123123123</p>
+                        {/* <p><span className='font-bold'>Contact No.:</span> 09123123123</p> */}
                         <h4>Store Image</h4>
                         <img src={`${import.meta.env.VITE_BASE_URL}/store-cred/store_front/${data.store_image}`} alt={data.store_name + '-logo'} className='h-40 w-40' />
                     </div>
