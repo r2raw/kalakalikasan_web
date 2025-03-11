@@ -18,25 +18,25 @@ const normalizeToLocalTime = (date) => {
 };
 
 // ✅ Get the week number based on ISO standards
-const getWeekNumber = (date) => {
-    const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
-    const pastDaysOfYear = (date - firstDayOfYear) / 86400000;
-    return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
-};
+// const getWeekNumber = (date) => {
+//     const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
+//     const pastDaysOfYear = (date - firstDayOfYear) / 86400000;
+//     return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+// };
 
-const getStartOfWeek = (date) => {
-    const day = date.getDay(); // Get day of the week (0 - Sunday, 6 - Saturday)
-    const diff = date.getDate() - day; // Adjust to the start of the week (Sunday)
-    return new Date(date.setDate(diff));
-};
+// const getStartOfWeek = (date) => {
+//     const day = date.getDay(); // Get day of the week (0 - Sunday, 6 - Saturday)
+//     const diff = date.getDate() - day; // Adjust to the start of the week (Sunday)
+//     return new Date(date.setDate(diff));
+// };
 
-const getEndOfWeek = (date) => {
-    const startOfWeek = getStartOfWeek(new Date(date));
-    return new Date(startOfWeek.setDate(startOfWeek.getDate() + 6));
-};
+// const getEndOfWeek = (date) => {
+//     const startOfWeek = getStartOfWeek(new Date(date));
+//     return new Date(startOfWeek.setDate(startOfWeek.getDate() + 6));
+// };
 
-const startOfWeek = getStartOfWeek(new Date());
-const endOfWeek = getEndOfWeek(new Date());
+// const startOfWeek = getStartOfWeek(new Date());
+// const endOfWeek = getEndOfWeek(new Date());
 
 const getWeekNumberInMonth = (date) => {
     const firstDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
