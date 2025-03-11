@@ -61,6 +61,8 @@ router.post('/smart-bin', async (req, res, next) => {
             batch.set(materialRef, material, { merge: true })
         });
 
+
+
         const saveData = batch.commit()
         return res.status(200).json({ message: 'success', data: binData, materials })
         // admin.firestore.FieldValue.serverTimestamp()
@@ -125,13 +127,82 @@ router.post('/direct-cash', async (req, res, next) => {
             batch.set(materialRef, material, { merge: true })
         });
 
-        batch.set(officerTransactionRef, officerTransactionData, {merge: true})
+        batch.set(officerTransactionRef, officerTransactionData, { merge: true })
 
         await batch.commit()
         return res.status(200).json({ message: 'success' })
     } catch (error) {
         console.log(error.message)
         return res.status(501).json({ message: error.message, error: 'Internal server error' })
+    }
+})
+
+router.patch('/officer-receipt', async (req, res, next) => {
+    try {
+        const { claimed_by, transaction_officer, points, transactionId, } = req.body;
+        const notifRef = db.collection('notifications').doc()
+        const binRef = db.collection('smart_bin').doc(transactionId)
+
+        const binData = {
+            claimed_by,
+            transaction_officer,
+            claiming_status: 'completed',
+            claiming_date: admin.firestore.FieldValue.serverTimestamp(),
+        }
+
+
+        const residentRef = db.collection('users').doc(claimed_by);
+        const residentSnapshot = await residentRef.get()
+
+
+        if (!residentSnapshot.exists) {
+            return res.status(200).json({ error: 'User not found!' })
+        }
+        const residentNotif = {
+            title: "Thanks for Recycling!",
+            message: `Congratulations! 🎉 You’ve received ${points} Eco-Coins for recycling your materials. Thank you for contributing to a greener future! 🌱`,
+            send_type: "direct",
+            notif_type: "transactions",
+            redirect_type: "receipt",
+            redirect_id: transactionId,
+            userId: claimed_by,
+            readBy: [],
+            notif_date: admin.firestore.FieldValue.serverTimestamp(),
+        };
+
+
+        const userPoint = residentSnapshot.data().points
+
+        const updatedPoints = userPoint + points
+
+        const officerRef = db.collection('users').doc(transaction_officer)
+
+        const residentTransactionRef = residentRef.collection("transactions").doc();
+        const residentTransactionData = {
+            transactionId: transactionId,
+            type: "recieved",
+            transactionDate: admin.firestore.FieldValue.serverTimestamp(),
+        };
+
+        const officerTransactionRef = officerRef.collection('transactions').doc()
+        const officerTransactionData = {
+            transactionId: transactionId,
+            type: "collect",
+            transactionDate: admin.firestore.FieldValue.serverTimestamp(),
+        };
+
+        const postNotif = await notifRef.set(residentNotif, {merge: true})
+        const saveOfficerTransaction = await officerTransactionRef.set(officerTransactionData, {merge: true})
+        const saveResidentTransaction = await residentTransactionRef.set(residentTransactionData, {merge: true})
+        const updateBin = await binRef.set(binData, {merge:true})
+        const updatePoints = await residentRef.set({ points: updatedPoints }, { merge: true })
+
+
+        return res.status(200).json({message: 'success'})
+    } catch (error) {
+
+        console.log(error.message)
+        return res.status(501).json({ error: error.message })
     }
 })
 router.post('/smart-bin-officer', async (req, res, next) => {
