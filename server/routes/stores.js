@@ -104,7 +104,7 @@ router.post("/verify-store", async (req, res, next) => {
     const { store_name } = req.body;
 
     console.log("verifying");
-    const storenameExist = await storeExisting(store_name);
+    const storenameExist = await storeExisting(lowerCaseTrim(store_name));
     if (storenameExist) {
       return res.status(409).json({
         message: "Store name already exists. Please choose another name.",
@@ -119,10 +119,10 @@ router.post("/verify-store", async (req, res, next) => {
 });
 
 
-router.patch('/update-store-logo/:id', upload, async(req, res)=>{
+router.patch('/update-store-logo/:id', upload, async (req, res) => {
   try {
-    
-    const {id} = req.params;
+
+    const { id } = req.params;
     let store_logo = null;
 
     if (req.files["store_logo"]) {
@@ -131,25 +131,17 @@ router.patch('/update-store-logo/:id', upload, async(req, res)=>{
 
     const storeRef = db.collection('stores').doc(id)
 
-    const updateStoreImage= await storeRef.set({store_logo}, {merge: true})
+    const updateStoreImage = await storeRef.set({ store_logo }, { merge: true })
 
-    return res.status(200).json({store_logo})
+    return res.status(200).json({ store_logo })
   } catch (error) {
-    return res.status(501).json({error: error.message})
+    return res.status(501).json({ error: error.message })
   }
 })
 router.post("/register-store", upload, async (req, res) => {
   try {
     const { user_id, store_name, street, barangay, city, province, zip } =
       req.body;
-    // let storenameExist = false;
-    const storenameExist = await storeExisting(store_name);
-    if (storenameExist) {
-      return res.status(409).json({
-        message: "Store name already exists. Please choose another name.",
-      });
-    }
-    console.log("Uploaded files:", req.files);
 
 
     let store_logo = null;
@@ -160,7 +152,7 @@ router.post("/register-store", upload, async (req, res) => {
 
     const primaryData = {
       owner_id: user_id,
-      store_name,
+      store_name: lowerCaseTrim(store_name),
       street,
       barangay,
       city,
@@ -470,7 +462,7 @@ router.patch("/existing-product", async (req, res, next) => {
     const newQuantity = product.quantity + parseInt(quantity);
     product = { ...product, quantity: newQuantity };
     const existingProductRef = storeRef.collection("products").doc(product.id);
-    const existingProductDoc = await existingProductRef.set({ quantity: newQuantity }, { merge: true });
+    const existingProductDoc = await existingProductRef.set({ quantity: newQuantity, status: 'available' }, { merge: true });
     console.log(product)
     res
       .status(200)
@@ -482,6 +474,7 @@ router.patch("/existing-product", async (req, res, next) => {
       .json({ message: error.message, error: error.message });
   }
 });
+
 router.post(
   "/add-product",
   uploadProduct.single("productImage"),
@@ -503,6 +496,7 @@ router.post(
         quantity: parseInt(quantity),
         price: parseInt(price),
         date_created: admin.firestore.FieldValue.serverTimestamp(),
+        status: 'available'
       };
 
       const saveProduct = await productRef.set(productInfo, { merge: true });
@@ -523,13 +517,31 @@ router.post(
 
 router.post('/delete-product', async (req, res, next) => {
   try {
-    const {store_id, productId} = req.body;
+    const { store_id, productId } = req.body;
     const storeRef = db.collection('stores').doc(store_id)
     const productRef = storeRef.collection('products').doc(productId)
-    
-    const deleteProduct = await productRef.delete()
 
-    return res.status(200).json({message: 'success'})
+    const deleteProduct = await productRef.set({ status: 'unavailable', }, { merge: true })
+
+    return res.status(200).json({ message: 'success' })
+  } catch (error) {
+    return res
+      .status(501)
+      .json({ message: error.message, error: error.message });
+
+  }
+})
+
+
+router.post('/restore-product', async (req, res, next) => {
+  try {
+    const { store_id, productId } = req.body;
+    const storeRef = db.collection('stores').doc(store_id)
+    const productRef = storeRef.collection('products').doc(productId)
+
+    const restoreProduct = await productRef.set({ status: 'available', }, { merge: true })
+
+    return res.status(200).json({ message: 'success' })
   } catch (error) {
     return res
       .status(501)
@@ -558,14 +570,18 @@ router.patch(
       const newProductName = lowerCaseTrim(productName);
 
       if (productNames.includes(newProductName)) {
-        console.log('product exist')
         return res.status(409).json({ error: `The product name "${productName}" is already in use. Please choose a different name.` })
       }
 
       const productRef = storeRef.collection("products").doc(productId);
 
 
-      const productInfo = {
+      const productInfo = productImage == null ? {
+        productName: lowerCaseTrim(productName),
+        quantity: parseInt(quantity),
+        price: parseInt(price),
+        date_modified: admin.firestore.FieldValue.serverTimestamp(),
+      } : {
         productImage,
         productName: lowerCaseTrim(productName),
         quantity: parseInt(quantity),
@@ -575,12 +591,11 @@ router.patch(
 
       const updateProduct = await productRef.set(productInfo, { merge: true })
 
-
+      console.log()
       res
         .status(200)
-        .send({ message: "success", productInfo: { id: productId, quantity, price, productName } });
+        .send({ message: "success", productInfo: { id: productId, quantity: parseInt(quantity), price: parseInt(price), productName, productImage, status: 'available' } });
     } catch (error) {
-      errors.push("Internal server error");
       console.error(error.message);
       return res
         .status(501)
@@ -592,9 +607,10 @@ router.get('/fetch-products/:id', async (req, res, next) => {
 
   const { id } = req.params;
   try {
+    console.log('asd')
     const products = [];
     const storeRef = db.collection('stores').doc(id);
-    const productRef = storeRef.collection('products').where('quantity', '>', 0).orderBy('productName');
+    const productRef = storeRef.collection('products').orderBy('productName');
     const productDoc = await productRef.get();
 
     if (productDoc.empty) {
@@ -613,6 +629,33 @@ router.get('/fetch-products/:id', async (req, res, next) => {
       .json({ message: error.message, error: error.message });
   }
 });
+
+router.get('/fetch-available-products/:id', async (req, res, next) => {
+
+  const { id } = req.params;
+  try {
+    const products = [];
+    const storeRef = db.collection('stores').doc(id);
+    const productRef = storeRef.collection('products').where('status', '==', 'available').orderBy('productName');
+    const productDoc = await productRef.get();
+
+    if (productDoc.empty) {
+      return res.status(200).json({ message: "No products found", products });
+    }
+
+    productDoc.forEach((product) =>
+      products.push({ id: product.id, ...product.data() })
+    );
+
+    return res.status(200).json({ message: "Success", products });
+  } catch (error) {
+    console.error(error.message);
+    return res
+      .status(501)
+      .json({ message: error.message, error: error.message });
+  }
+});
+
 
 function getAverageRoundedRating(ratingsArray) {
   if (ratingsArray.length === 0) return 0; // Avoid division by zero
@@ -1029,8 +1072,13 @@ router.patch('/accept-product-request', async (req, res) => {
       if (!storeProduct) {
         return res.status(404).json({ message: 'error', error: `Product with ID ${product_id} not found in store inventory.` });
       }
+      console.log(storeProduct)
+
+      if (storeProduct.status == 'unavailable') {
+        return res.status(409).json({ message: 'error', error: `Product ${storeProduct.productName} is unavailable` });
+      }
       if (quantity > storeProduct.quantity) {
-        return res.status(409).json({ message: 'error', error: `Insufficient stocks.` });
+        return res.status(409).json({ message: 'error', error: `Insufficient stocks for product ${storeProduct.productName}.` });
       }
 
       totalPoints += price * quantity;
