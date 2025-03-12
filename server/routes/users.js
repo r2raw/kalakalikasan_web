@@ -13,7 +13,7 @@ const qr = require('qr-image');
 const { isConvertibleToInt } = require("../util/validations.js");
 const twilio = require('twilio');
 const { Vonage } = require('@vonage/server-sdk');
-const { error } = require("console");
+const { error, info } = require("console");
 
 
 
@@ -23,11 +23,11 @@ const isProduction = process.env.NODE_ENV === "production";
 // const uploadDir = path.join(__dirname, "../public/userImg/");
 // const userQrDir = path.join(__dirname, "../public/userQr/");
 
-const uploadDir = isProduction 
+const uploadDir = isProduction
     ? "/server/public/userImg"  // Persistent disk on Render
     : path.join(__dirname, "../public/userImg"); // Local storage for testing
 
-const userQrDir = isProduction 
+const userQrDir = isProduction
     ? "/server/public/userQr"
     : path.join(__dirname, "../public/userQr");
 
@@ -164,7 +164,7 @@ router.post('/regen-qr', async (req, res, next) => {
 
         const url = id;
         var qr_svg = qr.image(url);
-        const qrFilePath = path.join(userQrDir, id + ".png"); 
+        const qrFilePath = path.join(userQrDir, id + ".png");
         qr_svg.pipe(fs.createWriteStream(qrFilePath));
 
         return res.status(200).json('success')
@@ -208,7 +208,7 @@ router.post('/register-actor', async (req, res, next) => {
 
         const url = id;
         var qr_svg = qr.image(url);
-        const qrFilePath = path.join(userQrDir, id + ".png"); 
+        const qrFilePath = path.join(userQrDir, id + ".png");
         qr_svg.pipe(fs.createWriteStream(qrFilePath));
         const primaryData = {
             username: lowerCaseTrim(username).replaceAll(' ', ''),
@@ -818,7 +818,7 @@ router.post('/request-payment', async (req, res, next) => {
     const batch = db.batch();
     try {
         const id = uid(16)
-        const { store_id, amount, userId } = req.body;
+        const { store_id, amount, userId, type } = req.body;
         const userRef = db.collection('users').doc(userId)
         const userSnapshot = await userRef.get()
         const storeRef = db.collection('stores').doc(store_id)
@@ -863,6 +863,8 @@ router.post('/request-payment', async (req, res, next) => {
         const requestPaymentData = {
             store_id,
             amount,
+            type,
+            userId,
             status: 'pending',
             date_requested: admin.firestore.FieldValue.serverTimestamp(),
             acceptance_image: null,
@@ -1080,14 +1082,163 @@ router.get('/transactions/:id', async (req, res, next) => {
             return res.status(404).json('User id not found')
         }
 
-        const transactionRef = userRef.collection('transactions')
-        const transacationSnapshot = await transactionRef.get()
-
         const transactionsList = []
-        
-        transacationSnapshot.forEach(transaction => transactionsList.push({transId: transaction.id, ...transaction.data()}))
+
+        const binRef = db.collection('smart_bin')
+        const binSnapshot = await binRef.where('claimed_by', '==', id).get()
+
+        binSnapshot.forEach(bin => {
+            const binData = bin.data()
+            const transactionData = {
+                id: bin.id,
+                date: binData.claiming_date,
+                info: 'Scanned receipt',
+                value: binData.total_points,
+                status: binData.claiming_status,
+            }
+            transactionsList.push(transactionData)
+        },)
+
+
+        // order transaction
+
+        const orderRef = db.collection('orders')
+        const orderSnapshot = await orderRef.where('ordered_by', '==', id).get()
+
+        const orderTransactions = await Promise.all(orderSnapshot.docs.map(async (order) => {
+            const orderData = order.data();
+            let price = 0;
+
+            const productsOrderedRef = order.ref.collection('products_ordered');
+            const productsOrderedSnapshot = await productsOrderedRef.get();
+
+            productsOrderedSnapshot.forEach((product) => {
+                const productData = product.data();
+                price += productData.quantity * productData.price;
+            });
+
+            return {
+                id: order.id,
+                value: price,
+                info: 'Product request',
+                date: orderData.order_date,
+                status: orderData.status,
+            };
+        }));
+        transactionsList.push(...orderTransactions);
+
+        // STORE TRANSACTION
+        const storeRef = db.collection('stores').where('owner_id', '==', id)
+        const storeSnapshot = await storeRef.get()
+        const storeTransactions = await Promise.all(storeSnapshot.docs.map(async (store) => {
+            const orderRef = db.collection('orders').where('store_id', '==', store.id).where('status', '==', 'accepted')
+            const orderSnapshot = await orderRef.get()
+            return Promise.all(orderSnapshot.docs.map(async (order) => {
+
+                const orderData = order.data();
+                let price = 0;
+
+
+
+                const productsOrderedRef = order.ref.collection('products_ordered');
+                const productsOrderedSnapshot = await productsOrderedRef.get();
+
+                productsOrderedSnapshot.forEach((product) => {
+                    const productData = product.data();
+                    price += productData.quantity * productData.price;
+                });
+
+                return {
+                    id: order.id,
+                    value: price,
+                    info: 'Product sold',
+                    date: orderData.order_date,
+                    status: orderData.status,
+                };
+            }))
+
+        }))
+
+        transactionsList.push(...storeTransactions.flat());
+
+        const paymentRequestRef = db.collection('payment_request').where('userId', '==', id)
+        const paymentSnapshot = await paymentRequestRef.get()
+
+        paymentSnapshot.forEach(payment => {
+
+            const paymentData = payment.data()
+            const transactionData = {
+                id: payment.id,
+                date: paymentData.date_requested,
+                info: 'Conversion request',
+                value: paymentData.amount,
+                status: paymentData.status,
+            }
+            transactionsList.push(transactionData)
+        })
+
+
+        const sortedTransaction = transactionsList.sort((a, b) => b.date - a.date)
+
+        return res.status(200).json(sortedTransaction)
     } catch (error) {
         console.error({ error: error.message })
+        return res.status(501).json({ error: error.message })
+    }
+})
+
+router.get('/officer-transaction/:id', async (req, res, next) => {
+    try {
+        const { id } = req.params
+
+        const transactionList = [];
+
+        const binRef = db.collection('smart_bin').where('transaction_officer', '==', id)
+        const binSnapshot = await binRef.get()
+
+        binSnapshot.forEach(bin => {
+            const binData = bin.data()
+
+            let info = 'Scanned receipt';
+
+            if (binData.claim_type != 'qr_receipt') {
+                info = 'Collect materials'
+            }
+
+            const transactionData = {
+                id: bin.id,
+                date: binData.claiming_date,
+                info,
+                value: binData.total_points,
+                status: binData.claiming_status,
+            }
+
+            transactionList.push(transactionData)
+
+        })
+
+        const paymentReqRef = db.collection('payment_request').where('approved_by', '==', id)
+        const paymentReqSnapshot = await paymentReqRef.get()
+
+        paymentReqSnapshot.forEach(payment => {
+            const paymentData = payment.data()
+
+            const transactionData = {
+                id: payment.id,
+                date: paymentData.date_approved,
+                info: 'Points to cash',
+                value: paymentData.amount,
+                status: paymentData.status,
+            }
+
+            transactionList.push(transactionData)
+        })
+        const sortedTransaction = transactionList.sort((a, b) => b.date - a.date)
+
+
+        return res.status(200).json(sortedTransaction)
+    } catch (error) {
+        return res.status(501).json({ error: error.message })
     }
 })
 
