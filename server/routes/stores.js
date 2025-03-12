@@ -47,7 +47,6 @@ const productStorage = multer.diskStorage({
     cb(null, file.fieldname + "-" + uniqueSuffix + "-" + file.originalname);
   },
 });
-
 const uploadProduct = multer({ storage: productStorage });
 // Multer storage config
 const storage = multer.diskStorage({
@@ -119,6 +118,26 @@ router.post("/verify-store", async (req, res, next) => {
   }
 });
 
+
+router.patch('/update-store-logo/:id', upload, async(req, res)=>{
+  try {
+    
+    const {id} = req.params;
+    let store_logo = null;
+
+    if (req.files["store_logo"]) {
+      store_logo = req.files["store_logo"][0].filename;
+    }
+
+    const storeRef = db.collection('stores').doc(id)
+
+    const updateStoreImage= await storeRef.set({store_logo}, {merge: true})
+
+    return res.status(200).json({store_logo})
+  } catch (error) {
+    return res.status(501).json({error: error.message})
+  }
+})
 router.post("/register-store", upload, async (req, res) => {
   try {
     const { user_id, store_name, street, barangay, city, province, zip } =
