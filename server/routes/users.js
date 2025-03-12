@@ -349,12 +349,12 @@ router.post('/login-mobile', async (req, res, next) => {
         if (isConvertibleToInt(userCred)) {
             enteredCred = 'mobile_num'
         }
-        const userRef = db.collection('users').where(enteredCred, '==', userCred).where('role', '!=', 'admin');
+        const userRef = db.collection('users').where(enteredCred, '==', userCred).where('role', '!=', 'admin').where('status', '==', 'activated');
         const doc = await userRef.get();
         const responseArr = [];
 
         if (doc.empty) {
-            return res.status(401).json({ message: 'internal server error', error: 'Incorrect username or password' });
+            return res.status(401).json({ message: 'internal server error', error: 'Invalid credentials' });
 
         }
 
@@ -369,14 +369,14 @@ router.post('/login-mobile', async (req, res, next) => {
         const match = await bcrypt.compare(password, dbPass);
 
         if (!match) {
-            return res.status(401).json({ message: 'Imvalid login', error: 'Incorrect password' })
+            return res.status(401).json({ message: 'Invalid login', error: 'Invalid credentials' })
         }
 
 
 
         const resData = { message: 'success', userData: responseArr[0] };
         if (responseArr[0].data.role !== 'officer') {
-            const storeRef = db.collection('stores').where('owner_id', '==', responseArr[0].id);
+            const storeRef = db.collection('stores').where('owner_id', '==', responseArr[0].id).where('status', '!=', 'deactivated');
 
             const storeDoc = await storeRef.get();
             let storeObj = {}; // Use 'let' instead of 'const'
