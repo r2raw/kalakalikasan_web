@@ -138,6 +138,59 @@ router.patch('/update-store-logo/:id', upload, async (req, res) => {
     return res.status(501).json({ error: error.message })
   }
 })
+
+router.patch('/update-store-info', async (req, res) => {
+  try {
+    const { storeId, street, province, city, barangay, zip, storeName } = req.body;
+
+    const storeRef = db.collection('stores');
+    const existingStoreSnapshot = await storeRef.get()
+    // const existingProductSnapshot = await existingProductRef.get();
+    const stores = existingStoreSnapshot.docs.filter(doc => doc.id !== storeId);
+
+    const storeNames = stores.map(doc => lowerCaseTrim(doc.data().store_name));
+    const newStoreName = lowerCaseTrim(storeName);
+
+    if (storeNames.includes(newStoreName)) {
+      return res.status(409).json({ error: `The store name "${storeName}" is already in use. Please choose a different name.` })
+    }
+
+    const currentStoreRef = storeRef.doc(storeId)
+
+    const updatedStoreInfo = {
+      store_name: lowerCaseTrim(storeName),
+      street: lowerCaseTrim(street),
+      province: lowerCaseTrim(province),
+      city: lowerCaseTrim(city),
+      barangay: lowerCaseTrim(barangay),
+      zip: lowerCaseTrim(zip),
+    }
+
+    console.log(updatedStoreInfo)
+    const updateStoreInfo = await currentStoreRef.set(updatedStoreInfo, { merge: true })
+    return res.status(200).json({message: 'success'})
+
+  } catch (error) {
+    return res.status(501).json({ error: error.message })
+  }
+})
+
+router.patch('/delete-store', async (req, res, next) =>{
+  try {
+    const {userId, storeId} = req.body;
+
+    const userRef = db.collection('users').doc(userId)
+    const storeRef = db.collection('stores').doc(storeId)
+
+    const updateUser = await userRef.set({role: 'actor'}, {merge: true})
+    const updateStore = await storeRef.set({status: 'deactivated'}, {merge: true})
+
+    return res.status(200).json({message: 'success'})
+  } catch (error) {
+    console.log(error.message)
+    return res.status(501).json({error: error.message})
+  }
+})
 router.post("/register-store", upload, async (req, res) => {
   try {
     const { user_id, store_name, street, barangay, city, province, zip } =
@@ -153,11 +206,11 @@ router.post("/register-store", upload, async (req, res) => {
     const primaryData = {
       owner_id: user_id,
       store_name: lowerCaseTrim(store_name),
-      street,
-      barangay,
-      city,
-      province,
-      zip,
+      street: lowerCaseTrim(street),
+      barangay: lowerCaseTrim(barangay),
+      city: lowerCaseTrim(city),
+      province: lowerCaseTrim(province),
+      zip: lowerCaseTrim(zip),
       store_logo,
       barangay_permit: req.files["barangay_permit"][0].filename,
       dti_permit: req.files["credentials_dti"][0].filename,
@@ -445,7 +498,7 @@ router.patch("/existing-product", async (req, res, next) => {
     const storeRef = db.collection("stores").doc(store_id);
     const productRef = storeRef
       .collection("products")
-      .where("productName", "==", productName.toLowerCase());
+      .where("productName", "==", lowerCaseTrim(productName));
     const productDoc = await productRef.get();
 
     if (productDoc.empty) {
@@ -460,7 +513,7 @@ router.patch("/existing-product", async (req, res, next) => {
     console.log("Existing")
 
     const newQuantity = product.quantity + parseInt(quantity);
-    product = { ...product, quantity: newQuantity };
+    product = { ...product, quantity: newQuantity, status: 'available' };
     const existingProductRef = storeRef.collection("products").doc(product.id);
     const existingProductDoc = await existingProductRef.set({ quantity: newQuantity, status: 'available' }, { merge: true });
     console.log(product)
