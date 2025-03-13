@@ -168,27 +168,93 @@ router.patch('/update-store-info', async (req, res) => {
 
     console.log(updatedStoreInfo)
     const updateStoreInfo = await currentStoreRef.set(updatedStoreInfo, { merge: true })
-    return res.status(200).json({message: 'success'})
+    return res.status(200).json({ message: 'success' })
 
   } catch (error) {
     return res.status(501).json({ error: error.message })
   }
 })
 
-router.patch('/delete-store', async (req, res, next) =>{
+router.patch('/delete-store', async (req, res, next) => {
   try {
-    const {userId, storeId} = req.body;
+    const { userId, storeId } = req.body;
 
     const userRef = db.collection('users').doc(userId)
     const storeRef = db.collection('stores').doc(storeId)
 
-    const updateUser = await userRef.set({role: 'actor'}, {merge: true})
-    const updateStore = await storeRef.set({status: 'deactivated'}, {merge: true})
+    const updateUser = await userRef.set({ role: 'actor' }, { merge: true })
+    const updateStore = await storeRef.set({ status: 'deactivated' }, { merge: true })
 
-    return res.status(200).json({message: 'success'})
+    return res.status(200).json({ message: 'success' })
   } catch (error) {
     console.log(error.message)
-    return res.status(501).json({error: error.message})
+    return res.status(501).json({ error: error.message })
+  }
+})
+
+
+router.post('/re-apply-store', upload, async (req, res, next) => {
+  try {
+    const { user_id, storeName, street, barangay, city, province, zip, storeId } =
+      req.body;
+    const storeRef = db.collection('stores')
+    const existingStoreSnapshot = await storeRef.get()
+
+    const stores = existingStoreSnapshot.docs.filter(doc => doc.id !== storeId);
+
+    const storeNames = stores.map(doc => lowerCaseTrim(doc.data().store_name));
+    const newStoreName = lowerCaseTrim(storeName);
+
+    if (storeNames.includes(newStoreName)) {
+      return res.status(409).json({ error: `The store name "${storeName}" is already in use. Please choose a different name.` })
+    }
+
+    let store_logo = null;
+
+    if (req.files["store_logo"]) {
+      store_logo = req.files["store_logo"][0].filename;
+    }
+
+    const rejectedStoreRef = storeRef.doc(storeId)
+    const rejectedStoreSnapshot = await rejectedStoreRef.get()
+
+    if (!rejectedStoreSnapshot.exists) {
+      return res.status(404).json({ error: `Store with an id of ${storeId} does not exist` })
+    }
+    const primaryData = store_logo == null ?{
+      store_name: lowerCaseTrim(storeName),
+      street: lowerCaseTrim(street),
+      barangay: lowerCaseTrim(barangay),
+      city: lowerCaseTrim(city),
+      province: lowerCaseTrim(province),
+      zip: lowerCaseTrim(zip),
+      barangay_permit: req.files["barangay_permit"][0].filename,
+      dti_permit: req.files["credentials_dti"][0].filename,
+      store_image: req.files["store_image"][0].filename,
+      status: "pending",
+    } : {
+      store_name: lowerCaseTrim(storeName),
+      street: lowerCaseTrim(street),
+      barangay: lowerCaseTrim(barangay),
+      city: lowerCaseTrim(city),
+      province: lowerCaseTrim(province),
+      zip: lowerCaseTrim(zip),
+      store_logo,
+      barangay_permit: req.files["barangay_permit"][0].filename,
+      dti_permit: req.files["credentials_dti"][0].filename,
+      store_image: req.files["store_image"][0].filename,
+      status: "pending",
+    };
+
+
+    const updateRejectedStore = await rejectedStoreRef.set(primaryData, {merge: true})
+
+    return res.status(200).json('success')
+
+
+  } catch (error) {
+    console.log(error.message)
+    return res.status(501).json({ error: error.message })
   }
 })
 router.post("/register-store", upload, async (req, res) => {
@@ -269,21 +335,22 @@ router.get("/approved-stores", async (req, res, next) => {
 
 router.get("/fetch-user-store/:id", async (req, res, next) => {
   try {
-    const { userId } = req.params;
-    const storeRef = db.collection("stores").where("owner_id", "==", userId);
+    const { id } = req.params;
+    const storeRef = db.collection("stores").where("owner_id", "==", id).where('status', '!=', 'deactivated');
 
     const storeDoc = await storeRef.get();
-    let storeObj = {}; // Use 'let' instead of 'const'
+    let storeObj = {};
 
     if (storeDoc.empty) {
-      return res.status(200).json({ message: "No store" });
+      return res.status(200).json({ message: "No store", storeData: storeObj });
     }
-    if (!storeDoc.empty) {
-      storeObj = storeDoc.docs.map((doc) => ({
+    storeDoc.forEach(doc => {
+      storeObj = {
         id: doc.id,
         ...doc.data(),
-      }));
-    }
+      }
+    })
+
 
     return res.status(200).json({ message: "success", storeData: storeObj });
   } catch (error) {
@@ -293,6 +360,8 @@ router.get("/fetch-user-store/:id", async (req, res, next) => {
       .json({ message: "Internal server error", error: error.message });
   }
 });
+
+
 
 router.get("/application-request", async (req, res, next) => {
   try {
