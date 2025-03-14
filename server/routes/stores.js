@@ -769,6 +769,7 @@ router.get('/fetch-available-products/:id', async (req, res, next) => {
       products.push({ id: product.id, ...product.data() })
     );
 
+    console.log(products)
     return res.status(200).json({ message: "Success", products });
   } catch (error) {
     console.error(error.message);
