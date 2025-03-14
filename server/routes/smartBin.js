@@ -10,6 +10,7 @@ const _ = require('lodash');
 const { lowerCaseTrim } = require("../util/myFunctions.js");
 const { type } = require("os");
 const { Timestamp } = require("firebase-admin/firestore");
+const { error } = require("console");
 
 
 router.post('/smart-bin', async (req, res, next) => {
@@ -137,6 +138,72 @@ router.post('/direct-cash', async (req, res, next) => {
     }
 })
 
+
+router.post('/officer-cashout', async (req, res, next) => {
+    try {
+        const { officerId, userId, amount } = req.body;
+
+        const userRef = db.collection('users').doc(userId)
+        const userSnapshot = await userRef.get()
+        const notifRef = db.collection('notifications').doc()
+
+        if (!userSnapshot.exists) {
+            return res.status(404).json({ error: 'User does not exist!' })
+        }
+
+        if (userSnapshot.data().status == 'deactivated') {
+            return res.status(409).json({ error: 'this account has been deactivated already!' })
+        }
+
+        const userData = userSnapshot.data()
+
+        if (userData.points < parseInt(amount)) {
+            return res.status(409).json({ error: 'Insufficient points' })
+        }
+
+
+        
+        const paymentData = {
+            acceptance_image: null,
+            amount,
+            approved_by: officerId,
+            date_approved: admin.firestore.FieldValue.serverTimestamp(),
+            date_requested: admin.firestore.FieldValue.serverTimestamp(),
+            rejected_date: null,
+            rejected_reason: null,
+            status: 'approved',
+            store_id: null,
+            type: 'cash',
+            userId: userId,
+        }
+
+        const id = uid(16)
+        
+        const residentNotif = {
+            title: "Cashout Successful! 💰",
+            message: `Your cashout request of ${amount} Eco-Coins has been processed. ${amount} points have been deducted from your balance. Thank you for your continued support! 🌱`,
+            send_type: "direct",
+            notif_type: "transactions",
+            redirect_type: "payment",
+            redirect_id: id,
+            userId: userId,
+            readBy: [],
+            notif_date: admin.firestore.FieldValue.serverTimestamp(),
+        };
+        
+        const postNotif = await notifRef.set(residentNotif, { merge: true })
+        const paymentRef = db.collection('payment_request').doc(id)
+        const currentPoints = userData.points - parseInt(amount);
+
+        const updatePoints = await userRef.set({ points: currentPoints }, { merge: true })
+        const saveTransaction = await paymentRef.set(paymentData, { merge: true })
+
+        return res.status(200).json({message: 'success'})
+
+    } catch (error) {
+        return res.status(501).json({ message: error.message, error: error.message })
+    }
+})
 router.patch('/officer-receipt', async (req, res, next) => {
     try {
         const { claimed_by, transaction_officer, points, transactionId, } = req.body;
@@ -191,14 +258,14 @@ router.patch('/officer-receipt', async (req, res, next) => {
             transactionDate: admin.firestore.FieldValue.serverTimestamp(),
         };
 
-        const postNotif = await notifRef.set(residentNotif, {merge: true})
-        const saveOfficerTransaction = await officerTransactionRef.set(officerTransactionData, {merge: true})
-        const saveResidentTransaction = await residentTransactionRef.set(residentTransactionData, {merge: true})
-        const updateBin = await binRef.set(binData, {merge:true})
+        const postNotif = await notifRef.set(residentNotif, { merge: true })
+        const saveOfficerTransaction = await officerTransactionRef.set(officerTransactionData, { merge: true })
+        const saveResidentTransaction = await residentTransactionRef.set(residentTransactionData, { merge: true })
+        const updateBin = await binRef.set(binData, { merge: true })
         const updatePoints = await residentRef.set({ points: updatedPoints }, { merge: true })
 
 
-        return res.status(200).json({message: 'success'})
+        return res.status(200).json({ message: 'success' })
     } catch (error) {
 
         console.log(error.message)
