@@ -162,7 +162,7 @@ router.post('/officer-cashout', async (req, res, next) => {
         }
 
 
-        
+
         const paymentData = {
             acceptance_image: null,
             amount,
@@ -178,7 +178,7 @@ router.post('/officer-cashout', async (req, res, next) => {
         }
 
         const id = uid(16)
-        
+
         const residentNotif = {
             title: "Cashout Successful! 💰",
             message: `Your cashout request of ${amount} Eco-Coins has been processed. ${amount} points have been deducted from your balance. Thank you for your continued support! 🌱`,
@@ -190,7 +190,7 @@ router.post('/officer-cashout', async (req, res, next) => {
             readBy: [],
             notif_date: admin.firestore.FieldValue.serverTimestamp(),
         };
-        
+
         const postNotif = await notifRef.set(residentNotif, { merge: true })
         const paymentRef = db.collection('payment_request').doc(id)
         const currentPoints = userData.points - parseInt(amount);
@@ -198,7 +198,7 @@ router.post('/officer-cashout', async (req, res, next) => {
         const updatePoints = await userRef.set({ points: currentPoints }, { merge: true })
         const saveTransaction = await paymentRef.set(paymentData, { merge: true })
 
-        return res.status(200).json({message: 'success'})
+        return res.status(200).json({ message: 'success' })
 
     } catch (error) {
         return res.status(501).json({ message: error.message, error: error.message })

@@ -14,7 +14,7 @@ const { isConvertibleToInt } = require("../util/validations.js");
 const twilio = require('twilio');
 const { Vonage } = require('@vonage/server-sdk');
 const { error, info } = require("console");
-
+var nodemailer = require('nodemailer');
 
 
 const isProduction = process.env.NODE_ENV === "production";
@@ -76,9 +76,63 @@ router.post('/change-image', upload.single('image'), async (req, res, next) => {
     }
 })
 
+router.post('/get-email', async (req, res, next) => {
+    try {
+
+        const {email, otpCode} = req.body;
+
+        const userRef = db.collection('users').where('email', '==', email).where('status', '==', 'activated')
+        const userSnapshot = await userRef.get()
+
+        if(userSnapshot.empty){
+            return res.status(404).json({error: 'Email does not exist'})
+        }
+
+        let userObj = {}
+
+        userSnapshot.forEach(user => userObj = {id: user.id, ...user.data()})
+
+        
+        var transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: 'kalakalikasan.mail@gmail.com',
+                pass: process.env.MAIL_APP_PASS
+            }
+        });
+
+        var mailOptions = {
+            from: 'kalakalikasan.mail@gmail.com',
+            to: email,
+            subject: '[KalaKalikasan] Password Reset OTP Code',
+            text: `Hello,
+
+        We received a request to reset your password for your KalaKalikasan account. Use the OTP code below to reset your password:
+
+        Your OTP Code: ${otpCode}
+
+        Do not share this code with anyone.
+
+        If you did not request a password reset, please ignore this email. Your account remains secure.
+
+        Best regards, 
+        The KalaKalikasan Team`
+        };
+
+        
+
+        const sendEmail = await transporter.sendMail(mailOptions);
+        return res.status(200).json(userObj)
+    } catch (error) {
+        return res.status(501).json({ error: error.message })
+    }
+})
+
 router.post("/register", upload.single('image'), async (req, res, next) => {
     const id = uid(16)
     const errors = [];
+    const verificationId = uid(20)
+
     const { username, password, email, role, mobile_num, birthdate, zip, city, barangay, street, firstname, lastname, middlename, sex, created_by } = req.body;
     const user_address = { zip: _.trim(zip), city: lowerCaseTrim(city), barangay: lowerCaseTrim(barangay), street: lowerCaseTrim(street) };
     const fullname = { firstname: lowerCaseTrim(firstname), lastname: lowerCaseTrim(lastname), middlename: lowerCaseTrim(middlename) }
@@ -100,6 +154,7 @@ router.post("/register", upload.single('image'), async (req, res, next) => {
         const userAddressRef = usersRef.collection("user_address").doc();
         const fullnameRef = usersRef.collection('fullname').doc();
 
+        const verificationRef = db.collection('email_verification').doc(verificationId)
         const existingUsername = await db.collection('users').where('username', '==', lowerCaseTrim(username).replaceAll(' ', '')).get();
         const existingEmail = await db.collection('users').where('email', '==', lowerCaseTrim(email)).get();
         const existingMobile = await db.collection('users').where('mobile_num', '==', lowerCaseTrim(mobile_num)).get();
@@ -120,6 +175,27 @@ router.post("/register", upload.single('image'), async (req, res, next) => {
         }
 
 
+        var transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: 'kalakalikasan.mail@gmail.com',
+                pass: process.env.MAIL_APP_PASS
+            }
+        });
+
+        var mailOptions = {
+            from: 'kalakalikasan.mail@gmail.com',
+            to: email,
+            subject: '[KalaKalikasan] Activate Your Account',
+            text: `Hello,
+
+        Please activate your officer account by clicking the link below:
+
+        ${process.env.SITE_URL}/verify/${verificationId}
+
+        Best regards, 
+        The KalaKalikasan Team`
+        };
 
 
         const primaryData = {
@@ -138,10 +214,18 @@ router.post("/register", upload.single('image'), async (req, res, next) => {
             date_modified: null,
             created_by,
             modified_by: null,
-            status: 'activated',
+            status: 'deactivated',
+            first_time_log: true,
+        }
+        const verificationData = {
+            isUsed: false,
+            userId: id,
         }
 
 
+
+        const sendEmail = await transporter.sendMail(mailOptions);
+        const saveVerification = await verificationRef.set(verificationData, { merge: true })
         const saveData = await usersRef.set(primaryData, { merge: true })
 
         // batch.set(usersRef, primaryData, { merge: true });
@@ -182,9 +266,11 @@ router.post('/register-actor', async (req, res, next) => {
 
 
         const id = uid(16)
+        const verificationId = uid(20)
         const salt = await bcrypt.genSalt(saltRounds);
         const hash = await bcrypt.hash(password, salt);
         const usersRef = db.collection('users')
+        const verificationRef = db.collection('email_verification').doc(verificationId)
         const existingUsername = await usersRef.where('username', '==', lowerCaseTrim(username).replaceAll(' ', '')).get();
         const existingEmail = await usersRef.where('email', '==', lowerCaseTrim(email)).get();
         const existingMobile = await usersRef.where('mobile_num', '==', lowerCaseTrim(mobileNum)).get();
@@ -205,6 +291,29 @@ router.post('/register-actor', async (req, res, next) => {
         }
 
         const usersRefDoc = db.collection('users').doc(id);
+        var transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: 'kalakalikasan.mail@gmail.com',
+                pass: process.env.MAIL_APP_PASS
+            }
+        });
+
+        var mailOptions = {
+            from: 'kalakalikasan.mail@gmail.com',
+            to: email,
+            subject: '[KalaKalikasan] Activate Your Account',
+            text: `Hello,
+
+        Thank you for signing up with KalaKalikasan! To complete your registration, please activate your account by clicking the link below:
+
+        ${process.env.SITE_URL}/verify/${verificationId}
+
+        If you did not sign up for this account, you can safely ignore this email.
+
+        Best regards, 
+        The KalaKalikasan Team`
+        };
 
         const url = id;
         var qr_svg = qr.image(url);
@@ -228,10 +337,17 @@ router.post('/register-actor', async (req, res, next) => {
             birthdate: admin.firestore.Timestamp.fromDate(convertedBirthdateString),
             date_created: admin.firestore.FieldValue.serverTimestamp(),
             first_time_log: true,
-            status: 'activated',
+            status: 'deactivated',
             points: 0,
         }
 
+
+        const verificationData = {
+            isUsed: false,
+            userId: id,
+        }
+        const sendEmail = await transporter.sendMail(mailOptions);
+        const saveVerification = await verificationRef.set(verificationData, { merge: true })
         const saveData = await usersRefDoc.set(primaryData, { merge: true })
 
         return res.status(200).json({ message: 'success' });
@@ -326,6 +442,34 @@ router.post('/change-password', async (req, res, next) => {
 
         const saveData = await userRef.set({
             password: hash,
+            date_modified: admin.firestore.FieldValue.serverTimestamp(),
+            modified_by: id,
+        }, { merge: true })
+
+
+
+        return res.status(200).json(true);
+    } catch (error) {
+        return res.status(501).json({ error: error.message })
+    }
+})
+
+
+router.post('/first-time-log', async (req, res, next) => {
+    try {
+        const { id, password } = req.body;
+        const userRef = db.collection('users').doc(id)
+        const userSnapshot = await userRef.get()
+
+        if (!userSnapshot.exists) {
+            return res.status(404).json({ error: 'User not found' })
+        }
+        const salt = await bcrypt.genSalt(saltRounds);
+        const hash = await bcrypt.hash(password, salt);
+
+        const saveData = await userRef.set({
+            password: hash,
+            first_time_log: false,
             date_modified: admin.firestore.FieldValue.serverTimestamp(),
             modified_by: id,
         }, { merge: true })
