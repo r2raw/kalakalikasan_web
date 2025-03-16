@@ -19,7 +19,7 @@ const isProduction = process.env.NODE_ENV === "production";
 
 const uploadPath = isProduction
     ? "/server/public/media-content" // Persistent disk on Render
-    : path.join(__dirname, "../public/media-content"); 
+    : path.join(__dirname, "../public/media-content");
 if (!fs.existsSync(uploadPath)) {
     fs.mkdirSync(uploadPath, { recursive: true });
 }
@@ -397,6 +397,45 @@ router.get('/fetch-contents-mobile', async (req, res, next) => {
         console.log(error.message)
         errors.push('Internal server error')
         return res.status(501).json({ message: error.message, errors: errors })
+    }
+})
+
+router.get('/fetch-content-mobile/:id', async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const contentRef = db.collection('contents').doc(id)
+        const contentSnapshot = await contentRef.get()
+
+        if (!contentSnapshot.exists) {
+            return res.status(404).json({ error: 'Content not found' })
+        }
+
+        if (contentSnapshot.data().status == 'deactivated') {
+            return res.status(409).json({ error: 'Content not available' })
+        }
+
+
+        const comments = [];
+        const images = [];
+        const reacts = [];
+        const commentRef = contentRef.collection('comments')
+        const commentSnapshot = await commentRef.get()
+
+        const reactRef = contentRef.collection('reacts')
+        const reactSnapshot = await reactRef.get()
+
+        const mediaRef = contentRef.collection('media')
+        const mediaSnapshot = await mediaRef.get()
+
+        commentSnapshot.forEach(comment => comments.push({ id: comment.id, ...comment.data() }));
+        reactSnapshot.forEach(react => reacts.push({ id: react.id, ...react.data() }))
+        mediaSnapshot.forEach(media => images.push({ id: media.id, ...media.data() }))
+
+
+        return res.status(200).json({id: contentSnapshot.id, ...contentSnapshot.data(), comments, images, reacts })
+
+    } catch (error) {
+        return res.status(501).json({ error: error.message })
     }
 })
 
