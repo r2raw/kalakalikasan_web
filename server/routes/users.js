@@ -1506,18 +1506,43 @@ router.get('/get-activation-link/:id', async (req, res, next) => {
         const verificationRef = db.collection('email_verification').doc(id);
         const verificationSnapshot = await verificationRef.get()
 
+
         if (!verificationSnapshot.exists) {
             return res.status(404).json({ error: 'Email activation link not found' });
         }
 
+        const {userId} = verificationSnapshot.data()
 
-        return res.status(200).json({ id: verificationSnapshot.id, ...verificationSnapshot.data() })
+        const userRef = db.collection('users').doc(userId)
+        const userSnapshot = await userRef.get()
+        if(!userSnapshot.exists){
+            return res.status(404).json({error: 'User not found!'})
+        }
+        const {firstname, lastname} = userSnapshot.data()
+
+        return res.status(200).json({ id: verificationSnapshot.id, ...verificationSnapshot.data(),  firstname, lastname})
 
 
 
     } catch (error) {
+        console.error(error.message)
         return res.status(501).json({ error: error.message })
     }
 })
+
+router.get('/get-payment/:id', async (req,res, next)=>{try {
+    const {id} = req.params;
+    const paymentRef = db.collection('payment_request').doc(id);
+    const paymentSnapshot = await paymentRef.get();
+
+    if(!paymentSnapshot){
+        return res.status(404).json({error: 'Payment data not found'})
+    }
+
+    return res.status(200).json({id: paymentSnapshot.id, ...paymentSnapshot.data()})
+
+} catch (error) {
+    return res.status(501).json({error: error.message})
+}})
 
 module.exports = router;

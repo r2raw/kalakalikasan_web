@@ -515,6 +515,7 @@ router.patch("/approve-store", async (req, res, next) => {
 });
 
 
+
 router.patch("/reject-store", async (req, res, next) => {
   const { store_id, owner_id, rejected_by, reason } = req.body;
   const errors = [];
