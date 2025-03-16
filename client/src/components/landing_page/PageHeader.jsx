@@ -1,6 +1,6 @@
 import React from 'react'
 
-import recycle_img from "../../assets/images/recycle_image.png";
+import recycle_img from "../../assets/logo/logo_transparent.png";
 
 function PageHeader({aboutPage, textHeader}) {
   return (

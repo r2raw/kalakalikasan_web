@@ -79,20 +79,20 @@ router.post('/change-image', upload.single('image'), async (req, res, next) => {
 router.post('/get-email', async (req, res, next) => {
     try {
 
-        const {email, otpCode} = req.body;
+        const { email, otpCode } = req.body;
 
         const userRef = db.collection('users').where('email', '==', email).where('status', '==', 'activated')
         const userSnapshot = await userRef.get()
 
-        if(userSnapshot.empty){
-            return res.status(404).json({error: 'Email does not exist'})
+        if (userSnapshot.empty) {
+            return res.status(404).json({ error: 'Email does not exist' })
         }
 
         let userObj = {}
 
-        userSnapshot.forEach(user => userObj = {id: user.id, ...user.data()})
+        userSnapshot.forEach(user => userObj = { id: user.id, ...user.data() })
 
-        
+
         var transporter = nodemailer.createTransport({
             service: 'gmail',
             auth: {
@@ -119,7 +119,7 @@ router.post('/get-email', async (req, res, next) => {
         The KalaKalikasan Team`
         };
 
-        
+
 
         const sendEmail = await transporter.sendMail(mailOptions);
         return res.status(200).json(userObj)
@@ -1381,6 +1381,46 @@ router.get('/officer-transaction/:id', async (req, res, next) => {
 
 
         return res.status(200).json(sortedTransaction)
+    } catch (error) {
+        return res.status(501).json({ error: error.message })
+    }
+})
+
+
+router.post('/activate-account', async (req, res, next) => {
+    try {
+        const { userId, verificationId } = req.body
+
+        console.log(req.body)
+        const verificationRef = db.collection('email_verification').doc(verificationId)
+        const userRef = db.collection('users').doc(userId)
+
+
+        const updateVerification = await verificationRef.set({isUsed: true}, {merge: true});
+        const updateUser = await userRef.set({status: 'activated'}, {merge: true})
+
+        return res.status(200).json({message: 'success'})
+
+    } catch (error) {
+        return res.status(501).json({ error: error.message })
+    }
+})
+router.get('/get-activation-link/:id', async (req, res, next) => {
+    try {
+        const { id } = req.params;
+
+        const verificationRef = db.collection('email_verification').doc(id);
+        const verificationSnapshot = await verificationRef.get()
+
+        if (!verificationSnapshot.exists) {
+            return res.status(404).json({ error: 'Email activation link not found' });
+        }
+
+
+        return res.status(200).json({ id: verificationSnapshot.id, ...verificationSnapshot.data() })
+
+
+
     } catch (error) {
         return res.status(501).json({ error: error.message })
     }

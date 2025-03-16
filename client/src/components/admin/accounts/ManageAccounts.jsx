@@ -90,6 +90,7 @@ function ManageAccounts() {
         column={accountColumns}
         collapsible_col={collapsible_col}
         actionType='default'
+        moduleType='accounts'
         onEdit={handleEdit}
         onDelete={handleOpenDeleteModal} />
     }

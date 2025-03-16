@@ -46,6 +46,7 @@ import ViewContent from "./components/admin/contents/ViewContent";
 import EditContent from "./components/admin/contents/EditContent";
 import ViewPaymentRequest from "./components/admin/payments/ViewPaymentRequest";
 import PaymentLayout from "./layout/sub_layout/PaymentLayout";
+import AccountActivation from "./components/landing_page/verify/AccountActivation";
 const router = createBrowserRouter([
   {
     path: "/",
@@ -57,6 +58,7 @@ const router = createBrowserRouter([
       { path: "services", element: <Services /> },
       { path: "features", element: <Features /> },
       { path: "support", element: <Support /> },
+      { path: "verify/:id", element: <AccountActivation /> },
     ],
   },
   {

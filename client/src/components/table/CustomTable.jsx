@@ -26,7 +26,7 @@ function accountsFilterFunction(rows, columnIds, filterValue) {
         const { original } = row;
 
         // Flatten composite fields
-        const fullname = `${original.fullname.firstname} ${original.fullname.lastname}`;
+        const fullname = `${original.firstname} ${original.lastname}`;
 
         // Combine all searchable fields into a single string
         const rowValues = Object.values({
@@ -57,7 +57,7 @@ function CustomTable({ tableData, column, collapsible_col, actionType, onEdit, o
     const data = useMemo(() => tableData, [tableData]);
 
     const filterUsed = useMemo(() => {
-        return moduleType ? accountsFilterFunction : defaultGlobalFilter;
+        return moduleType =='accounts' ? accountsFilterFunction : defaultGlobalFilter;
     }, [moduleType]);
 
     const {
