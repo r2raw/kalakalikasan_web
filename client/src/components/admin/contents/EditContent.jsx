@@ -1,13 +1,15 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { addImage, fetchContentId, queryClient } from '../../../util/http';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import EditableImageContent from './EditableImageContent';
 import CustomLoader from '../../models/CustomLoader';
 import { imageChangeHandler } from '../../../myFunctions/myFunctions';
 import FormInput from '../../models/FormInput'
 import ErrorSingle from '../../models/ErrorSingle';
 import ContentEditForm from './ContentEditForm';
+import { IconButton } from '@mui/material';
+import ArrowBackSharpIcon from '@mui/icons-material/ArrowBackSharp';
 
 function EditContent() {
     const [contentImages, setContentImages] = useState([]);
@@ -15,6 +17,7 @@ function EditContent() {
 
     const { id } = useParams();
 
+    const navigate = useNavigate()
 
     const { data, isPending, isError, error } = useQuery({
         queryKey: ["contents", id, 'edit'],
@@ -69,6 +72,9 @@ function EditContent() {
     let imageContent = <p>No images found</p>
     let content = <p>No content found</p>
 
+    const handleBack = () => {
+        navigate('..')
+    }
     if (isPending) {
         imageContent = <CustomLoader />
         content = <CustomLoader />
@@ -121,7 +127,11 @@ function EditContent() {
 
     return (
         <>
+
             {isError && <ErrorSingle message={error.info?.error || 'An error occured'} />}
+            <IconButton onClick={handleBack} className='text-accent_color fill-accent_color'>
+                <ArrowBackSharpIcon className="text-accent_color fill-current" />
+            </IconButton>
             <div className='flex flex-col lg:flex-row gap-4'>
                 <div className='lg:w-3/5'>
                     {imageContent}

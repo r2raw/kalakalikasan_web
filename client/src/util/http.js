@@ -157,7 +157,7 @@ export const editUser = async ({ data }) => {
     }
 }
 
-export const confirmPassword = async ( data ) => {
+export const confirmPassword = async (data) => {
     try {
 
         const response = await axios.post(`/confirm-password`, data, {
@@ -177,7 +177,7 @@ export const confirmPassword = async ( data ) => {
 
 
 
-export const changePassword = async ( data ) => {
+export const changePassword = async (data) => {
     try {
 
         const response = await axios.post(`/change-password`, data, {
@@ -232,11 +232,11 @@ export const editPost = async ({ data }) => {
     }
 }
 
-export const deleteImage = async ( data ) => {
+export const deleteImage = async (data) => {
     try {
-        const response = await axios.patch(`/delete-content-image`,data,{
+        const response = await axios.patch(`/delete-content-image`, data, {
             headers: {
-                'Content-Type': 'application/json', 
+                'Content-Type': 'application/json',
             },
         });
         return response.data;
@@ -260,7 +260,7 @@ export const fetchContent = async ({ signal }) => {
 
     }
 }
-export const fetchReactCount = async ({ signal,id }) => {
+export const fetchReactCount = async ({ signal, id }) => {
     try {
         const response = await axios.get(`/reacts-count/${id}`, { signal });
 
@@ -274,7 +274,7 @@ export const fetchReactCount = async ({ signal,id }) => {
     }
 }
 
-export const fetchCommentCount = async ({ signal,id }) => {
+export const fetchCommentCount = async ({ signal, id }) => {
     try {
         const response = await axios.get(`/commentCounts-count/${id}`, { signal });
 
@@ -313,9 +313,9 @@ export const deactivateContent = async ({ data }) => {
         throw err;
     }
 }
-export const restoreContent = async ( data ) => {
+export const restoreContent = async (data) => {
     try {
-        const response = await axios.patch(`/restore-content`,  data );
+        const response = await axios.patch(`/restore-content`, data);
 
         return response.data.message;
     } catch (error) {
@@ -764,3 +764,41 @@ export const fetchActivationLink = async ({ signal, id }) => {
         throw err;
     }
 };
+
+export const rejectPayment = async ({ data }) => {
+    try {
+
+        const response = await axios.post(`/reject-payment`, data, {
+            headers: {
+                'Content-Type': 'application/json', // Specify multipart/form-data
+            },
+        });
+
+
+        return response.data.message;
+
+    } catch (error) {
+
+        const err = new Error(error.response?.data?.message || "An error occurred");
+        err.code = error.response?.status || 500;
+        err.info = error.response?.data || ['An error occurred'];
+        throw err;
+    }
+}
+
+
+export const approvePayment = async ({ data }) => {
+    try {
+        const response = await axios.post(`/approve-payment`, data, {
+            headers: {
+                'Content-Type': 'multipart/form-data', 
+            },
+        });
+        return response.data.user;
+    } catch (error) {
+        const err = new Error(error.response?.data?.message || "An error occurred");
+        err.code = error.response?.status || 500;
+        err.info = error.response?.data || 'Error saving data';
+        throw err;
+    }
+}

@@ -3,7 +3,7 @@ import ArrowBackSharpIcon from '@mui/icons-material/ArrowBackSharp';
 import { Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
 
 
-import imgsample from '../../assets/images/brand_logo.png'
+import imgsample from '../../assets/logo/logo_only_transparent.png'
 import { getURLString } from '../../myFunctions/myFunctions';
 import { fetchStoreInfo } from '../../util/http';
 import ErrorBlock from '../../components/models/ErrorBlock';
@@ -24,6 +24,7 @@ function ViewStoreApplicationLayout() {
     let storeName;
     let applicationDate;
     let content = <></>;
+    let points = 0;
     let logo = <img src={imgsample} alt='sample img' className=' w-48 h-48' />;
 
     const { data, isPending, isError, error } = useQuery({
@@ -62,6 +63,7 @@ function ViewStoreApplicationLayout() {
         fullname = `${titleCase(data.firstname)}${data.middlename && ` ${titleCase(data.middlename)}`} ${titleCase(data.lastname)}`
         storeName = titleCase(data.store_name)
         applicationDate = dbDateFormatter(data.application_date)
+        points = data.points
         console.log(dbDateFormatter(data.application_date))
         if (data.store_logo) {
             logo = <img src={`${import.meta.env.VITE_BASE_URL}/store-cred/store_logo/${data.store_logo}`} alt={data.store_name + '-logo'} className='h-48 w-48' />
@@ -81,7 +83,7 @@ function ViewStoreApplicationLayout() {
                         <h2>{storeName}</h2>
                         <h5>Owner: {fullname}</h5>
                         <p>Date of Application: {applicationDate}</p>
-                        <p>Current points accumulated: 100</p>
+                        <p>Current points accumulated: {points}</p>
                     </div>
                 </div>
                 {content}
