@@ -1007,21 +1007,21 @@ router.post('/reject-payment', async (req, res, next) => {
 
         const newPoints = points + parseInt(amount);
 
-        const updatePoints = await userRef.set({points: newPoints}, {merge: true})
+        const updatePoints = await userRef.set({ points: newPoints }, { merge: true })
         const savePayment = await paymentRef.set(paymentData, { merge: true })
         const saveNotif = await notificationRef.set(notificationData, { merge: true });
 
-        return res.status(200).json({message: 'success'})
+        return res.status(200).json({ message: 'success' })
     } catch (error) {
         console.error(error.message)
-        return res.status(501).json({error: error.message});
+        return res.status(501).json({ error: error.message });
     }
 })
 
-router.post('/approve-payment', paymentUpload.single('image'), async (req,res,next)=>{
+router.post('/approve-payment', paymentUpload.single('image'), async (req, res, next) => {
     try {
 
-        const {amount, userId, approved_by, paymentId, } = req.body;
+        const { amount, userId, approved_by, paymentId, } = req.body;
         const image = req.file.filename
 
         const paymentRef = db.collection('payment_request').doc(paymentId);
@@ -1045,13 +1045,13 @@ router.post('/approve-payment', paymentUpload.single('image'), async (req,res,ne
             status: 'approved',
         }
 
-        const savePayment = paymentRef.set(paymentData, {merge: true})
-        const saveNotif = notifRef.set(notificationData, {merge: true})
-        return res.status(200).json({message: 'success'})
+        const savePayment = paymentRef.set(paymentData, { merge: true })
+        const saveNotif = notifRef.set(notificationData, { merge: true })
+        return res.status(200).json({ message: 'success' })
     } catch (error) {
-        return res.status(501).json({error: error.message});
+        return res.status(501).json({ error: error.message });
     }
-} )
+})
 router.post('/request-payment', async (req, res, next) => {
     const batch = db.batch();
     try {
@@ -1511,16 +1511,16 @@ router.get('/get-activation-link/:id', async (req, res, next) => {
             return res.status(404).json({ error: 'Email activation link not found' });
         }
 
-        const {userId} = verificationSnapshot.data()
+        const { userId } = verificationSnapshot.data()
 
         const userRef = db.collection('users').doc(userId)
         const userSnapshot = await userRef.get()
-        if(!userSnapshot.exists){
-            return res.status(404).json({error: 'User not found!'})
+        if (!userSnapshot.exists) {
+            return res.status(404).json({ error: 'User not found!' })
         }
-        const {firstname, lastname} = userSnapshot.data()
+        const { firstname, lastname } = userSnapshot.data()
 
-        return res.status(200).json({ id: verificationSnapshot.id, ...verificationSnapshot.data(),  firstname, lastname})
+        return res.status(200).json({ id: verificationSnapshot.id, ...verificationSnapshot.data(), firstname, lastname })
 
 
 
@@ -1530,19 +1530,41 @@ router.get('/get-activation-link/:id', async (req, res, next) => {
     }
 })
 
-router.get('/get-payment/:id', async (req,res, next)=>{try {
-    const {id} = req.params;
-    const paymentRef = db.collection('payment_request').doc(id);
-    const paymentSnapshot = await paymentRef.get();
+router.get('/get-payment/:id', async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const paymentRef = db.collection('payment_request').doc(id);
+        const paymentSnapshot = await paymentRef.get();
 
-    if(!paymentSnapshot){
-        return res.status(404).json({error: 'Payment data not found'})
+        if (!paymentSnapshot) {
+            return res.status(404).json({ error: 'Payment data not found' })
+        }
+
+        return res.status(200).json({ id: paymentSnapshot.id, ...paymentSnapshot.data() })
+
+    } catch (error) {
+        return res.status(501).json({ error: error.message })
     }
+})
 
-    return res.status(200).json({id: paymentSnapshot.id, ...paymentSnapshot.data()})
 
-} catch (error) {
-    return res.status(501).json({error: error.message})
-}})
+router.get('/get-store/:id', async (req, res, next) => {
+    try {
+        const { id } = req.params;
 
+        const storeRef = db.collection('stores').doc(id);
+        const storeSnapshot = await storeRef.get()
+
+        if (!storeSnapshot.exists) {
+            return res.status(404).json({ error: 'Store not found' });
+        }
+
+        return res.status(200).json({ id: storeSnapshot.id, ...storeSnapshot.data() })
+
+
+    } catch (error) {
+
+        return res.status(501).json({ error: error.message })
+    }
+})
 module.exports = router;
