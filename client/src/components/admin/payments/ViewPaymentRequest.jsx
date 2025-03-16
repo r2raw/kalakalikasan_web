@@ -1,20 +1,30 @@
-import { useQuery } from '@tanstack/react-query';
-import React from 'react'
+import { useMutation, useQuery } from '@tanstack/react-query';
+import React, { useRef, useState } from 'react'
 import maya from '../../../assets/logo/maya.jpg'
 import gcash from '../../../assets/logo/gcash.png'
-import { useParams } from 'react-router-dom'
-import { fetchPaymentReq } from '../../../util/http';
+import { useNavigate, useParams } from 'react-router-dom'
+import { fetchPaymentReq, queryClient, rejectPayment } from '../../../util/http';
 import CustomLoader from '../../models/CustomLoader';
 import ErrorSingle from '../../models/ErrorSingle';
 import { titleCase } from 'title-case';
 import brandLogo from '../../../assets/logo/logo_only_transparent.png'
 import UploadScreenShot from './UploadScreenShot';
 import { currencyFormatter } from '../../../util/formatter';
+import DeleteSharpIcon from '@mui/icons-material/DeleteSharp';
+import Modal from '../../models/ui/Modal';
+import CustomTextArea from '../../models/CustomTextArea';
+
+import ArrowBackSharpIcon from '@mui/icons-material/ArrowBackSharp';
+import { IconButton } from '@mui/material';
+import ErrorBlock from '../../models/ErrorBlock';
 function ViewPaymentRequest() {
 
   const { id } = useParams();
 
-
+  const dialog = useRef(null);
+  const navigate = useNavigate()
+  const [errorMessage, setErrorMessage] = useState('');
+  const [reason, setReason] = useState('')
   const { data, isPending, isError, error } = useQuery({
     queryKey: ['payment', id,],
     queryFn: ({ signal }) => fetchPaymentReq({ signal, id }),
@@ -22,6 +32,50 @@ function ViewPaymentRequest() {
     gcTime: 30000,
     refetchInterval: 5000,
   })
+  const handleDelete = () => {
+
+    if (reason.trim() == '') {
+      setErrorMessage('Please state your reason!')
+      return
+    }
+    const { storeInfo, paymentInfo, userInfo, walletInfo } = data;
+    const rejectData = {
+      reason: reason.trim(),
+      amount: paymentInfo.amount,
+      userId: userInfo.id,
+      paymentId: paymentInfo.id,
+    }
+    mutate({ data: rejectData })
+  }
+
+  const { mutate, isPending: pendingDeletion, isError: isDeletionError, error: deletionError } = useMutation({
+    mutationFn: rejectPayment,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['payment'] });
+      handleCloseDeleteModal()
+      handleBack()
+
+    },
+  })
+  const handleBack = () => {
+    navigate('..')
+  }
+
+  const handleTextChange = (e) => {
+    const { value } = e.target
+
+    setReason(value)
+
+  }
+
+  const handleOpenDeleteModal = () => {
+    dialog.current.open()
+
+  }
+  const handleCloseDeleteModal = () => {
+    dialog.current.close();
+  }
+
 
   let content = <p>Payment request not found</p>
 
@@ -80,14 +134,38 @@ function ViewPaymentRequest() {
               <p className='text-right'>{currencyFormatter(paymentInfo.amount)}</p>
             </div>
           </div>
+          <button className=' text-red_highlight py-4 w-full hover:bg-red-500/50 hover:text-white rounded-md' onClick={handleOpenDeleteModal}>Reject request</button>
         </div>
-        <UploadScreenShot />
+        <UploadScreenShot paymentData={data} />
       </div>
     </>
   }
-
   return (
-    <div>{content}</div>
+    <>
+      <Modal ref={dialog} onClose={handleCloseDeleteModal}>
+        <div className='flex mb-8 items-center gap-2'>
+          <DeleteSharpIcon fontSize='large' sx={{ color: '#ef4444' }} />
+          <h2 className='text-red-500'>Reject</h2>
+        </div>
+        <div className='w-96'>
+          <h3 className=' text-dark_font my-4'>State your reason</h3>
+          <CustomTextArea val={reason} onChange={handleTextChange} error={errorMessage} maxVal={150} />
+        </div>
+        <div className='mt-8 flex gap-2 justify-end'>
+          <button className='hover:bg-slate-200 px-4 py-1 rounded-lg text-light_font' onClick={handleCloseDeleteModal} disabled={pendingDeletion}>Cancel</button>
+          <button onClick={handleDelete} className='bg-red-500 px-4 py-1 rounded-lg text-white hover:bg-red-400' disabled={pendingDeletion} >{pendingDeletion ? 'Rejecting...' : 'Reject'}</button>
+        </div>
+        {isDeletionError && <ErrorSingle message={deletionError.info?.error || 'An error occured'}/>}
+
+      </Modal>
+      <div>
+
+        <IconButton onClick={handleBack} className='text-accent_color fill-accent_color'>
+          <ArrowBackSharpIcon className="text-accent_color fill-current" />
+        </IconButton>
+        {content}
+      </div>
+    </>
   )
 }
 

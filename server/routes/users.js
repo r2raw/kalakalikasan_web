@@ -31,15 +31,29 @@ const userQrDir = isProduction
     ? "/server/public/userQr"
     : path.join(__dirname, "../public/userQr");
 
-
+const paymentImgDir = isProduction ? "/server/public/paymentImg" : path.join(__dirname, "../public/paymentImg")
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
 }
 if (!fs.existsSync(userQrDir)) {
     fs.mkdirSync(userQrDir, { recursive: true });
 }
+if (!fs.existsSync(paymentImgDir)) {
+    fs.mkdirSync(paymentImgDir, { recursive: true });
+}
 
 
+
+
+const paymentStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, paymentImgDir);
+    },
+    filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+        cb(null, file.fieldname + "-" + uniqueSuffix + "-" + file.originalname);
+    },
+});
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -50,6 +64,8 @@ const storage = multer.diskStorage({
         cb(null, file.fieldname + "-" + uniqueSuffix + "-" + file.originalname);
     },
 });
+
+const paymentUpload = multer({ storage: paymentStorage })
 const upload = multer({ storage: storage });
 
 const saltRounds = 10;
@@ -957,7 +973,85 @@ router.patch('/view-notif', async (req, res) => {
 });
 
 
+router.post('/reject-payment', async (req, res, next) => {
+    try {
+        const { reason, amount, userId, paymentId } = req.body;
+        console.log(req.body)
+        const paymentRef = db.collection('payment_request').doc(paymentId);
+        const notificationRef = db.collection('notifications').doc()
+        const userRef = db.collection('users').doc(userId)
+        const userSnapshot = await userRef.get();
 
+        if (!userSnapshot.exists) {
+            return res.status(404).json({ error: 'User not found' })
+        }
+        const notificationData = {
+            title: "Payment Request Rejected!",
+            message: `Your payment request has been declined. An amount of ${amount} has been successfully refunded to your account.`,
+            send_type: "direct",
+            notif_type: "payment",
+            redirect_type: "payment",
+            redirect_id: paymentId,
+            userId: userId,
+            readBy: [],
+            notif_date: admin.firestore.FieldValue.serverTimestamp(),
+        };
+
+        const paymentData = {
+            rejected_reason: reason,
+            rejected_date: admin.firestore.FieldValue.serverTimestamp(),
+            status: 'rejected'
+        }
+
+        const { points } = userSnapshot.data();
+
+        const newPoints = points + parseInt(amount);
+
+        const updatePoints = await userRef.set({points: newPoints}, {merge: true})
+        const savePayment = await paymentRef.set(paymentData, { merge: true })
+        const saveNotif = await notificationRef.set(notificationData, { merge: true });
+
+        return res.status(200).json({message: 'success'})
+    } catch (error) {
+        console.error(error.message)
+        return res.status(501).json({error: error.message});
+    }
+})
+
+router.post('/approve-payment', paymentUpload.single('image'), async (req,res,next)=>{
+    try {
+
+        const {amount, userId, approved_by, paymentId, } = req.body;
+        const image = req.file.filename
+
+        const paymentRef = db.collection('payment_request').doc(paymentId);
+        const notifRef = db.collection('notifications').doc();
+        const notificationData = {
+            title: "Payment Approved!",
+            message: `Your payment request has been successfully processed. An amount of ${amount} has been sent to your registered mobile number.`,
+            send_type: "direct",
+            notif_type: "payment",
+            redirect_type: "payment",
+            redirect_id: paymentId,
+            userId: userId,
+            readBy: [],
+            notif_date: admin.firestore.FieldValue.serverTimestamp(),
+        };
+
+        const paymentData = {
+            acceptance_image: image,
+            approved_by,
+            date_approved: admin.firestore.FieldValue.serverTimestamp(),
+            status: 'approved',
+        }
+
+        const savePayment = paymentRef.set(paymentData, {merge: true})
+        const saveNotif = notifRef.set(notificationData, {merge: true})
+        return res.status(200).json({message: 'success'})
+    } catch (error) {
+        return res.status(501).json({error: error.message});
+    }
+} )
 router.post('/request-payment', async (req, res, next) => {
     const batch = db.batch();
     try {
@@ -1148,7 +1242,7 @@ router.get('/pending-payments', async (req, res, next) => {
         const paymentPromises = [];
 
         if (paymentSnapshot.empty) {
-            return res.status(200).json({ paymentPromises });
+            return res.status(200).json({ payments: paymentPromises });
         }
 
 
@@ -1396,10 +1490,10 @@ router.post('/activate-account', async (req, res, next) => {
         const userRef = db.collection('users').doc(userId)
 
 
-        const updateVerification = await verificationRef.set({isUsed: true}, {merge: true});
-        const updateUser = await userRef.set({status: 'activated'}, {merge: true})
+        const updateVerification = await verificationRef.set({ isUsed: true }, { merge: true });
+        const updateUser = await userRef.set({ status: 'activated' }, { merge: true })
 
-        return res.status(200).json({message: 'success'})
+        return res.status(200).json({ message: 'success' })
 
     } catch (error) {
         return res.status(501).json({ error: error.message })

@@ -50,32 +50,39 @@ function CreatePosts() {
     const { files } = e.target;
     if (files.length === 0) return;
 
-    for (let i = 0; i < files.length; i++) {
-      if (files[i].type.split('/')[0] !== 'image') continue;
-
-      if (!postData.medias.some((e) => e.name === files[i].name)) {
-        const imgId = uid()
-
-        const fileObj = {
-          id: imgId,
-          name: files[i].name,
-          imgUrl: URL.createObjectURL(files[i]),
-          file: files[i]
-
-        }
-
-        setPostData(prev => {
-          return ({
-            ...prev,
-            medias: [fileObj, ...prev.medias]
-          })
-        })
-      }
+    // Prevent adding more than 5 files
+    if (postData.medias.length >= 5) {
+        alert("You can only upload up to 5 images.");
+        return;
     }
 
+    let newFiles = [];
 
+    for (let i = 0; i < files.length; i++) {
+        if (files[i].type.split('/')[0] !== 'image') continue;
 
-  }
+        if (!postData.medias.some((e) => e.name === files[i].name)) {
+            const imgId = uid();
+
+            const fileObj = {
+                id: imgId,
+                name: files[i].name,
+                imgUrl: URL.createObjectURL(files[i]),
+                file: files[i]
+            };
+
+            newFiles.push(fileObj);
+
+            // Stop adding files if limit is reached
+            if (postData.medias.length + newFiles.length >= 5) break;
+        }
+    }
+
+    setPostData(prev => ({
+        ...prev,
+        medias: [...prev.medias, ...newFiles]
+    }));
+};
 
   const handleDragOver = (e) => {
     e.preventDefault();

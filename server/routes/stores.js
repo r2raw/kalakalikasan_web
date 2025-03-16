@@ -414,13 +414,14 @@ router.get("/store-info/:id", async (req, res, next) => {
       return res.status(401).json({ message: "Unauthorized", errors: errors });
     }
 
-    const { firstname, lastname, middlename } = userDoc.data();
+    const { firstname, lastname, middlename, points } = userDoc.data();
 
     responseObj = {
       ...storeDoc.data(),
       firstname,
       lastname,
       middlename,
+      points,
     };
 
     return res.status(200).json({ message: "success", store: responseObj });
