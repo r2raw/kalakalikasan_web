@@ -734,3 +734,33 @@ export const fetchPaymentReq = async ({ signal, id }) => {
 
 
 
+export const activateAccount = async ({ data }) => {
+    try {
+        console.log(data)
+        const response = await axios.post(`/activate-account`, data, {
+            headers: {
+                'Content-Type': 'application/json', // Specify multipart/form-data
+            },
+        });
+
+        return response.data.message;
+    } catch (error) {
+        const err = new Error(error.response?.data?.message || "An error occurred");
+        err.code = error.response?.status || 500;
+        err.info = error.response?.data || ['Error fetching data'];
+        throw err;
+    }
+}
+
+
+export const fetchActivationLink = async ({ signal, id }) => {
+    try {
+        const response = await axios.get(`/get-activation-link/${id}`, { signal });
+        return response.data; // Returns array of available years
+    } catch (error) {
+        const err = new Error(error.response?.data?.message || "An error occurred");
+        err.code = error.response?.status || 500;
+        err.info = error.response?.data || ['Error fetching data'];
+        throw err;
+    }
+};

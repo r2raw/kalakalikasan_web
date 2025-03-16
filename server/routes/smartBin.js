@@ -498,7 +498,7 @@ router.get('/fetch-username/:username', async (req, res, next) => {
     try {
         const { username } = req.params;
         console.log(username)
-        const userRef = db.collection('users').where('username', '==', lowerCaseTrim(username).replace(' ', ''));
+        const userRef = db.collection('users').where('username', '==', lowerCaseTrim(username).replace(' ', '')).where('role', 'not-in', ['admin, officer']).where('status', '==', 'activated');
         const userSnapshot = await userRef.get();
 
         if (userSnapshot.empty) {
@@ -525,6 +525,10 @@ router.get('/qr-scan-user/:id', async (req, res, next) => {
 
         if (!userSnapshot.exists) {
             return res.status(404).json({ error: `A user with an id of ${id} does not exist!` })
+        }
+
+        if(userSnapshot.data().status == 'deactivated'){
+            return res.status(409).json({error: 'User is deactivated'});
         }
 
         console.log({ userId: userSnapshot.id, ...userSnapshot.data() })

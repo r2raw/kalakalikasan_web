@@ -11,9 +11,9 @@ function Services() {
       <PageHeader textHeader={"Our Services"} />
       <LandingLightContainer>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-16">
-          <ServiceCard icon={starcoin} message={'Eco-Actors can earn, store, and redeem Eco-Coins by recycling materials. They can generate QR codes for transactions, scan barcodes at partner stores, and track their e-wallet balance and transaction history.'} />
-          <ServiceCard icon={house}  message={'Eco-Partners can manage their store profiles and products, including adding, updating, and removing items. They can accept Eco-Coins as payment, track their sales and transaction history, and redeem their collected Eco-Coins for cash through the system.'}  />
-          <ServiceCard icon={gear}  message={'Admins have full control over the platform, allowing them to manage user accounts, approve or reject Eco-Partner applications, update conversion rates, and oversee content such as announcements and educational materials. '}  />
+          <ServiceCard icon={starcoin} title={'COIN REWARDS AND TRANSACTIONS'} message={'Eco-Actors can earn, store, and redeem Eco-Coins by recycling materials. They can generate QR codes for transactions, scan barcodes at partner stores, and track their e-wallet balance and transaction history.'} />
+          <ServiceCard icon={house} title={'STORE AND PRODUCT MANAGEMENT'}  message={'Eco-Partners can manage their store profiles and products, including adding, updating, and removing items. They can accept Eco-Coins as payment, track their sales and transaction history, and redeem their collected Eco-Coins for cash through the system.'}  />
+          <ServiceCard icon={gear} title={'SYSTEM AND USER MANAGEMENT'}  message={'Admins have full control over the platform, allowing them to manage user accounts, approve or reject Eco-Partner applications, update conversion rates, and oversee content such as announcements and educational materials. '}  />
         </div>
       </LandingLightContainer>
     </div>
