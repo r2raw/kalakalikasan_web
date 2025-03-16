@@ -191,7 +191,7 @@ function LineCollectedMaterials() {
 
                 <div className="flex gap-2">
                     {["monthly", ...(selectedYear === new Date().getFullYear() ? ["weekly", "daily"] : [])].map((type) => (
-                        <label key={type} className="cursor-pointer capitalize px-4 py-2 border rounded-full">
+                        <label key={type} className={`cursor-pointer capitalize px-4 py-2 border rounded-full ${selectedCollectionType === type ? ' bg-accent_color text-white' : ''}`}>
                             <input
                                 type="radio"
                                 name="collection"

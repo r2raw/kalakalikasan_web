@@ -8,7 +8,7 @@ function Features() {
       <PageHeader textHeader={'App Features'} />
       <LandingLightContainer>
         <div className='flex flex-col gap-16'>
-          <div className='flex justify-around gap-4 flex-col lg:flex-row lg:px-80'>
+          <div className='flex justify-around gap-4 items-center flex-col lg:flex-row lg:px-80'>
             <div>
               <h1 className='pb-12 text-secondary_color'>As Eco-Actor</h1>
               <ul>
@@ -20,9 +20,9 @@ function Features() {
                 <li><h2 className='text-secondary_color text-xl lg:text-3xl'>• Register a Store</h2></li>
               </ul>
             </div>
-            <img src={phoneImage} className='w-40 h-40 lg:w-96 lg:h-96' />
+            <img src={phoneImage} className='w-40 h-40 lg:w-96 lg:h-[70dvh]' />
           </div>
-          <div className='flex justify-around gap-4 flex-col lg:flex-row lg:px-80'>
+          <div className='flex justify-around items-center gap-4 flex-col lg:flex-row lg:px-80'>
             <div className='lg:order-2'>
               <h1 className='pb-12 text-secondary_color'>As Eco-Partner</h1>
               <ul >
@@ -34,7 +34,7 @@ function Features() {
                 <li><h2 className='text-secondary_color text-xl lg:text-3xl'>• View Transactions</h2></li>
               </ul>
             </div>
-            <img src={phoneImage} className='w-40 h-40 lg:w-96 lg:h-96' />
+            <img src={phoneImage} className='w-40 h-40 lg:w-96 lg:h-[70dvh]' />
           </div>
         </div>
       </LandingLightContainer>

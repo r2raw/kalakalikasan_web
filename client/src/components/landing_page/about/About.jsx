@@ -1,6 +1,6 @@
 import React from "react";
 import PageHeader from "../PageHeader";
-import about_phone from "../../../assets/images/about_phone.png";
+import about_phone from "../../../assets/images/phone_notalike.png";
 import LandingLightContainer from "../../models/LandingLightContainer";
 
 function About() {

@@ -118,7 +118,7 @@ function ExpenseForecast() {
             <div className="grid md:grid-cols-2 gap-4 w-full">
                 <div className="w-full flex flex-col gap-2 items-center justify-center ">
                     <h4 className="bg-dark_font w-full py-2 px-4 rounded-md shadow-md hover:shadow-none text-center text-white text-sm md:text-xl">
-                        Expense's growth rate
+                        Expense&apos;s growth rate
                     </h4>
                     {growthRate}
                 </div>
