@@ -1545,5 +1545,4 @@ router.get('/get-payment/:id', async (req,res, next)=>{try {
     return res.status(501).json({error: error.message})
 }})
 
-
 module.exports = router;
