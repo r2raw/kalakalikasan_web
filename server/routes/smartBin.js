@@ -527,8 +527,8 @@ router.get('/qr-scan-user/:id', async (req, res, next) => {
             return res.status(404).json({ error: `A user with an id of ${id} does not exist!` })
         }
 
-        if(userSnapshot.data().status == 'deactivated'){
-            return res.status(409).json({error: 'User is deactivated'});
+        if (userSnapshot.data().status == 'deactivated') {
+            return res.status(409).json({ error: 'User is deactivated' });
         }
 
         console.log({ userId: userSnapshot.id, ...userSnapshot.data() })
@@ -779,7 +779,6 @@ router.get('/available-years', async (req, res) => {
             if (data.transaction_date) {
                 let transactionDate;
 
-                // Check if transaction_date is a Firestore Timestamp
                 if (data.transaction_date.toDate) {
                     transactionDate = data.transaction_date.toDate();
                 } else {
@@ -906,6 +905,92 @@ router.get('/monthly-expense-forecast', async (req, res) => {
         return res.status(500).json({ message: error.message });
     }
 });
+
+
+router.get('/expenses-list', async (req, res, next) => {
+    try {
+        const binRef = db.collection('smart_bin')
+        const binSnapshot = await binRef.where('claim_type', 'in', ['cash', 'direct_to_bin']).get()
+        const expenses = [];
+
+        let years = new Set();
+        binSnapshot.forEach(doc => {
+            const binData = doc.data()
+
+            const yearClaimed = binData.claiming_date.toDate().getFullYear();
+
+            years.add(yearClaimed)
+
+
+            let method = 'Manual Collection';
+            if (binData.claim_type == 'direct_to_bin') {
+                method = 'Vending Machine'
+            }
+            expenses.push({
+                id: doc.id,
+                type: 'RVM',
+                method,
+                name: null,
+                points: binData.total_points,
+                amount: binData.total_points,
+                claiming_date: binData.claiming_date
+            })
+        })
+
+
+        const paymentRef = db.collection('payment_request')
+        const paymentSnapshot = await paymentRef.where('status', '==', 'approved').get()
+
+        // const paymentTransaction = paymentSnapshot.forEach(async (doc) =>{
+        //     const paymentData = doc.data()
+
+        //     const userId = paymentData.userId
+
+        //     const userRef = db.collection('users').doc(userId)
+        //     const userSnapshot = await userRef.get();
+        // })
+
+        const paymentTransactions = await Promise.all(paymentSnapshot.docs.map(async (doc) => {
+            const paymentData = doc.data()
+            const userId = paymentData.userId;
+
+            const userRef = db.collection('users').doc(userId)
+            const userSnapshot = await userRef.get()
+            const { firstname, lastname, middlename } = userSnapshot.data()
+
+            const fullname = `${firstname}${middlename && ` ${middlename}`} ${lastname}`
+
+            // let method = 'Online'
+
+            // if (paymentData.type == 'cash') {
+            //     method = 'Cash'
+            // }
+            const yearClaimed = paymentData.date_approved.toDate().getFullYear();
+
+            years.add(yearClaimed)
+
+            return {
+                id: doc.id,
+                type: 'Points Conversion Request',
+                method:paymentData.type,
+                name: fullname,
+                points: paymentData.amount,
+                amount: paymentData.amount,
+                claiming_date: paymentData.date_approved
+            }
+        }))
+
+        const availableYears = [...years].sort((a, b) => b - a)
+        expenses.push(...paymentTransactions)
+
+        const sortedExpenses = expenses.sort((a,b) => b.claiming_date - a.claiming_date)
+        return res.status(200).json({ expenses: sortedExpenses, availableYears })
+
+    } catch (error) {
+        console.error(error.message)
+        return res.status(500).json({ error: error.message });
+    }
+})
 
 
 module.exports = router;

@@ -11,6 +11,18 @@ export const dateFormatter = (date) => {
 
     return formattedDate;
 }
+export const fullDateFormatter = (date) => {
+
+    const formattedDate = new Date(date).toLocaleDateString("en-US", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+    });
+
+
+    return formattedDate;
+}
+
 
 export const dbDateFormatter = (timestamp) => {
     const date = new Date(timestamp._seconds * 1000);

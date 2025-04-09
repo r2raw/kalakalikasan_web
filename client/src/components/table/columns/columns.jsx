@@ -1,5 +1,6 @@
 import _ from 'lodash'
 import { titleCase } from 'title-case';
+import ecocoin from '../../../assets/logo/ecocoin.png'
 import { currencyFormatter, dbDateFormatter, truncateText } from '../../../util/formatter'
 export const schedColumns = [
     { Header: 'Id', accessor: 'id', },
@@ -38,7 +39,7 @@ export const accountColumns = [
             )
         }
     },
-    {Header: 'Role', accessor: 'role', Cell: ({value}) => titleCase(value)},
+    { Header: 'Role', accessor: 'role', Cell: ({ value }) => titleCase(value) },
     { Header: 'Contact', accessor: 'mobile_num', },
     { Header: 'Email', accessor: 'email', },
 ]
@@ -58,7 +59,31 @@ export const storeColumns = [
 
 export const paymentColumns = [
     { Header: 'Id', accessor: 'id', },
-    { Header: 'Store Name', accessor: 'store_name', Cell:({value})=> truncateText(titleCase(value),20)},
-    { Header: 'Amount', accessor: 'amount', Cell:({value})=> currencyFormatter(value)},
+    { Header: 'Store Name', accessor: 'store_name', Cell: ({ value }) => truncateText(titleCase(value), 20) },
+    { Header: 'Amount', accessor: 'amount', Cell: ({ value }) => currencyFormatter(value) },
     { Header: 'Request date', accessor: 'date_requested', Cell: ({ value }) => dbDateFormatter(value) },
+]
+
+
+
+export const expensesListColumns = [
+    { Header: 'Id', accessor: 'id', },
+    { Header: 'Type', accessor: 'type', Cell: ({ value }) => titleCase(value) },
+    { Header: 'Method', accessor: 'method', Cell: ({ value }) => titleCase(value) },
+    { Header: 'Name', accessor: 'name', Cell: ({ value }) => value ? titleCase(value) : 'N/A' },
+    { Header: 'Points', accessor: 'points', Cell: ({ value }) => {
+        return <div className='flex gap-1 items-center'><img src={ecocoin} alt='ecocoin' className='w-4 h-4'/>{value}</div>
+    } },
+    { Header: 'Amount', accessor: 'amount', Cell: ({ value }) => currencyFormatter(value) },
+    { Header: 'Date Claimed', accessor: 'claiming_date', Cell: ({ value }) => dbDateFormatter(value) },
+]
+export const rvmExpenseListColumns = [
+    { Header: 'Id', accessor: 'id', },
+    { Header: 'Type', accessor: 'type', Cell: ({ value }) => titleCase(value) },
+    { Header: 'Method', accessor: 'method', Cell: ({ value }) => titleCase(value) },
+    { Header: 'Points', accessor: 'points', Cell: ({ value }) => {
+        return <div className='flex gap-1 items-center'><img src={ecocoin} alt='ecocoin' className='w-4 h-4'/>{value}</div>
+    } },
+    { Header: 'Amount', accessor: 'amount', Cell: ({ value }) => currencyFormatter(value) },
+    { Header: 'Date Claimed', accessor: 'claiming_date', Cell: ({ value }) => dbDateFormatter(value) },
 ]

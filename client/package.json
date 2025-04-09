@@ -31,6 +31,7 @@
     "react-redux": "^9.2.0",
     "react-router-dom": "^7.0.1",
     "react-table": "^7.8.0",
+    "react-to-print": "^3.0.5",
     "title-case": "^4.3.2",
     "uid": "^2.0.2"
   },

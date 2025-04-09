@@ -802,3 +802,18 @@ export const approvePayment = async ({ data }) => {
         throw err;
     }
 }
+
+
+
+export const fetchListOfExpense = async ({ signal }) => {
+    try {
+        const response = await axios.get(`/expenses-list`, { signal });
+        return response.data;
+    } catch (error) {
+
+        const err = new Error(error.response?.data?.message || "An error occurred");
+        err.code = error.response?.status || 500;
+        err.info = error.response?.data || 'Error fetching data';
+        throw err;
+    }
+}

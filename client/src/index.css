@@ -2,52 +2,56 @@
 @tailwind components;
 @tailwind utilities;
 
-*{
+* {
   font-family: "Inter", sans-serif;
   @apply tracking-widest leading-loose;
 }
 
-p{
+p {
   @apply text-light_font;
 }
 
-h1, h2, h3, h4, h5, h6{
-  @apply  font-bold;
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  @apply font-bold;
 }
-h1{
+h1 {
   @apply text-4xl;
 }
 
-h2{
+h2 {
   @apply text-3xl;
 }
 
-h3{
+h3 {
   @apply text-2xl;
 }
 
-h4{
+h4 {
   @apply text-xl;
 }
 
-h5{
+h5 {
   @apply text-lg;
 }
 
-h6{
+h6 {
   @apply text-sm;
 }
 
-
-.lift{
+.lift {
   text-shadow: -2px 5px 5px rgba(0, 0, 0, 0.5);
 }
 
-.nav-icon svg{
+.nav-icon svg {
   @apply sm:w-6 sm:h-6 md:h-8 md:w-8;
 }
 
-.nav-icon-arrow svg{
+.nav-icon-arrow svg {
   @apply w-4 h-4 md:h-6 md:w-6;
 }
 
@@ -91,21 +95,20 @@ h6{
   background: #1a3e24; /* Darker green on hover */
 }
 
-
-.card{
+.card {
   @apply shadow-cardShadow rounded-md hover:shadow-none bg-white text-secondary_color flex items-center justify-center px-2 py-4;
 }
 
-.my-card{
-  @apply shadow-cardShadow rounded-md hover:shadow-none
+.my-card {
+  @apply shadow-cardShadow rounded-md hover:shadow-none;
 }
 
-.card table{
+.card table {
   @apply w-full text-left text-light_font;
 }
 
-input{
-  @apply bg-transparent outline-none text-2xl w-full px-2 h-12
+input {
+  @apply bg-transparent outline-none text-2xl w-full px-2 h-12;
 }
 
 @layer base {
@@ -116,9 +119,105 @@ input{
   }
 }
 
-.textured-bg{
+.textured-bg {
   background-repeat: no-repeat;
   background-size: cover;
-  background-image: linear-gradient(70deg, #A9D9B4, #C2FFBC, #DFFFD6, #E8F8E0 ),
+  background-image: linear-gradient(70deg, #a9d9b4, #c2ffbc, #dfffd6, #e8f8e0),
     url(./assets/images/OIP.jpg);
+}
+
+@media print {
+  body {
+    margin: 0;
+    padding: 0;
+  }
+
+  .your-modal-class {
+    all: unset;
+  }
+
+  .print-area {
+    margin: 0 auto;
+    padding: 32px;
+    width: 100%;
+    max-width: 800px;
+    font-size: 12px;
+    background-color: white;
+    box-sizing: border-box;
+  }
+
+  .print-area h2 {
+    font-size: x-large;
+  }
+  /* table {
+    page-break-inside: auto;
+  }
+  tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  } */
+
+  .print-area h4 {
+    font-size: larger;
+  }
+  .print-area table {
+    width: 100%;
+    font-size: 11px;
+    border-collapse: collapse;
+    /* page-break-inside: auto;
+    page-break-after: auto; */
+  }
+
+  .print-area thead {
+    display: table-header-group;
+  }
+
+  .print-area tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+
+  .print-area th,
+  .print-area td {
+    text-align: start;
+    padding: 4px 8px;
+  }
+  .print-area th:last-child,
+  .print-area td:last-child {
+    text-align: end;
+  }
+
+  .print-signature {
+    page-break-before: always;
+  }
+
+  .print-area img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* Simulated top/bottom margin between pages */
+  .page-break {
+    page-break-after: always;
+    margin-top: 40px; /* simulate space at the top of new pages */
+    padding-top: 40px;
+  }
+
+  @page {
+    size: A4 portrait;
+    margin: 0.5in;
+  }
+}
+
+@media print {
+  .print-area {
+    padding-top: 0.5in; /* visually simulate top spacing */
+    padding-bottom: 1in;
+  }
+}
+
+@media print {
+  .your-modal-class {
+    all: unset;
+  }
 }
