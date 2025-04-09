@@ -11,7 +11,6 @@ const getAvailableYear = (data) => {
 
     let availableYear = new Set();
 
-    availableYear.add(2024)
     data.forEach(item => {
         const itemYear = new Date(dbDateFormatter(item.claiming_date)).getFullYear()
 
